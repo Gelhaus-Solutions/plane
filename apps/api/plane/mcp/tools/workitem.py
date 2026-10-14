@@ -83,15 +83,26 @@ def count(ctx, args):
     return api(ctx, "GET", f"workspaces/{ctx.slug}/work-items/count/", query)
 
 
+GATED = "Agents do not close work items: this one went to the project's Review state for a human to close (D28)."
+
+
+def _gated(body, result):
+    """Say so when the review gate put the item in Review instead of the completed state asked for."""
+    if body.get("state") and isinstance(result, dict) and str(result.get("state")) != str(body["state"]):
+        return {**result, "note": GATED}
+    return result
+
+
 def create(ctx, args):
-    return api(ctx, "POST", _items(ctx, args), body=_body(args))
+    body = _body(args)
+    return _gated(body, api(ctx, "POST", _items(ctx, args), body=body))
 
 
 def update(ctx, args):
     body = _body(args)
     if not body:
         raise ToolError("Nothing to change: pass at least one field")
-    return api(ctx, "PATCH", _items(ctx, args) + f"{args['workitem_id']}/", body=body)
+    return _gated(body, api(ctx, "PATCH", _items(ctx, args) + f"{args['workitem_id']}/", body=body))
 
 
 def delete(ctx, args):
@@ -141,6 +152,7 @@ Actions:
 priority is a level (urgent, high, medium, low, none) or the name of one of the workspace's priorities
 (`priority list`). assignees, labels, state, parent and type_id take UUIDs.
 description_html is stored as given: send real HTML such as <p>text</p>, never escaped text such as &lt;p&gt;.
+A bot cannot close work: a move into a completed state lands in the project's Review state, and a human closes it.
 description_stripped is plain text, wrapped into paragraphs; description_html wins if both are given.
 On update an empty string leaves a field alone; assignees=[] or labels=[] clear the list; start_date=null or
 target_date=null clear the date.

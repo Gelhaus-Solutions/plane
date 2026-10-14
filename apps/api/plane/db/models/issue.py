@@ -15,6 +15,8 @@ from django.utils import timezone
 from django.db.models import Q
 from django import apps
 
+from crum import get_current_user
+
 # Module imports
 from plane.utils.html_processor import strip_tags
 from plane.utils.path_validator import sanitize_filename
@@ -25,6 +27,9 @@ from plane.utils.uuid import convert_uuid_to_integer
 from plane.utils.agent_session_context import active_session_id
 from .description import Description
 from .state import StateGroup
+
+# Bots that act for an agent or an app; their closes go to Review (D28)
+AGENT_BOT_TYPES = ("USER", "APP")
 
 
 def get_default_properties():
@@ -185,6 +190,7 @@ class Issue(ChangeTrackerMixin, ProjectBaseModel):
     def save(self, *args, **kwargs):
         self._ensure_default_state()
         self._sync_priority_option()
+        self._review_gate()
         kwargs = self._sync_completed_at(kwargs)
 
         if self._state.adding:
@@ -230,6 +236,20 @@ class Issue(ChangeTrackerMixin, ProjectBaseModel):
     def __str__(self):
         """Return name of the issue"""
         return f"{self.name} <{self.project.name}>"
+
+    def _review_gate(self):
+        """Agents do not close work (D28): a bot's move into a completed state lands in the project's Review state,
+        and a human closes the item from there. System bots (automations, intake) are not agents."""
+        if self.state_id is None or not (self._state.adding or self.has_changed("state_id")):
+            return
+        if self.state.group != StateGroup.COMPLETED.value:
+            return
+        user = get_current_user()
+        if not getattr(user, "is_bot", False) or getattr(user, "bot_type", None) not in AGENT_BOT_TYPES:
+            return
+        from plane.utils.state_groups import review_state
+
+        self.state = review_state(self.project_id)
 
     def _sync_priority_option(self):
         """A custom priority set here sets the level; a level changed on its own drops the custom priority."""

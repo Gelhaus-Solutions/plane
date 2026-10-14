@@ -532,3 +532,23 @@ class TestPlanning:
             bot_client, "workitem", action="list", project_id=str(project.id), pql='priority = "Blocker"'
         )
         assert not error and [r["id"] for r in found["results"]] == [item["id"]]
+
+    @pytest.mark.django_db
+    def test_a_bot_cannot_close_work(self, bot_client, api_key_client, project):
+        done = State.objects.create(project=project, name="Done", group="completed", color="#0f0")
+        here = {"project_id": str(project.id)}
+        error, item = tool(bot_client, "workitem", action="create", name="Ship it", **here)
+        assert not error, item
+
+        error, closed = tool(
+            bot_client, "workitem", action="update", workitem_id=item["id"], state=str(done.id), **here
+        )
+        review = State.objects.get(project=project, state_group__key="review")  # made on demand here
+        assert not error and str(closed["state"]) == str(review.id) and "Review" in closed["note"], closed
+        assert Issue.objects.get(pk=item["id"]).completed_at is None
+
+        error, closed = tool(
+            api_key_client, "workitem", action="update", workitem_id=item["id"], state=str(done.id), **here
+        )
+        assert not error and str(closed["state"]) == str(done.id) and "note" not in closed
+        assert Issue.objects.get(pk=item["id"]).completed_at is not None
