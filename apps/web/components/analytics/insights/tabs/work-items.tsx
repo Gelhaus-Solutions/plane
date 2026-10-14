@@ -217,9 +217,8 @@ export const WorkItemsTab = observer(function WorkItemsTab() {
             spellCheck={false}
             aria-invalid={!!pqlError}
             placeholder={t(`${K}.pql_placeholder`)}
-            style={{ fontSize: 11.5 }}
             className={cn(
-              "min-h-[30px] resize-y rounded-lg border border-strong bg-surface-2 px-2 py-1.5 font-code leading-normal text-primary outline-none placeholder:text-placeholder focus:border-accent-strong",
+              "min-h-[30px] resize-y rounded-lg border border-strong bg-surface-2 px-2 py-1.5 font-code text-[11.5px] leading-normal text-primary outline-none placeholder:text-placeholder focus:border-accent-strong",
               { "border-danger-strong focus:border-danger-strong": !!pqlError }
             )}
           />

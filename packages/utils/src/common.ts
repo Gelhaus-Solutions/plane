@@ -12,56 +12,34 @@ import type { CompleteOrEmpty } from "@plane/types";
 // Support email can be configured by the application
 export const getSupportEmail = (defaultEmail: string = ""): string => defaultEmail;
 
-// Matches custom typography classes: text-h1-semibold, text-body-md-regular, text-caption-xs-medium, etc.
-const isCustomTypography = (value: string) =>
-  !/^(h[1-6]|body-(xs|sm|md)|caption-(xs|sm|md))-(regular|medium|semibold|bold)$/.test(value);
+// Custom typography classes: text-h1-semibold, text-body-md-regular, text-caption-xs-medium, etc. They set the size
+// and line height, so they share the font-size group.
+const isTypography = (value: string) =>
+  /^(h[1-6]|body-(xs|sm|md)|caption-(xs|sm|md))-(regular|medium|semibold|bold)$/.test(value);
 
-// Matches custom font size classes: text-9, text-10, text-11, text-12, text-13, text-14, text-16, text-18, text-20, text-24, text-28, text-32, text-40
-const isCustomFontSize = (value: string) => /^(9|10|11|12|13|14|16|18|20|24|28|32|40)$/.test(value);
+// The numeric sizes of propel and Pulse: text-9 to text-40, text-10-5, text-22, text-26
+const isCustomFontSize = (value: string) => /^(9|10|10-5|11|12|13|14|16|18|20|22|24|26|28|32|40)$/.test(value);
 
-// Matches custom text color classes: text-primary, text-on-color, text-secondary, etc.
-const CUSTOM_TEXT_COLORS = [
-  "primary",
-  "secondary",
-  "tertiary",
-  "placeholder",
-  "disabled",
-  "accent-primary",
-  "accent-secondary",
-  "on-color",
-  "on-color-disabled",
-  "inverse",
-  "success",
-  "success-primary",
-  "success-secondary",
-  "warning",
-  "warning-primary",
-  "warning-secondary",
-  "danger",
-  "danger-primary",
-  "danger-secondary",
-];
-const isCustomTextColor = (value: string) => CUSTOM_TEXT_COLORS.includes(value);
+const isNamedFontSize = (value: string) => /^(xs|sm|base|lg|xl|[2-9]xl)$/.test(value);
 
-const twMerge = extendTailwindMerge<"custom-typography" | "custom-text-color">({
+// text-[11.5px], text-[0.8rem], text-[length:var(--x)], text-(length:--x)
+const isArbitraryFontSize = (value: string) =>
+  /^\[(length:)?[\d.]+(px|rem|em)\]$/.test(value) || /^\[length:.+\]$/.test(value) || /^\(length:.+\)$/.test(value);
+
+// Everything else after text- is a colour (text-primary, text-(--x), text-[#fff]) and lands in text-color. The font
+// size group used to take only the numeric sizes and typography, so text-[11.5px] fell in with the colours and
+// whichever of the two came last removed the other.
+const twMerge = extendTailwindMerge({
   override: {
     classGroups: {
-      // Override font-size to include custom numeric sizes and exclude custom typography/colors
       "font-size": [
         {
           text: [
-            (value: string) => isCustomFontSize(value) || (!isCustomTypography(value) && !isCustomTextColor(value)),
+            (value: string) =>
+              isCustomFontSize(value) || isNamedFontSize(value) || isArbitraryFontSize(value) || isTypography(value),
           ],
         },
       ],
-    },
-  },
-  extend: {
-    classGroups: {
-      // Custom typography in its own group
-      "custom-typography": [{ text: [isCustomTypography] }],
-      // Custom text colors in their own group (won't conflict with font sizes)
-      "custom-text-color": [{ text: [isCustomTextColor] }],
     },
   },
 });
