@@ -7,7 +7,7 @@
 import uuid
 
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import Case, F, FloatField, Q, Value, When
 
 from plane.db.models import BUILTIN_PRIORITIES, PRIORITY_LEVELS, WorkspacePriority
 
@@ -42,3 +42,17 @@ def find_priority(workspace_id, value):
         return rows.filter(pk=uuid.UUID(str(value))).first()
     except ValueError:
         return rows.filter(Q(name__iexact=str(value)) | Q(key=str(value).lower())).first()
+
+
+def priority_rank(levels=LEVELS):
+    """A sort key: the level's place in ``levels``, then the custom priority's own order within the level (E35)."""
+    return Case(
+        *[When(priority=level, then=Value(rank * 1_000_000.0)) for rank, level in enumerate(levels)],
+        default=Value(len(levels) * 1_000_000.0),
+        output_field=FloatField(),
+    ) + Case(
+        When(priority_option__isnull=True, then=Value(0.0)),
+        When(priority_option__is_builtin=True, then=Value(0.0)),
+        default=F("priority_option__sequence"),
+        output_field=FloatField(),
+    )

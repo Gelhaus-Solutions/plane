@@ -4,6 +4,8 @@
 
 from django.db.models import Case, CharField, Min, Value, When
 
+from plane.utils.priorities import priority_rank
+
 # Custom ordering for priority and state
 PRIORITY_ORDER = ["urgent", "high", "medium", "low", "none"]
 STATE_ORDER = ["backlog", "unstarted", "started", "completed", "cancelled"]
@@ -157,12 +159,10 @@ def order_issue_queryset(issue_queryset, order_by_param="-created_at"):
     order_by_param = sanitize_order_by(order_by_param, ISSUE_ORDER_BY_ALLOWLIST, default="-created_at")
     # Priority Ordering
     if order_by_param == "priority" or order_by_param == "-priority":
-        issue_queryset = issue_queryset.annotate(
-            priority_order=Case(
-                *[When(priority=p, then=Value(i)) for i, p in enumerate(PRIORITY_ORDER)],
-                output_field=CharField(),
-            )
-        ).order_by("priority_order", "-created_at")
+        # By level, then by the order of the workspace's custom priorities within a level (E35)
+        issue_queryset = issue_queryset.annotate(priority_order=priority_rank(PRIORITY_ORDER)).order_by(
+            "priority_order", "-created_at"
+        )
         order_by_param = "priority_order" if order_by_param.startswith("-") else "-priority_order"
     # State Ordering
     elif order_by_param in ["state__group", "-state__group"]:

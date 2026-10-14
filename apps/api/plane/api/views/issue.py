@@ -79,6 +79,7 @@ from plane.db.models import (
     Workspace,
 )
 from plane.settings.storage import S3Storage
+from plane.utils.priorities import priority_rank
 from plane.utils.path_validator import sanitize_filename
 from plane.utils.order_queryset import (
     ACTIVITY_ORDER_BY_ALLOWLIST,
@@ -213,12 +214,8 @@ def order_work_items(queryset, order_by_param):
     # Priority Ordering
     if order_by_param == "priority" or order_by_param == "-priority":
         priority_order = priority_order if order_by_param == "priority" else priority_order[::-1]
-        return queryset.annotate(
-            priority_order=Case(
-                *[When(priority=p, then=Value(i)) for i, p in enumerate(priority_order)],
-                output_field=CharField(),
-            )
-        ).order_by("priority_order")
+        # By level, then by the order of the workspace's custom priorities within a level (E35)
+        return queryset.annotate(priority_order=priority_rank(priority_order)).order_by("priority_order")
 
     # State Ordering
     if order_by_param in [

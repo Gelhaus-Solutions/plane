@@ -56,6 +56,9 @@ class TestPriorities:
             ]
 
         assert pql('priority = "Blocker"') == ["Fix"]
+        api_key_client.post(items_url(workspace, project), {"name": "Later", "priority": "high"}, format="json")
+        ordered = api_key_client.get(items_url(workspace, project), {"order_by": "priority"}).json()["results"]
+        assert [r["name"] for r in ordered] == ["Ship", "Fix", "Later"]  # urgent, then Blocker within urgent
         assert sorted(pql('priority = "urgent"')) == ["Fix", "Ship"]
         assert api_key_client.get(items_url(workspace, project), {"pql": 'priority = "Someday"'}).status_code == 400
 
