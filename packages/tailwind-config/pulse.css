@@ -126,13 +126,13 @@
     --border-warning-strong: #c27c0a; /* derived */
     --border-warning-subtle: #f1cf8d; /* derived */
 
-    /* ---------- State groups (Review is the second started state) ---------- */
+    /* ---------- State groups: Done is green, Review (the second started state) is the accent violet ---------- */
     --txt-icon-states-backlog: #8a8a96;
     --txt-icon-states-unstarted: #6e6e7a;
     --txt-icon-states-started: #c27c0a;
-    --txt-icon-states-completed: #5b4be0;
+    --txt-icon-states-completed: #14935f;
     --txt-icon-states-cancelled: #c2303a;
-    --state-started-2: #14935f;
+    --state-started-2: #5b4be0;
     /* State lozenges (uppercase pills on group headers): background and text */
     --loz-backlog-bg: #eeeef2;
     --loz-backlog-fg: #565663;
@@ -140,20 +140,14 @@
     --loz-unstarted-fg: #3d3d4a;
     --loz-started-bg: #fdf0d8;
     --loz-started-fg: #8a5500;
-    --loz-review-bg: #dcf5ea;
-    --loz-review-fg: #126a48;
-    --loz-completed-bg: #ebe8fd;
-    --loz-completed-fg: #4535c2;
+    --loz-review-bg: #ebe8fd;
+    --loz-review-fg: #4535c2;
+    --loz-completed-bg: #dcf5ea;
+    --loz-completed-fg: #126a48;
     --loz-cancelled-bg: #fde8e9;
     --loz-cancelled-fg: #a92530;
 
-    /* ---------- Priority: bars in one neutral, urgent in orange ---------- */
-    --priority-urgent: #c43d08;
-    --priority-high: #5b5b67;
-    --priority-medium: #5b5b67;
-    --priority-low: #5b5b67;
-    --priority-none: #5b5b67;
-    --priority-unlit: rgba(91, 91, 103, 0.28);
+    /* ---------- Priority: propel's colours stay (urgent red, high orange, medium yellow, low blue) ---------- */
 
     /* ---------- Agents ---------- */
     --activity-primary: #0b7d73;
@@ -312,29 +306,21 @@
       --txt-icon-states-backlog: #7c7c88;
       --txt-icon-states-unstarted: #b4b4c0;
       --txt-icon-states-started: #f5a524;
-      --txt-icon-states-completed: #8b7dff;
+      --txt-icon-states-completed: #34d399;
       --txt-icon-states-cancelled: #ef6b6b;
-      --state-started-2: #34d399;
+      --state-started-2: #8b7dff;
       --loz-backlog-bg: rgba(124, 124, 136, 0.16);
       --loz-backlog-fg: #bdbdc8;
       --loz-unstarted-bg: rgba(180, 180, 192, 0.12);
       --loz-unstarted-fg: #d7d7df;
       --loz-started-bg: rgba(245, 165, 36, 0.14);
       --loz-started-fg: #f8bd5a;
-      --loz-review-bg: rgba(52, 211, 153, 0.14);
-      --loz-review-fg: #63e2b1;
-      --loz-completed-bg: rgba(139, 125, 255, 0.17);
-      --loz-completed-fg: #b8afff;
+      --loz-review-bg: rgba(139, 125, 255, 0.17);
+      --loz-review-fg: #b8afff;
+      --loz-completed-bg: rgba(52, 211, 153, 0.14);
+      --loz-completed-fg: #63e2b1;
       --loz-cancelled-bg: rgba(239, 107, 107, 0.14);
       --loz-cancelled-fg: #ff9b9b;
-
-      /* ---------- Priority ---------- */
-      --priority-urgent: #ff7a45;
-      --priority-high: #a1a1ae;
-      --priority-medium: #a1a1ae;
-      --priority-low: #a1a1ae;
-      --priority-none: #a1a1ae;
-      --priority-unlit: rgba(161, 161, 174, 0.28);
 
       /* ---------- Agents ---------- */
       --activity-primary: #2dd4bf;

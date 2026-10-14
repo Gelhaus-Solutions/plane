@@ -97,7 +97,9 @@ const COLOUR_GROUPS: { title: string; swatches: Swatch[] }[] = [
       { token: "txt-icon-states-completed", use: "Filled disc with check" },
       { token: "txt-icon-states-cancelled", use: "Disc with cross" },
       { token: "priority-urgent", use: "Urgent square" },
-      { token: "priority-high", use: "Priority bars" },
+      { token: "priority-high", use: "High bars" },
+      { token: "priority-medium", use: "Medium bars" },
+      { token: "priority-low", use: "Low bars" },
     ],
   },
   {
