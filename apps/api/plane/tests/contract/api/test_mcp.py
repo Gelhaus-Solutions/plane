@@ -6,6 +6,7 @@
 
 import json
 import pathlib
+import uuid
 from datetime import timedelta
 
 import pytest
@@ -598,3 +599,55 @@ class TestPlanning:
         assert not error and [r["id"] for r in mine["results"]] == [item["id"]]
         error, gone = tool(client, "workitem_claim", action="release", **where)
         assert not error and gone["claim"]["end_reason"] == "released"
+
+    @pytest.mark.django_db
+    def test_inbox(self, bot, workspace, project, create_user):
+        key = bots.issue_token(bot, label="claude")
+        made, token, _ = agent_sessions.register(key, workspace, {"harness": "claude-code", "external_id": "s-inbox"})
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + token.token)
+        error, item = tool(client, "workitem", action="create", project_id=str(project.id), name="Ask me")
+        issue = Issue.objects.get(pk=item["id"])
+        IssueComment.objects.create(
+            issue=issue,
+            project=project,
+            actor=create_user,
+            created_by=create_user,
+            comment_html=(
+                f'<p><mention-component id="{uuid.uuid4()}" entity_identifier="{made.id}" '
+                'entity_name="agent_session_mention"></mention-component> ping</p>'
+            ),
+        )
+        error, inbox = tool(client, "agent_inbox", action="list")
+        assert not error and [m["kind"] for m in inbox["results"]] == ["mention"], inbox
+        error, acked = tool(client, "agent_inbox", action="ack", ids=[inbox["results"][0]["id"]])
+        assert not error and acked == {"acked": 1}
+        error, empty = tool(client, "agent_inbox", action="list", after=inbox["cursor"])
+        assert not error and empty["results"] == []
+        error, message = tool(client, "agent_inbox", action="ack")
+        assert error and "ids or through" in message
+        bot_client = APIClient()
+        bot_client.credentials(HTTP_AUTHORIZATION="Bearer " + key.token)
+        error, message = tool(bot_client, "agent_inbox", action="list")
+        assert error and "agent session" in message
+
+    @pytest.mark.django_db
+    def test_agent_assignment(self, bot, workspace, project):
+        key = bots.issue_token(bot, label="claude")
+        made, token, _ = agent_sessions.register(key, workspace, {"harness": "claude-code", "external_id": "s-work"})
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + token.token)
+        error, item = tool(client, "workitem", action="create", project_id=str(project.id), name="Queued")
+        where = {"project_id": str(project.id), "workitem_id": item["id"]}
+        error, listing = tool(client, "workitem_agent", action="assign", bot=str(bot.id), **where)
+        assert not error and listing["agents"][0]["state"] == "queue", listing
+        error, work = tool(client, "agent_inbox", action="work")
+        assert not error and [w["name"] for w in work["queue"]] == ["Queued"]
+        error, listing = tool(client, "workitem_agent", action="assign", session=str(made.id), **where)
+        assert not error and listing["agents"][0]["session"]["name"] == "session@s-work"
+        error, work = tool(client, "agent_inbox", action="work")
+        assert not error and [w["name"] for w in work["assigned"]] == ["Queued"] and work["queue"] == []
+        error, listing = tool(client, "workitem_agent", action="unassign", bot=str(bot.id), **where)
+        assert not error and listing == {"agents": []}
+        error, message = tool(client, "workitem_agent", action="unassign", **where)
+        assert error and "needs: bot" in message

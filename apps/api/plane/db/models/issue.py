@@ -384,6 +384,13 @@ class IssueAssignee(ProjectBaseModel):
         on_delete=models.CASCADE,
         related_name="issue_assignee",
     )
+    # A bot assignee's row can name the agent session it is for (E28, D17); without one, a bot assignee is its
+    # queue (D21), and any of its sessions may take the item by claiming it
+    agent_session = models.ForeignKey(
+        "db.AgentSession", on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_rows"
+    )
+    # The bot works on it for the human assignee, who stays accountable (D26)
+    delegated = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ["issue", "assignee", "deleted_at"]

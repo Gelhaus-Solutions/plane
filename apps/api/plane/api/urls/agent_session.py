@@ -8,7 +8,11 @@ from plane.api.views.agent_session import (
     AgentSessionDetailAPIEndpoint,
     AgentSessionEndAPIEndpoint,
     AgentSessionHeartbeatAPIEndpoint,
+    AgentSessionInboxAckAPIEndpoint,
+    AgentSessionInboxAPIEndpoint,
     AgentSessionListCreateAPIEndpoint,
+    AgentSessionWorkAPIEndpoint,
+    WorkItemAgentsAPIEndpoint,
     WorkItemClaimAPIEndpoint,
 )
 
@@ -32,6 +36,26 @@ urlpatterns = [
         "workspaces/<str:slug>/agent-sessions/<uuid:pk>/end/",
         AgentSessionEndAPIEndpoint.as_view(http_method_names=["post"]),
         name="agent-session-end",
+    ),
+    path(
+        "workspaces/<str:slug>/agent-sessions/<uuid:pk>/inbox/",
+        AgentSessionInboxAPIEndpoint.as_view(http_method_names=["get"]),
+        name="agent-session-inbox",
+    ),
+    path(
+        "workspaces/<str:slug>/agent-sessions/<uuid:pk>/inbox/ack/",
+        AgentSessionInboxAckAPIEndpoint.as_view(http_method_names=["post"]),
+        name="agent-session-inbox-ack",
+    ),
+    path(
+        "workspaces/<str:slug>/agent-sessions/<uuid:pk>/work/",
+        AgentSessionWorkAPIEndpoint.as_view(http_method_names=["get"]),
+        name="agent-session-work",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/agents/",
+        WorkItemAgentsAPIEndpoint.as_view(http_method_names=["get", "post", "delete"]),
+        name="work-item-agents",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/claim/",

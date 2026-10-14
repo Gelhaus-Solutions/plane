@@ -5,6 +5,8 @@
 # Django imports
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from .base import BaseModel
 
@@ -103,3 +105,73 @@ class WorkItemClaim(BaseModel):
 
     def __str__(self):
         return f"{self.session_id} on {self.issue_id}"
+
+
+class AgentInboxMessage(BaseModel):
+    """Something Plane has to tell an agent session (E28, D18): a mention, a comment on an item it holds, a handover.
+
+    A message is addressed to one session, or to its bot's queue when ``session`` is empty: any session of that bot may
+    take it by acknowledging it first. ``seq`` orders delivery across the whole table and is assigned under a lock, in
+    commit order, so a reader that has seen ``seq`` N has seen every message below it. A message is delivered once:
+    ``dedupe_key`` names its cause and its recipient, so the same comment never lands twice.
+    """
+
+    class Kind(models.TextChoices):
+        MENTION = "mention", "Mentioned"
+        COMMENT = "comment", "Comment on an item the session holds"
+        ASSIGNMENT = "assignment", "A work item assigned or delegated"
+        HANDOVER = "handover", "Work handed over from an earlier session"
+        ANSWER = "answer", "Answer to a question"
+
+    workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="agent_inbox_messages")
+    bot = models.ForeignKey("db.WorkspaceBot", on_delete=models.CASCADE, related_name="inbox_messages")
+    session = models.ForeignKey(AgentSession, on_delete=models.CASCADE, null=True, blank=True, related_name="inbox")
+    kind = models.CharField(max_length=16, choices=Kind.choices)
+    seq = models.BigIntegerField()
+    issue = models.ForeignKey("db.Issue", on_delete=models.CASCADE, null=True, blank=True, related_name="+")
+    comment = models.ForeignKey("db.IssueComment", on_delete=models.CASCADE, null=True, blank=True, related_name="+")
+    actor = models.ForeignKey("db.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    # The session that wrote the cause: it never sees its own words in the bot's queue
+    from_session = models.ForeignKey(AgentSession, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    body = models.TextField(blank=True)
+    data = models.JSONField(default=dict, blank=True)
+    dedupe_key = models.CharField(max_length=255)
+    acked_at = models.DateTimeField(null=True, blank=True)
+    acked_by = models.ForeignKey(AgentSession, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+
+    class Meta:
+        verbose_name = "Agent Inbox Message"
+        verbose_name_plural = "Agent Inbox Messages"
+        db_table = "agent_inbox_messages"
+        ordering = ("seq",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["dedupe_key"], condition=Q(deleted_at__isnull=True), name="agent_inbox_message_unique_cause"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["seq"], name="agent_inbox_seq_idx"),
+            models.Index(fields=["bot", "session", "acked_at", "seq"], name="agent_inbox_pending_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.kind} #{self.seq} for {self.session_id or self.bot_id}"
+
+
+@receiver(post_save, sender="db.IssueComment")
+def deliver_comment_to_sessions(sender, instance, update_fields=None, **kwargs):
+    """A comment mentions a session or a bot, or lands on an item a session holds: tell the session."""
+    if update_fields and set(update_fields) == {"description_id"}:
+        return  # the second save of a new comment, which only links its description
+    # Imported here: plane.utils needs the models
+    from plane.utils import agent_inbox
+
+    agent_inbox.on_comment(instance)
+
+
+@receiver(post_save, sender="db.Issue")
+def deliver_description_to_sessions(sender, instance, **kwargs):
+    """A work item's description mentions a session or a bot: tell the session."""
+    from plane.utils import agent_inbox
+
+    agent_inbox.on_issue(instance)

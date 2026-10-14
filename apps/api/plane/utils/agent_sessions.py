@@ -16,7 +16,8 @@ from datetime import timedelta
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
-from plane.db.models import AgentSession, APIToken, WorkItemClaim, WorkspaceBot
+from plane.db.models import AgentInboxMessage, AgentSession, APIToken, IssueAssignee, WorkItemClaim, WorkspaceBot
+from plane.utils import agent_inbox
 
 SESSION_TOKEN_DAYS = 30
 AWAY_AFTER = timedelta(minutes=30)
@@ -139,6 +140,7 @@ def register(key, workspace, data):
     session.ended_at = None
     session.end_reason = ""
     session.save(created_by_id=key.user_id)
+    hand_over_to(session)
     return session, _issue_token(session, key), created
 
 
@@ -183,6 +185,57 @@ def sweep(now=None):
         end(session, reason="silent")
         ended += 1
     return away, ended
+
+
+# ------------------------------------------------------------------ handover (D20)
+
+
+def hand_over_to(session):
+    """Open items assigned to an ended session of the same bot and primary dir move to this session, which is told.
+
+    Runs when a session registers: the item shows "waiting for a session" until the next session of that repository
+    starts. Returns the rows that moved.
+    """
+    if not session.primary_dir:
+        return []
+    rows = list(
+        IssueAssignee.objects.filter(
+            agent_session__bot_id=session.bot_id,
+            agent_session__primary_dir=session.primary_dir,
+            agent_session__status=AgentSession.Status.ENDED,
+            issue__deleted_at__isnull=True,
+            issue__archived_at__isnull=True,
+        )
+        .exclude(agent_session_id=session.id)
+        .exclude(issue__state__group__in=("completed", "cancelled"))
+        .select_related("issue__project", "agent_session")
+        .order_by("created_at")
+    )
+    if not rows:
+        return []
+    earlier = sorted({row.agent_session.name for row in rows})
+    IssueAssignee.objects.filter(pk__in=[row.pk for row in rows]).update(agent_session=session)
+    items = [
+        {
+            "identifier": f"{row.issue.project.identifier}-{row.issue.sequence_id}",
+            "name": row.issue.name,
+            "issue_id": str(row.issue_id),
+            "project_id": str(row.issue.project_id),
+            "delegated": row.delegated,
+        }
+        for row in rows
+    ]
+    listing = "\n".join(f"- {item['identifier']}: {item['name']}" for item in items)
+    agent_inbox.deliver(
+        workspace_id=session.workspace_id,
+        bot=session.bot,
+        session=session,
+        kind=AgentInboxMessage.Kind.HANDOVER,
+        dedupe_key=f"handover:{session.id}:{max(row.updated_at for row in rows).timestamp()}:{len(rows)}",
+        body=f"{len(rows)} work item(s) handed over from {', '.join(earlier)}:\n{listing}",
+        data={"items": items, "from_sessions": earlier},
+    )
+    return rows
 
 
 # ------------------------------------------------------------------ claims
