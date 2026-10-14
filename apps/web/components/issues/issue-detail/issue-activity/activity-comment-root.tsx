@@ -56,7 +56,7 @@ export const IssueActivityCommentRoot = observer(function IssueActivityCommentRo
   const filteredActivityAndComments = filterActivityOnSelectedFilters(activityAndComments, selectedFilters);
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       {filteredActivityAndComments.map((activityComment, index) => {
         const comment = getCommentById(activityComment.id);
         return activityComment.activity_type === "COMMENT" ? (

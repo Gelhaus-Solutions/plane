@@ -56,6 +56,10 @@ type LiteTextEditorWrapperProps = MakeOptional<
       }
   );
 
+function isMutableRefObject<T>(value: React.ForwardedRef<T>): value is React.MutableRefObject<T | null> {
+  return !!value && typeof value === "object" && "current" in value;
+}
+
 export const LiteTextEditor = React.forwardRef(function LiteTextEditor(
   props: LiteTextEditorWrapperProps,
   ref: React.ForwardedRef<EditorRefApi>
@@ -111,9 +115,6 @@ export const LiteTextEditor = React.forwardRef(function LiteTextEditor(
   });
   // editor config
   const { getEditorFileHandlers } = useEditorConfig();
-  function isMutableRefObject<T>(ref: React.ForwardedRef<T>): ref is React.MutableRefObject<T | null> {
-    return !!ref && typeof ref === "object" && "current" in ref;
-  }
   // derived values
   const isEmpty = isCommentEmpty(props.initialValue);
 
@@ -123,6 +124,9 @@ export const LiteTextEditor = React.forwardRef(function LiteTextEditor(
         "relative rounded-sm border border-subtle",
         {
           "p-3": editable && !isLiteVariant,
+          // the composer is a field (4A): strong border, accent ring while focused
+          "rounded-lg border-strong bg-layer-1 transition-[border-color,box-shadow] duration-[120ms] focus-within:border-accent-strong focus-within:ring-[3px] focus-within:ring-accent-subtle":
+            editable && isFullVariant,
         },
         parentClassName
       )}
@@ -196,7 +200,7 @@ export const LiteTextEditor = React.forwardRef(function LiteTextEditor(
         <div
           className={cn(
             "origin-top overflow-hidden transition-all duration-300 ease-out",
-            isFocused ? "mt-3 max-h-[200px] scale-y-100 opacity-100" : "invisible max-h-0 scale-y-0 opacity-0"
+            isFocused ? "mt-1.5 max-h-[200px] scale-y-100 opacity-100" : "invisible max-h-0 scale-y-0 opacity-0"
           )}
         >
           <IssueCommentToolbar

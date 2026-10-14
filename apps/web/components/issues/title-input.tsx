@@ -26,6 +26,8 @@ export type IssueTitleInputProps = {
   projectId: string;
   issueId: string;
   containerClassName?: string;
+  /** Type for the title, read-only or editable, e.g. the detail page's 26 px semibold. */
+  titleClassName?: string;
 };
 
 export const IssueTitleInput = observer(function IssueTitleInput(props: IssueTitleInputProps) {
@@ -39,6 +41,7 @@ export const IssueTitleInput = observer(function IssueTitleInput(props: IssueTit
     issueOperations,
     projectId,
     containerClassName,
+    titleClassName,
   } = props;
   const { t } = useTranslation();
   // states
@@ -108,7 +111,7 @@ export const IssueTitleInput = observer(function IssueTitleInput(props: IssueTit
         textarea.removeEventListener("blur", handleBlur);
       }
     };
-  }, [title, isSubmitting, setIsSubmitting]);
+  }, [title, value, isSubmitting, setIsSubmitting]);
 
   // Save on unmount if there are unsaved changes
   useEffect(
@@ -140,13 +143,22 @@ export const IssueTitleInput = observer(function IssueTitleInput(props: IssueTit
     [setIsSubmitting]
   );
 
-  if (disabled) return <div className="text-20 font-medium whitespace-pre-line">{title}</div>;
+  if (disabled)
+    return <div className={cn("whitespace-pre-line", titleClassName ?? "text-20 font-medium")}>{title}</div>;
 
   return (
     <div className="flex flex-col gap-1.5">
       <div className={cn("relative", containerClassName)}>
         <Field name="title" invalid={title?.length === 0}>
-          <div className="flex w-full">
+          {/* The textarea takes its type from the wrapper, so the editable title matches the read-only one. */}
+          <div
+            className={cn(
+              "flex w-full",
+              titleClassName &&
+                "[&_textarea]:[font-size:inherit] [&_textarea]:[line-height:inherit] [&_textarea]:[font-weight:inherit] [&_textarea]:[letter-spacing:inherit]",
+              titleClassName
+            )}
+          >
             <TextArea
               size="2xl"
               surface="inline"

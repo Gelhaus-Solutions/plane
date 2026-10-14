@@ -92,6 +92,7 @@ export const CommentCreate = observer(function CommentCreate(props: TCommentCrea
 
   return (
     <div
+      role="presentation"
       className={cn("sticky bottom-0 z-[4] bg-surface-1 sm:static")}
       onKeyDown={(e) => {
         if (
@@ -144,7 +145,7 @@ export const CommentCreate = observer(function CommentCreate(props: TCommentCrea
                   return asset_id;
                 }}
                 showToolbarInitially={showToolbarInitially}
-                parentClassName="p-2"
+                parentClassName="px-2.5 py-2"
                 displayConfig={{
                   fontSize: "small-font",
                 }}

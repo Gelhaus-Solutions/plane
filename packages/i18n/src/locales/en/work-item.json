@@ -88,7 +88,7 @@
       "backlog": "Backlog"
     },
     "comments": {
-      "placeholder": "Add comment",
+      "placeholder": "Leave a comment, @ to mention",
       "switch": {
         "private": "Switch to private comment",
         "public": "Switch to public comment"
@@ -429,5 +429,33 @@
     "layouts": "Layouts",
     "more_actions": "More actions",
     "editor": "Query editor"
+  },
+  "work_item_peek": {
+    "previous": "Previous work item",
+    "next": "Next work item",
+    "open": "Open",
+    "layout": "Peek layout"
+  },
+  "work_item_detail": {
+    "sub_items": "Sub-items",
+    "add_sub_items": "Add sub-items",
+    "relations": "Relations",
+    "add_relation": "Add relation",
+    "links": "Links",
+    "add_link": "Add link",
+    "attachments": "Attachments",
+    "attach_file": "Attach a file",
+    "progress": "{done} of {total}",
+    "activity": "Activity",
+    "activity_all": "All",
+    "activity_comments": "Comments",
+    "activity_history": "History",
+    "properties": "Properties",
+    "assignee": "Assignee",
+    "dates": "Dates",
+    "latest": "Latest",
+    "all_activity": "All activity",
+    "mention": "Mention",
+    "show_sub_items": "Show sub-items"
   }
 }

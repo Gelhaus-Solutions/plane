@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import type { SyntheticEvent } from "react";
 import { observer } from "mobx-react";
 import { useTranslation } from "@plane/i18n";
 import {
@@ -25,16 +26,16 @@ import { ControlLink } from "@plane/blocks/layout";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // helpers
 import { useSubIssueOperations } from "@/components/issues/issue-detail-widgets/sub-issues/helper";
-import { WithDisplayPropertiesHOC } from "@/components/issues/issue-layouts/properties/with-display-properties-HOC";
+import { MemberSelect } from "@/components/dropdowns/member/member-select";
+import { PrioritySelect } from "@/components/dropdowns/priority/priority-select";
+import { StateSelect } from "@/components/dropdowns/state/state-select";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
+import { useProjectState } from "@/hooks/store/use-project-state";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// components
-import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 // local components
-import { SubIssuesListItemProperties } from "./properties";
 import { SubIssuesListRoot } from "./root";
 
 type Props = {
@@ -72,9 +73,6 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
   const { t } = useTranslation();
   const {
     issue: { getIssueById },
-    subIssues: {
-      filters: { getSubIssueFilters },
-    },
   } = useIssueDetail(issueServiceType);
   const {
     subIssues: { subIssueHelpersByIssueId, setSubIssueHelpers },
@@ -82,6 +80,7 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
   const { fetchSubIssues } = useSubIssueOperations(EIssueServiceType.ISSUES);
   const { toggleCreateIssueModal, toggleDeleteIssueModal } = useIssueDetail(issueServiceType);
   const project = useProject();
+  const { getStateById } = useProjectState();
   const { handleRedirection } = useIssuePeekOverviewRedirection();
   const { isMobile } = usePlatformOS();
   const issue = getIssueById(issueId);
@@ -91,15 +90,23 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
 
   const subIssueHelpers = subIssueHelpersByIssueId(parentIssueId);
   const subIssueCount = issue?.sub_issues_count ?? 0;
-
-  // derived values
-  const subIssueFilters = getSubIssueFilters(parentIssueId);
-  const displayProperties = subIssueFilters?.displayProperties ?? {};
+  const isDone = getStateById(issue?.state_id)?.group === "completed";
 
   //
-  const handleIssuePeekOverview = (issue: TIssue) => handleRedirection(workspaceSlug, issue, isMobile);
+  const handleIssuePeekOverview = (item: TIssue) => handleRedirection(workspaceSlug, item, isMobile);
 
   if (!issue) return <></>;
+
+  const toggleChildren = async (e: SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!subIssueHelpers.issue_visibility.includes(issueId)) {
+      setSubIssueHelpers(parentIssueId, "preview_loader", issueId);
+      await fetchSubIssues(workspaceSlug, projectId, issueId);
+      setSubIssueHelpers(parentIssueId, "preview_loader", issueId);
+    }
+    setSubIssueHelpers(parentIssueId, "issue_visibility", issueId);
+  };
 
   // check if current issue is the root issue
   const isCurrentIssueRoot = issueId === rootIssueId;
@@ -122,10 +129,10 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
       >
         {issue && (
           <div
-            className="group relative flex h-full min-h-11 w-full items-center py-1 pr-2 transition-all hover:bg-surface-2"
+            className="group relative flex h-[34px] w-full items-center gap-[9px] border-b border-subtle pr-2.5 text-13 transition-colors duration-[120ms] hover:bg-layer-transparent-hover"
             style={{ paddingLeft: `${spacingLeft}px` }}
           >
-            <div className="flex size-5 flex-shrink-0 items-center justify-center">
+            <div className="-ml-1 flex size-4 flex-shrink-0 items-center justify-center empty:hidden">
               {/* disable the chevron when current issue is also the root issue*/}
               {subIssueCount > 0 && !isCurrentIssueRoot && (
                 <>
@@ -134,73 +141,100 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
                       <LinkOutline width={14} height={14} className="animate-spin" />
                     </div>
                   ) : (
-                    <div
+                    <button
+                      type="button"
+                      aria-label={t("work_item_detail.show_sub_items")}
+                      aria-expanded={subIssueHelpers.issue_visibility.includes(issue.id)}
                       className="flex h-full w-full cursor-pointer items-center justify-center text-placeholder hover:text-tertiary"
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (!subIssueHelpers.issue_visibility.includes(issueId)) {
-                          setSubIssueHelpers(parentIssueId, "preview_loader", issueId);
-                          await fetchSubIssues(workspaceSlug, projectId, issueId);
-                          setSubIssueHelpers(parentIssueId, "preview_loader", issueId);
-                        }
-                        setSubIssueHelpers(parentIssueId, "issue_visibility", issueId);
-                      }}
+                      onClick={(e) => void toggleChildren(e)}
                     >
                       <ChevronRightOutline
                         className={cn("size-3.5 transition-all", {
                           "rotate-90": subIssueHelpers.issue_visibility.includes(issue.id),
                         })}
                       />
-                    </div>
+                    </button>
                   )}
                 </>
               )}
             </div>
 
-            <div className="flex w-full cursor-pointer items-center gap-3 truncate">
-              <WithDisplayPropertiesHOC displayProperties={displayProperties || {}} displayPropertyKey="key">
-                <div className="flex-shrink-0">
-                  {projectDetail && (
-                    <IssueIdentifier
-                      projectId={projectDetail.id}
-                      issueTypeId={issue.type_id}
-                      projectIdentifier={projectDetail.identifier}
-                      issueSequenceId={issue.sequence_id}
-                      size="xs"
-                      variant="secondary"
-                    />
-                  )}
-                </div>
-              </WithDisplayPropertiesHOC>
-              <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
-                <span className="w-0 flex-1 truncate text-13 text-primary">{issue.name}</span>
-              </Tooltip>
-            </div>
-
+            {/* The row's ControlLink activates on click, so the pickers' own activation must not reach it */}
             <div
-              className="flex-shrink-0 text-13"
+              role="presentation"
+              className="flex shrink-0"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
             >
-              <SubIssuesListItemProperties
-                workspaceSlug={workspaceSlug}
-                parentIssueId={parentIssueId}
-                issueId={issueId}
-                canEdit={canEdit}
-                updateSubIssue={subIssueOperations.updateSubIssue}
-                displayProperties={displayProperties}
-                issue={issue}
+              <StateSelect
+                value={issue.state_id}
+                projectId={issue.project_id ?? undefined}
+                onChange={(val) =>
+                  issue.project_id &&
+                  subIssueOperations.updateSubIssue(
+                    workspaceSlug,
+                    issue.project_id,
+                    parentIssueId,
+                    issueId,
+                    { state_id: val },
+                    { ...issue }
+                  )
+                }
+                disabled={!canEdit}
+                variant="icon-sm"
+                tooltip
               />
             </div>
-
+            <span className="w-[66px] shrink-0 truncate font-code text-[11.5px] text-secondary">
+              {projectDetail?.identifier}-{issue.sequence_id}
+            </span>
+            <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
+              <span className={cn("min-w-0 flex-1 truncate", isDone ? "text-secondary" : "text-primary")}>
+                {issue.name}
+              </span>
+            </Tooltip>
+            <div
+              role="presentation"
+              className="flex shrink-0 items-center gap-1.5"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <PrioritySelect
+                value={issue.priority}
+                onChange={(val) =>
+                  issue.project_id &&
+                  subIssueOperations.updateSubIssue(workspaceSlug, issue.project_id, parentIssueId, issueId, {
+                    priority: val,
+                  })
+                }
+                disabled={!canEdit}
+                variant="icon-sm"
+                tooltip
+              />
+              <MemberSelect
+                value={issue.assignee_ids ?? []}
+                projectId={issue.project_id ?? undefined}
+                onChange={(val) =>
+                  issue.project_id &&
+                  subIssueOperations.updateSubIssue(workspaceSlug, issue.project_id, parentIssueId, issueId, {
+                    assignee_ids: val,
+                  })
+                }
+                disabled={!canEdit}
+                multiple
+                variant={issue.assignee_ids?.length ? "avatar-group-sm" : "icon-sm"}
+                tooltip
+              />
+            </div>
             {/* The row's ControlLink activates on click and on Enter/Space, so the menu's own
                 activation must not reach it. */}
             <div
               role="presentation"
-              className="flex-shrink-0 text-13"
+              className="flex-shrink-0 text-13 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

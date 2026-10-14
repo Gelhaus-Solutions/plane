@@ -14,6 +14,8 @@ import { useTranslation } from "@plane/i18n";
 // UI
 import { Button } from "@makeplane/propel/elements/button";
 import { Icon } from "@makeplane/propel/components/icon";
+import { IconButton } from "@makeplane/propel/components/icon-button";
+import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { setToast } from "@plane/blocks/toast";
 import { EIssueServiceType } from "@plane/types";
 import { Loader } from "@plane/blocks/skeleton";
@@ -26,10 +28,12 @@ export type TIssueSubscription = {
   projectId: string;
   issueId: string;
   serviceType?: EIssueServiceType;
+  /** A bell icon button, as in the detail page's and the peek's top bars (4A, 5A). */
+  compact?: boolean;
 };
 
 export const IssueSubscription = observer(function IssueSubscription(props: TIssueSubscription) {
-  const { workspaceSlug, projectId, issueId, serviceType = EIssueServiceType.ISSUES } = props;
+  const { workspaceSlug, projectId, issueId, serviceType = EIssueServiceType.ISSUES, compact = false } = props;
   const { t } = useTranslation();
   // hooks
   const {
@@ -76,9 +80,26 @@ export const IssueSubscription = observer(function IssueSubscription(props: TIss
   if (isNil(isSubscribed))
     return (
       <Loader>
-        <Loader.Item width="106px" height="28px" />
+        <Loader.Item width={compact ? "28px" : "106px"} height="28px" />
       </Loader>
     );
+
+  if (compact) {
+    const label = isSubscribed ? t("common.actions.unsubscribe") : t("common.actions.subscribe");
+    return (
+      <Tooltip label={label} side="bottom">
+        <IconButton
+          size="md"
+          variant="ghost"
+          icon={<Icon icon={isSubscribed ? UnsubscribeOutline : SubscribeOutline} />}
+          aria-label={label}
+          aria-pressed={isSubscribed}
+          onClick={() => void handleSubscription()}
+          disabled={!isEditable || loading}
+        />
+      </Tooltip>
+    );
+  }
 
   return (
     <div>

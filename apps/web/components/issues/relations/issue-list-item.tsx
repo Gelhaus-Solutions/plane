@@ -16,18 +16,17 @@ import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TIssueRelationTypes } from "@plane/types";
 import type { TIssue, TIssueServiceType } from "@plane/types";
 import { EIssueServiceType } from "@plane/types";
+import { StateGroupIcon } from "@plane/blocks/icons";
 import { ControlLink } from "@plane/blocks/layout";
 import { generateWorkItemLink } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
+import { useProjectState } from "@/hooks/store/use-project-state";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// components
-import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 // local imports
 import { useRelationOperations } from "../issue-detail-widgets/relations/helper";
-import { RelationIssueProperty } from "./properties";
 
 type Props = {
   workspaceSlug: string;
@@ -66,6 +65,7 @@ export const RelationIssueListItem = observer(function RelationIssueListItem(pro
     toggleDeleteIssueModal,
   } = useIssueDetail(issueServiceType);
   const project = useProject();
+  const { getStateById } = useProjectState();
   const { isMobile } = usePlatformOS();
   // derived values
   const issue = getIssueById(relationIssueId);
@@ -73,6 +73,7 @@ export const RelationIssueListItem = observer(function RelationIssueListItem(pro
   const issueOperations = useRelationOperations(issue?.is_epic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES);
   const projectDetail = (issue && issue.project_id && project.getProjectById(issue.project_id)) || undefined;
   const projectId = issue?.project_id;
+  const stateDetails = issue?.state_id ? getStateById(issue.state_id) : undefined;
 
   if (!issue || !projectId) return <></>;
 
@@ -86,13 +87,13 @@ export const RelationIssueListItem = observer(function RelationIssueListItem(pro
   });
 
   // handlers
-  const handleIssuePeekOverview = (issue: TIssue) => {
-    if (issue.is_epic) {
+  const handleIssuePeekOverview = (item: TIssue) => {
+    if (item.is_epic) {
       // open epics in new tab
       window.open(workItemLink, "_blank");
       return;
     }
-    handleRedirection(workspaceSlug, issue, isMobile);
+    handleRedirection(workspaceSlug, item, isMobile);
   };
 
   const handleEditIssue = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -131,52 +132,23 @@ export const RelationIssueListItem = observer(function RelationIssueListItem(pro
         className="w-full cursor-pointer"
       >
         {issue && (
-          <div className="group relative flex h-full min-h-11 w-full items-center px-1.5 py-1 transition-all hover:bg-surface-2">
-            <span className="size-5 flex-shrink-0" />
-            <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
-              <div className="flex-shrink-0">
-                {projectDetail && (
-                  <IssueIdentifier
-                    projectId={projectDetail.id}
-                    issueTypeId={issue.type_id}
-                    projectIdentifier={projectDetail.identifier}
-                    issueSequenceId={issue.sequence_id}
-                    size="xs"
-                    variant="secondary"
-                  />
-                )}
-              </div>
-
-              <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
-                <span className="w-0 flex-1 truncate text-13 text-primary">{issue.name}</span>
-              </Tooltip>
-            </div>
-            {/* The row's ControlLink activates on click and on Enter/Space, so a property picker's
-                own activation must not reach it. */}
-            <div
-              role="presentation"
-              className="flex-shrink-0 text-13"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") e.stopPropagation();
-              }}
-            >
-              <RelationIssueProperty
-                workspaceSlug={workspaceSlug}
-                issueId={relationIssueId}
-                disabled={disabled}
-                issueOperations={issueOperations}
-                issueServiceType={issueServiceType}
-              />
-            </div>
+          <div className="group relative flex h-8 w-full items-center gap-[9px] px-2.5 text-13 transition-colors duration-[120ms] hover:bg-layer-transparent-hover">
+            <StateGroupIcon
+              stateGroup={stateDetails?.group ?? "backlog"}
+              color={stateDetails?.color}
+              className="size-3.5 shrink-0"
+            />
+            <span className="w-[66px] shrink-0 truncate font-code text-[11.5px] text-secondary">
+              {projectDetail?.identifier}-{issue.sequence_id}
+            </span>
+            <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
+              <span className="min-w-0 flex-1 truncate text-primary">{issue.name}</span>
+            </Tooltip>
             {/* The row's ControlLink activates on click and on Enter/Space, so the menu's own
                 activation must not reach it. */}
             <div
               role="presentation"
-              className="flex-shrink-0 pl-2 text-13"
+              className="flex-shrink-0 text-13 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

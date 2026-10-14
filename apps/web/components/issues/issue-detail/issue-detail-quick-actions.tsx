@@ -77,11 +77,7 @@ export const IssueDetailQuickActions = observer(function IssueDetailQuickActions
     try {
       const originURL = typeof window !== "undefined" && window.location.origin ? window.location.origin : "";
       await copyTextToClipboard(`${originURL}${workItemLink}`);
-      setToast({
-        type: "success",
-        title: t("common.link_copied"),
-        message: t("common.copied_to_clipboard"),
-      });
+      setToast({ type: "success", title: t("common.link_copied"), compact: true });
     } catch (_error) {
       setToast({
         title: t("toast.error"),
@@ -141,32 +137,26 @@ export const IssueDetailQuickActions = observer(function IssueDetailQuickActions
   };
 
   return (
-    <>
-      <div className="flex flex-shrink-0 items-center justify-end">
-        <div className="flex flex-wrap items-center gap-2">
-          {currentUser && !issue?.archived_at && (
-            <IssueSubscription workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} />
-          )}
-          <div className="flex flex-wrap items-center gap-2 text-tertiary">
-            <Tooltip label={t("common.actions.copy_link")} disabled={isMobile}>
-              <IconButton
-                variant="secondary"
-                size="md"
-                onClick={handleCopyText}
-                icon={<Icon icon={LinkOutline} />}
-                aria-label={t("common.actions.copy_link")}
-              />
-            </Tooltip>
-            <WorkItemDetailQuickActions
-              parentRef={parentRef}
-              issue={issue}
-              handleDelete={handleDeleteIssue}
-              handleArchive={handleArchiveIssue}
-              handleRestore={handleRestore}
-            />
-          </div>
-        </div>
-      </div>
-    </>
+    <div className="flex shrink-0 items-center gap-0.5">
+      <Tooltip label={t("common.actions.copy_link")} disabled={isMobile} side="bottom">
+        <IconButton
+          variant="ghost"
+          size="md"
+          onClick={() => void handleCopyText()}
+          icon={<Icon icon={LinkOutline} />}
+          aria-label={t("common.actions.copy_link")}
+        />
+      </Tooltip>
+      {currentUser && !issue?.archived_at && (
+        <IssueSubscription workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} compact />
+      )}
+      <WorkItemDetailQuickActions
+        parentRef={parentRef}
+        issue={issue}
+        handleDelete={handleDeleteIssue}
+        handleArchive={handleArchiveIssue}
+        handleRestore={handleRestore}
+      />
+    </div>
   );
 });

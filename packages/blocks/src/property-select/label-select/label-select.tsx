@@ -146,10 +146,10 @@ export function LabelSelect(props: LabelSelectProps) {
                 {labels.map((label) => (
                   <span
                     key={label.id}
-                    className="flex h-6 shrink-0 items-center gap-1 rounded-md bg-label-grey-bg px-2 text-body-xs-medium text-label-grey-text"
+                    className="flex h-5 shrink-0 items-center gap-[5px] rounded-[10px] border border-strong px-[7px] text-[11.5px] text-secondary"
                   >
                     <span
-                      className="h-2 w-2 shrink-0 rounded-full"
+                      className="size-1.5 shrink-0 rounded-full"
                       style={{ backgroundColor: label.color ?? "#000000" }}
                     />
                     <span className="truncate">{label.name}</span>

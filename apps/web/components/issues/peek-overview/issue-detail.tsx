@@ -6,6 +6,7 @@
  */
 
 import { useEffect } from "react";
+import type { ReactNode } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import type { EditorRefApi } from "@plane/editor";
@@ -19,8 +20,6 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";
 import { useUser } from "@/hooks/store/user";
 import useReloadConfirmations from "@/hooks/use-reload-confirmation";
-// plane web components
-import { IssueTypeSwitcher } from "@/components/issues/issue-type-switcher";
 // plane web hooks
 // services
 import { WorkItemVersionService } from "@/services/issue";
@@ -42,11 +41,22 @@ type Props = {
   isArchived: boolean;
   isSubmitting: TNameDescriptionLoader;
   setIsSubmitting: (value: TNameDescriptionLoader) => void;
+  /** The properties grid, drawn between the title and the description (5A) */
+  properties?: ReactNode;
 };
 
 export const PeekOverviewIssueDetails = observer(function PeekOverviewIssueDetails(props: Props) {
-  const { editorRef, workspaceSlug, issueId, issueOperations, disabled, isArchived, isSubmitting, setIsSubmitting } =
-    props;
+  const {
+    editorRef,
+    workspaceSlug,
+    issueId,
+    issueOperations,
+    disabled,
+    isArchived,
+    isSubmitting,
+    setIsSubmitting,
+    properties,
+  } = props;
   // store hooks
   const { data: currentUser } = useUser();
   const {
@@ -81,90 +91,90 @@ export const PeekOverviewIssueDetails = observer(function PeekOverviewIssueDetai
       : undefined;
 
   return (
-    <div className="space-y-2">
-      {issue.parent_id && (
-        <IssueParentDetail
+    <div className="flex flex-col gap-[18px]">
+      <div className="flex flex-col gap-2.5">
+        {issue.parent_id && (
+          <div className="flex">
+            <IssueParentDetail workspaceSlug={workspaceSlug} issue={issue} />
+          </div>
+        )}
+        <IssueTitleInput
           workspaceSlug={workspaceSlug}
           projectId={issue.project_id}
-          issueId={issueId}
-          issue={issue}
+          issueId={issue.id}
+          isSubmitting={isSubmitting}
+          setIsSubmitting={(value) => setIsSubmitting(value)}
           issueOperations={issueOperations}
+          disabled={disabled || isArchived}
+          value={issue.name}
+          titleClassName="text-[21px] leading-[1.25] font-semibold tracking-[-0.018em]"
         />
-      )}
-      <div className="flex items-center justify-between gap-2">
-        <IssueTypeSwitcher issueId={issueId} disabled={isArchived || disabled} />
       </div>
-      <IssueTitleInput
-        workspaceSlug={workspaceSlug}
-        projectId={issue.project_id}
-        issueId={issue.id}
-        isSubmitting={isSubmitting}
-        setIsSubmitting={(value) => setIsSubmitting(value)}
-        issueOperations={issueOperations}
-        disabled={disabled || isArchived}
-        value={issue.name}
-      />
 
-      <DescriptionInput
-        issueSequenceId={issue.sequence_id}
-        containerClassName="-ml-3 border-none"
-        disabled={disabled || isArchived}
-        editorRef={editorRef}
-        entityId={issue.id}
-        fileAssetType={EFileAssetType.ISSUE_DESCRIPTION}
-        initialValue={issueDescription}
-        key={issue.id}
-        onSubmit={async (value, isMigrationUpdate) => {
-          if (!issue.id || !issue.project_id) return;
-          await issueOperations.update(workspaceSlug, issue.project_id, issue.id, {
-            description_html: value.description_html,
-            ...(isMigrationUpdate ? { skip_activity: "true" } : {}),
-          });
-        }}
-        setIsSubmitting={(value) => setIsSubmitting(value)}
-        projectId={issue.project_id}
-        workspaceSlug={workspaceSlug}
-      />
+      {properties}
 
-      <div className="flex items-center justify-between gap-2">
-        {currentUser && (
-          <IssueReaction
-            workspaceSlug={workspaceSlug}
-            projectId={issue.project_id}
-            issueId={issueId}
-            currentUser={currentUser}
-            disabled={isArchived}
-          />
-        )}
-        {!disabled && (
-          <DescriptionVersionsRoot
-            className="flex-shrink-0"
-            entityInformation={{
-              createdAt: issue.created_at ? new Date(issue.created_at) : new Date(),
-              createdByDisplayName: getUserDetails(issue.created_by ?? "")?.display_name ?? "",
-              id: issueId,
-              isRestoreDisabled: disabled || isArchived,
-            }}
-            fetchHandlers={{
-              listDescriptionVersions: (issueId) =>
-                workItemVersionService.listDescriptionVersions(
-                  workspaceSlug,
-                  issue.project_id?.toString() ?? "",
-                  issueId
-                ),
-              retrieveDescriptionVersion: (issueId, versionId) =>
-                workItemVersionService.retrieveDescriptionVersion(
-                  workspaceSlug,
-                  issue.project_id?.toString() ?? "",
-                  issueId,
-                  versionId
-                ),
-            }}
-            handleRestore={(descriptionHTML) => editorRef.current?.setEditorValue(descriptionHTML, true)}
-            projectId={issue.project_id}
-            workspaceSlug={workspaceSlug}
-          />
-        )}
+      <div className="flex flex-col gap-3">
+        <DescriptionInput
+          issueSequenceId={issue.sequence_id}
+          containerClassName="-ml-3 border-none"
+          disabled={disabled || isArchived}
+          editorRef={editorRef}
+          entityId={issue.id}
+          fileAssetType={EFileAssetType.ISSUE_DESCRIPTION}
+          initialValue={issueDescription}
+          key={issue.id}
+          onSubmit={async (value, isMigrationUpdate) => {
+            if (!issue.id || !issue.project_id) return;
+            await issueOperations.update(workspaceSlug, issue.project_id, issue.id, {
+              description_html: value.description_html,
+              ...(isMigrationUpdate ? { skip_activity: "true" } : {}),
+            });
+          }}
+          setIsSubmitting={(value) => setIsSubmitting(value)}
+          projectId={issue.project_id}
+          workspaceSlug={workspaceSlug}
+        />
+
+        <div className="flex items-center justify-between gap-2">
+          {currentUser && (
+            <IssueReaction
+              workspaceSlug={workspaceSlug}
+              projectId={issue.project_id}
+              issueId={issueId}
+              currentUser={currentUser}
+              disabled={isArchived}
+            />
+          )}
+          {!disabled && (
+            <DescriptionVersionsRoot
+              className="flex-shrink-0"
+              entityInformation={{
+                createdAt: issue.created_at ? new Date(issue.created_at) : new Date(),
+                createdByDisplayName: getUserDetails(issue.created_by ?? "")?.display_name ?? "",
+                id: issueId,
+                isRestoreDisabled: disabled || isArchived,
+              }}
+              fetchHandlers={{
+                listDescriptionVersions: (issueId) =>
+                  workItemVersionService.listDescriptionVersions(
+                    workspaceSlug,
+                    issue.project_id?.toString() ?? "",
+                    issueId
+                  ),
+                retrieveDescriptionVersion: (issueId, versionId) =>
+                  workItemVersionService.retrieveDescriptionVersion(
+                    workspaceSlug,
+                    issue.project_id?.toString() ?? "",
+                    issueId,
+                    versionId
+                  ),
+              }}
+              handleRestore={(descriptionHTML) => editorRef.current?.setEditorValue(descriptionHTML, true)}
+              projectId={issue.project_id}
+              workspaceSlug={workspaceSlug}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

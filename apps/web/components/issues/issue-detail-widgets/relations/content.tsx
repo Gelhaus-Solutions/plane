@@ -7,7 +7,6 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
-import { Collapsible } from "@makeplane/propel/components/collapsible";
 import { useTranslation } from "@plane/i18n";
 import type { TIssue, TIssueServiceType, TIssueRelationTypes } from "@plane/types";
 import { EIssueServiceType } from "@plane/types";
@@ -134,34 +133,25 @@ export const RelationsCollapsibleContent = observer(function RelationsCollapsibl
 
   return (
     <>
-      <div className="gap- flex flex-col">
+      <div className="flex flex-col">
         {filteredRelationsArray.map((relation) => (
-          <div key={relation.relationKey}>
-            <Collapsible
-              defaultOpen
-              icon={
-                relation.icon ? (
-                  <span className={cn("flex items-center justify-center rounded p-0.5", relation.className)}>
-                    {relation.icon(14)}
-                  </span>
-                ) : undefined
-              }
-              trigger={<span className="text-13 leading-5 font-medium">{relation.label}</span>}
+          <div key={relation.relationKey} className="border-b border-subtle last:border-b-0">
+            <div
+              className={cn("px-2.5 pt-2 pb-0.5 text-[11.5px] font-semibold text-secondary", {
+                "text-danger-primary": relation.relationKey === "blocked_by",
+              })}
             >
-              {/* Cancels this nested Collapsible's own panel inset so rows realign under
-                  the outer Relations collapsible's single inset instead of stacking two. */}
-              <div className="-mx-3">
-                <RelationIssueList
-                  workspaceSlug={workspaceSlug}
-                  issueId={issueId}
-                  relationKey={relation.relationKey}
-                  issueIds={relation.issueIds}
-                  disabled={disabled}
-                  handleIssueCrudState={handleIssueCrudState}
-                  issueServiceType={issueServiceType}
-                />
-              </div>
-            </Collapsible>
+              {relation.label}
+            </div>
+            <RelationIssueList
+              workspaceSlug={workspaceSlug}
+              issueId={issueId}
+              relationKey={relation.relationKey}
+              issueIds={relation.issueIds}
+              disabled={disabled}
+              handleIssueCrudState={handleIssueCrudState}
+              issueServiceType={issueServiceType}
+            />
           </div>
         ))}
       </div>

@@ -52,9 +52,14 @@ export function IdentifierText(props: TIdentifierTextProps) {
     <Tooltip label="Click to copy" disabled={!enableClickToCopyIdentifier}>
       <button
         type="button"
-        className={cn("text-12 font-medium whitespace-nowrap text-tertiary", textSizeClassName, variantClassName, {
-          "cursor-pointer": enableClickToCopyIdentifier,
-        })}
+        className={cn(
+          "font-code text-12 font-medium whitespace-nowrap text-tertiary",
+          textSizeClassName,
+          variantClassName,
+          {
+            "cursor-pointer": enableClickToCopyIdentifier,
+          }
+        )}
         onClick={handleCopyIssueIdentifier}
         disabled={!enableClickToCopyIdentifier}
       >

@@ -24,7 +24,7 @@ import useSize from "@/hooks/use-window-size";
 // services
 import { WorkItemVersionService } from "@/services/issue";
 // local imports
-import { IssueDetailWidgets } from "../issue-detail-widgets";
+import { IssueDetailSections } from "../issue-detail-widgets";
 import { NameDescriptionUpdateStatus } from "../issue-update-status";
 import { PeekOverviewProperties } from "../peek-overview/properties";
 import { IssueTitleInput } from "../title-input";
@@ -77,22 +77,12 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
 
   return (
     <>
-      <div className="space-y-4 rounded-lg">
-        {issue.parent_id && (
-          <IssueParentDetail
-            workspaceSlug={workspaceSlug}
-            projectId={projectId}
-            issueId={issueId}
-            issue={issue}
-            issueOperations={issueOperations}
-          />
-        )}
-
-        <div className="mb-2.5 flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-2.5">
+        <div className="flex min-h-6 flex-wrap items-center gap-2">
           <IssueTypeSwitcher issueId={issueId} disabled={isArchived || !isEditable} />
-          <div className="flex items-center gap-3">
-            <NameDescriptionUpdateStatus isSubmitting={isSubmitting} />
-          </div>
+          {issue.parent_id && <IssueParentDetail workspaceSlug={workspaceSlug} issue={issue} />}
+          <span className="flex-1" />
+          <NameDescriptionUpdateStatus isSubmitting={isSubmitting} />
         </div>
 
         <IssueTitleInput
@@ -104,8 +94,11 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
           issueOperations={issueOperations}
           disabled={isArchived || !isEditable}
           value={issue.name}
+          titleClassName="text-[26px] leading-[1.2] font-semibold tracking-[-0.022em]"
         />
+      </div>
 
+      <div className="flex flex-col gap-3">
         <DescriptionInput
           issueSequenceId={issue.sequence_id}
           containerClassName="-ml-6 border-none p-0! pl-6!"
@@ -161,7 +154,7 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
         </div>
       </div>
 
-      <IssueDetailWidgets
+      <IssueDetailSections
         workspaceSlug={workspaceSlug}
         projectId={projectId}
         issueId={issueId}

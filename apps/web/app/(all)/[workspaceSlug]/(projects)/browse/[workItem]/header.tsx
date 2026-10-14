@@ -10,7 +10,6 @@ import { useParams } from "next/navigation";
 import { Header, Row } from "@plane/blocks/layout";
 import { cn } from "@plane/utils";
 // components
-import { AppHeader } from "@/components/core/app-header";
 import { TabNavigationRoot } from "@/components/navigation";
 import { AppSidebarToggleButton } from "@/components/sidebar/sidebar-toggle-button";
 // hooks
@@ -59,7 +58,7 @@ export const ProjectWorkItemDetailsHeader = observer(function ProjectWorkItemDet
           </Row>
         </div>
       )}
-      <AppHeader header={<WorkItemDetailsHeader />} />
+      <WorkItemDetailsHeader />
     </>
   );
 });

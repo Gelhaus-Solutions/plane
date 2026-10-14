@@ -5,46 +5,35 @@
  */
 
 import type { ReactNode } from "react";
-import { useRef } from "react";
 import { observer } from "mobx-react";
 // plane imports
-import { ReplyOutline } from "@makeplane/propel/icons";
+import { Avatar } from "@makeplane/propel/components/avatar";
 import type { TIssueComment } from "@plane/types";
-import { cn } from "@plane/utils";
-// hooks
+import { getFileURL } from "@plane/utils";
 
 type TCommentBlock = {
   comment: TIssueComment;
+  /** Kept for callers; the comment no longer draws a timeline */
   ends: "top" | "bottom" | undefined;
   children: ReactNode;
 };
 
+/** A comment in the activity (4A): the author's avatar, then the comment in a bordered bubble. */
 export const CommentBlock = observer(function CommentBlock(props: TCommentBlock) {
-  const { comment, ends, children } = props;
-  const commentBlockRef = useRef<HTMLDivElement>(null);
+  const { comment, children } = props;
 
   if (!comment) return null;
+  const author = comment.actor_detail;
   return (
-    <div
-      id={comment.id}
-      className={`relative flex gap-3 ${ends === "top" ? `pb-2` : ends === "bottom" ? `pt-2` : `py-2`}`}
-      ref={commentBlockRef}
-    >
-      <div
-        className="transition-border absolute top-0 bottom-0 left-[13px] w-px bg-layer-3 duration-1000"
-        aria-hidden
+    <div id={comment.id} className="flex gap-2.5">
+      <Avatar
+        size="sm"
+        alt={author?.display_name}
+        fallback={author?.display_name?.[0]?.toUpperCase()}
+        src={author?.avatar_url ? getFileURL(author.avatar_url) : undefined}
       />
-      <div
-        className={cn(
-          "transition-border relative z-[3] flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-subtle bg-layer-2 uppercase shadow-raised-100 duration-1000"
-        )}
-      >
-        <ReplyOutline width={14} height={14} className="text-secondary" aria-hidden="true" />
-      </div>
-      <div className="flex flex-grow flex-col gap-3 truncate">
-        <div className="mb-2 rounded-lg border border-subtle bg-layer-2 p-3 text-body-sm-regular shadow-raised-100">
-          {children}
-        </div>
+      <div className="min-w-0 flex-1 rounded-[10px] border border-strong bg-surface-2 px-3 py-[9px] text-[13.5px] leading-[1.55]">
+        {children}
       </div>
     </div>
   );

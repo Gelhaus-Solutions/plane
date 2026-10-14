@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import React, { useEffect, useState, useCallback } from "react";
+import type React from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { EIssueCommentAccessSpecifier } from "@plane/constants";
@@ -13,8 +13,8 @@ import type { EditorRefApi } from "@plane/editor";
 // i18n
 import { useTranslation } from "@plane/i18n";
 // ui
-import { Button } from "@makeplane/propel/components/button";
-import { GlobeOutline, LockOutline } from "@makeplane/propel/icons";
+import { Button } from "@makeplane/propel/elements/button";
+import { AtOutline, AttachOutline, GlobeOutline, LockOutline } from "@makeplane/propel/icons";
 import type { ISvgIcons } from "@plane/blocks/icons";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 // constants
@@ -71,117 +71,79 @@ export function IssueCommentToolbar(props: Props) {
     editorRef,
     submitButtonText = "common.comment",
   } = props;
-  // State to manage active states of toolbar items
-  const [activeStates, setActiveStates] = useState<Record<string, boolean>>({});
-
-  // Function to update active states
-  const updateActiveStates = useCallback(() => {
-    if (!editorRef) return;
-    const newActiveStates: Record<string, boolean> = {};
-    Object.values(toolbarItems)
-      .flat()
-      .forEach((item) => {
-        // TODO: update this while toolbar homogenization
-        // @ts-expect-error type mismatch here
-        newActiveStates[item.renderKey] = editorRef.isMenuItemActive({
-          itemKey: item.itemKey,
-          ...item.extraProps,
-        });
-      });
-    setActiveStates(newActiveStates);
-  }, [editorRef]);
-
-  // useEffect to call updateActiveStates when isActive prop changes
-  useEffect(() => {
-    if (!editorRef) return;
-    const unsubscribe = editorRef.onStateChange(updateActiveStates);
-    updateActiveStates();
-    return () => unsubscribe();
-  }, [editorRef, updateActiveStates]);
-
   const isEditorReadyToDiscard = editorRef?.isEditorReadyToDiscard();
   const isSubmitButtonDisabled = isCommentEmpty || !isEditorReadyToDiscard;
 
+  const imageItem = Object.values(toolbarItems)
+    .flat()
+    .find((item) => item.itemKey === "image");
+
+  // The composer's foot (4A): attach and mention, the comment's visibility on public projects, then Comment
   return (
-    <div className="flex h-9 w-full items-stretch gap-1.5 overflow-x-scroll bg-surface-2">
+    <div className="flex w-full items-center gap-1 text-tertiary">
+      {imageItem && (
+        <Tooltip label={imageItem.name}>
+          <button
+            type="button"
+            aria-label={imageItem.name}
+            onClick={() => executeCommand(imageItem)}
+            className="grid size-6 place-items-center rounded-[7px] transition-colors hover:bg-layer-transparent-hover hover:text-secondary"
+          >
+            <AttachOutline className="size-3.5" />
+          </button>
+        </Tooltip>
+      )}
+      <Tooltip label={t("work_item_detail.mention")}>
+        <button
+          type="button"
+          aria-label={t("work_item_detail.mention")}
+          onClick={() => {
+            editorRef?.focus("end");
+            editorRef?.insertText("@");
+          }}
+          className="grid size-6 place-items-center rounded-[7px] transition-colors hover:bg-layer-transparent-hover hover:text-secondary"
+        >
+          <AtOutline className="size-3.5" />
+        </button>
+      </Tooltip>
       {showAccessSpecifier && (
-        <div className="flex flex-shrink-0 items-stretch gap-0.5 rounded-sm border-[0.5px] border-subtle p-1">
+        <div className="ml-1 inline-flex items-center gap-0.5 rounded-md bg-layer-2 p-0.5">
           {COMMENT_ACCESS_SPECIFIERS.map((access) => {
             const isAccessActive = accessSpecifier === access.key;
-
             return (
               <Tooltip key={access.key} label={access.label} layout="stacked">
                 <button
                   type="button"
+                  aria-label={access.label}
+                  aria-pressed={isAccessActive}
                   onClick={() => handleAccessChange?.(access.key)}
-                  className={cn("grid aspect-square place-items-center rounded-xs p-1 hover:bg-layer-1", {
-                    "bg-layer-1": isAccessActive,
+                  className={cn("grid size-5 place-items-center rounded-[5px] text-tertiary", {
+                    "ring-border-strong bg-surface-1 text-primary shadow-e1 ring-1": isAccessActive,
                   })}
                 >
-                  <access.icon
-                    className={cn("h-3.5 w-3.5 text-placeholder", {
-                      "text-primary": isAccessActive,
-                    })}
-                    strokeWidth={2}
-                  />
+                  <access.icon className="size-3" strokeWidth={2} />
                 </button>
               </Tooltip>
             );
           })}
         </div>
       )}
-      <div className="flex w-full items-stretch justify-between gap-2 rounded-sm border-[0.5px] border-subtle p-1">
-        <div className="flex items-stretch">
-          {Object.keys(toolbarItems).map((key, index) => (
-            <div
-              key={key}
-              className={cn("flex items-stretch gap-0.5 border-r border-subtle px-2.5", {
-                "pl-0": index === 0,
-              })}
-            >
-              {toolbarItems[key].map((item) => {
-                const isItemActive = activeStates[item.renderKey];
-
-                return (
-                  <Tooltip key={item.renderKey} label={item.name} shortcut={item.shortcut?.join(" + ")}>
-                    <button
-                      type="button"
-                      onClick={() => executeCommand(item)}
-                      className={cn(
-                        "grid aspect-square place-items-center rounded-xs p-0.5 text-placeholder hover:bg-layer-1",
-                        {
-                          "bg-layer-1 text-primary": isItemActive,
-                        }
-                      )}
-                    >
-                      <item.icon
-                        className={cn("h-3.5 w-3.5", {
-                          "text-primary": isItemActive,
-                        })}
-                        strokeWidth={2.5}
-                      />
-                    </button>
-                  </Tooltip>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-        {showSubmitButton && (
-          <div className="sticky right-1">
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              stretch="auto"
-              label={t(submitButtonText)}
-              onClick={handleSubmit}
-              disabled={isSubmitButtonDisabled}
-              loading={isSubmitting}
-            />
-          </div>
-        )}
-      </div>
+      <span className="flex-1" />
+      {showSubmitButton && (
+        <Button
+          type="submit"
+          variant="primary"
+          size="sm"
+          stretch="auto"
+          onClick={handleSubmit}
+          disabled={isSubmitButtonDisabled || isSubmitting}
+        >
+          {t(submitButtonText)}
+          <kbd className="inline-flex h-4 items-center rounded-[4px] bg-white/16 px-1 font-code text-10-5 font-medium">
+            ↵
+          </kbd>
+        </Button>
+      )}
     </div>
   );
 }

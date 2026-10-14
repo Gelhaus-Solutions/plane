@@ -1,3 +1,4 @@
+// oxlint-disable no-shadow
 /**
  * Copyright (c) 2023-present Plane Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
@@ -239,18 +240,21 @@ export const IssueDetailRoot = observer(function IssueDetailRoot(props: TIssueDe
         />
       ) : (
         <div className="flex h-full w-full overflow-hidden">
-          <div className="h-full w-full space-y-6 overflow-y-auto px-9 py-5">
-            <IssueMainContent
-              workspaceSlug={workspaceSlug}
-              projectId={projectId}
-              issueId={issueId}
-              issueOperations={issueOperations}
-              isEditable={isEditable}
-              isArchived={is_archived}
-            />
+          <div className="h-full min-w-0 flex-1 overflow-y-auto">
+            <div className="mx-auto flex max-w-[780px] flex-col gap-[22px] px-5 pt-[26px] pb-12 sm:px-10">
+              <IssueMainContent
+                workspaceSlug={workspaceSlug}
+                projectId={projectId}
+                issueId={issueId}
+                issueOperations={issueOperations}
+                isEditable={isEditable}
+                isArchived={is_archived}
+              />
+            </div>
           </div>
-          <div
-            className="fixed right-0 z-[5] h-full w-full min-w-[300px] border-l border-subtle bg-surface-1 sm:w-1/2 md:relative md:w-1/4 lg:min-w-80 xl:min-w-96"
+          <aside
+            aria-label={t("common.properties")}
+            className="fixed right-0 z-[5] h-full w-full min-w-[300px] border-l border-strong bg-surface-1 sm:w-1/2 md:relative md:w-[340px] md:max-w-[340px] md:min-w-[340px] md:shrink-0"
             style={issueDetailSidebarCollapsed ? { right: "-100vw" } : {}}
           >
             <IssueDetailsSidebar
@@ -260,7 +264,7 @@ export const IssueDetailRoot = observer(function IssueDetailRoot(props: TIssueDe
               issueOperations={issueOperations}
               isEditable={!is_archived && isEditable}
             />
-          </div>
+          </aside>
         </div>
       )}
 

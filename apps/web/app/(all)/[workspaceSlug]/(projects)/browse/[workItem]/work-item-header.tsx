@@ -4,75 +4,84 @@
  * See the LICENSE file for details.
  */
 
-import React from "react";
 import { observer } from "mobx-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
-// plane ui
-import { WorkItemsOutline } from "@makeplane/propel/icons";
-import { Breadcrumbs } from "@plane/blocks/breadcrumb";
-import { Header } from "@plane/blocks/layout";
+import { ChevronRightOutline } from "@makeplane/propel/icons";
+// plane imports
+import { useTranslation } from "@plane/i18n";
+import { generateWorkItemLink } from "@plane/utils";
 // components
-import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { IssueDetailQuickActions } from "@/components/issues/issue-detail/issue-detail-quick-actions";
+import { AppSidebarToggleButton } from "@/components/sidebar/sidebar-toggle-button";
 // hooks
+import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
-// plane web imports
-import { CommonProjectBreadcrumbs } from "@/components/breadcrumbs/common";
-import { useProjectCrumbProps } from "@/components/breadcrumbs/use-project-crumb-props";
+import { useProjectNavigationPreferences } from "@/hooks/use-navigation-preferences";
 
+/**
+ * The detail page's top bar (4A): the path (project, the parent's ID when there is one, the item's ID) and the page's
+ * actions on the right.
+ */
 export const WorkItemDetailsHeader = observer(function WorkItemDetailsHeader() {
   // router
-  const { workspaceSlug, workItem } = useParams();
+  const { workspaceSlug: routeWorkspaceSlug, workItem } = useParams();
+  const workspaceSlug = routeWorkspaceSlug?.toString() ?? "";
+  const { t } = useTranslation();
   // store hooks
-  const { getProjectById, loader } = useProject();
+  const { sidebarCollapsed } = useAppTheme();
+  const { preferences: projectPreferences } = useProjectNavigationPreferences();
+  const { getProjectById, getProjectIdentifierById } = useProject();
   const {
     issue: { getIssueById, getIssueIdByIdentifier },
   } = useIssueDetail();
   // derived values
   const issueId = getIssueIdByIdentifier(workItem?.toString());
   const issueDetails = issueId ? getIssueById(issueId.toString()) : undefined;
-  const projectId = issueDetails ? issueDetails?.project_id : undefined;
-  const projectCrumb = useProjectCrumbProps(workspaceSlug?.toString(), projectId?.toString());
-  const projectDetails = projectId ? getProjectById(projectId?.toString()) : undefined;
+  const projectId = issueDetails?.project_id ?? undefined;
+  const projectDetails = projectId ? getProjectById(projectId) : undefined;
+  const parent = issueDetails?.parent_id ? getIssueById(issueDetails.parent_id) : undefined;
+  const parentIdentifier = parent?.project_id ? getProjectIdentifierById(parent.project_id) : undefined;
 
-  if (!workspaceSlug || !projectId || !issueId) return null;
+  if (!workspaceSlug || !projectId || !issueId || !issueDetails) return null;
   return (
-    <Header>
-      <Header.LeftItem>
-        <Breadcrumbs isLoading={loader === "init-loader"}>
-          <CommonProjectBreadcrumbs
-            workspaceSlug={workspaceSlug?.toString()}
-            projectId={projectId?.toString()}
-            {...projectCrumb}
-          />
-          <Breadcrumbs.Item
-            component={
-              <BreadcrumbLink
-                label="Work Items"
-                href={`/${workspaceSlug}/projects/${projectId}/issues/`}
-                icon={<WorkItemsOutline className="h-4 w-4 text-tertiary" />}
-              />
-            }
-          />
-          <Breadcrumbs.Item
-            component={
-              <BreadcrumbLink
-                label={projectDetails && issueDetails ? `${projectDetails.identifier}-${issueDetails.sequence_id}` : ""}
-              />
-            }
-          />
-        </Breadcrumbs>
-      </Header.LeftItem>
-      <Header.RightItem>
-        {projectId && issueId && (
-          <IssueDetailQuickActions
-            workspaceSlug={workspaceSlug?.toString()}
-            projectId={projectId?.toString()}
-            issueId={issueId?.toString()}
-          />
+    <header className="flex min-h-11 shrink-0 flex-wrap items-center gap-2 border-b border-subtle px-[18px]">
+      {sidebarCollapsed && projectPreferences.navigationMode !== "TABBED" && <AppSidebarToggleButton />}
+      <nav
+        aria-label={t("aria_labels.breadcrumb.trail")}
+        className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-secondary"
+      >
+        {projectDetails && (
+          <Link href={`/${workspaceSlug}/projects/${projectId}/issues/`} className="truncate hover:text-primary">
+            {projectDetails.name}
+          </Link>
         )}
-      </Header.RightItem>
-    </Header>
+        {parent?.project_id && parentIdentifier && (
+          <>
+            <ChevronRightOutline className="size-3 shrink-0 text-tertiary" />
+            <Link
+              href={generateWorkItemLink({
+                workspaceSlug,
+                projectId: parent.project_id,
+                issueId: parent.id,
+                projectIdentifier: parentIdentifier,
+                sequenceId: parent.sequence_id,
+                isEpic: parent.is_epic,
+              })}
+              className="max-w-60 truncate hover:text-primary"
+            >
+              {parent.name}
+            </Link>
+          </>
+        )}
+        <ChevronRightOutline className="size-3 shrink-0 text-tertiary" />
+        <span aria-current="page" className="shrink-0">
+          {projectDetails?.identifier}-{issueDetails.sequence_id}
+        </span>
+      </nav>
+      <span className="flex-1" />
+      <IssueDetailQuickActions workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} />
+    </header>
   );
 });

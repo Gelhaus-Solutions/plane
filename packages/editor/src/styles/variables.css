@@ -53,8 +53,9 @@
     --font-size-h4: 1.25rem;
     --font-size-h5: 1.125rem;
     --font-size-h6: 1rem;
-    --font-size-regular: 1rem;
-    --font-size-code: 0.85rem;
+    /* Pulse body-lg: descriptions, comments and pages are 14 px on 1.62 */
+    --font-size-regular: 0.875rem;
+    --font-size-code: 0.78125rem;
     --font-size-list: var(--font-size-regular);
 
     --line-height-h1: 2.25rem;
@@ -63,8 +64,8 @@
     --line-height-h4: 1.5rem;
     --line-height-h5: 1.5rem;
     --line-height-h6: 1.5rem;
-    --line-height-regular: 1.5rem;
-    --line-height-code: 1.5rem;
+    --line-height-regular: 1.42rem;
+    --line-height-code: 1.3rem;
     --line-height-list: var(--line-height-regular);
   }
   &.small-font {

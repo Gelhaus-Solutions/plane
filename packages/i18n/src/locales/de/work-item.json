@@ -88,7 +88,7 @@
       "backlog": "Backlog"
     },
     "comments": {
-      "placeholder": "Kommentar hinzufügen",
+      "placeholder": "Kommentar schreiben, @ erwähnt jemanden",
       "switch": {
         "private": "Zu privatem Kommentar wechseln",
         "public": "Zu öffentlichem Kommentar wechseln"
@@ -429,5 +429,33 @@
     "layouts": "Layouts",
     "more_actions": "Weitere Aktionen",
     "editor": "Abfrage-Editor"
+  },
+  "work_item_peek": {
+    "previous": "Vorheriges Arbeitselement",
+    "next": "Nächstes Arbeitselement",
+    "open": "Öffnen",
+    "layout": "Vorschau-Layout"
+  },
+  "work_item_detail": {
+    "sub_items": "Unterelemente",
+    "add_sub_items": "Unterelemente hinzufügen",
+    "relations": "Beziehungen",
+    "add_relation": "Beziehung hinzufügen",
+    "links": "Links",
+    "add_link": "Link hinzufügen",
+    "attachments": "Anhänge",
+    "attach_file": "Datei anhängen",
+    "progress": "{done} von {total}",
+    "activity": "Aktivität",
+    "activity_all": "Alle",
+    "activity_comments": "Kommentare",
+    "activity_history": "Verlauf",
+    "properties": "Eigenschaften",
+    "assignee": "Zuständig",
+    "dates": "Termine",
+    "latest": "Neueste",
+    "all_activity": "Alle Aktivitäten",
+    "mention": "Erwähnen",
+    "show_sub_items": "Unterelemente anzeigen"
   }
 }

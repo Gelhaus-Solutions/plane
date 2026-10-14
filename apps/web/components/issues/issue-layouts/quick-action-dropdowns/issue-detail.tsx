@@ -242,7 +242,7 @@ export const WorkItemDetailQuickActions = observer(function WorkItemDetailQuickA
           render={
             <IconButton
               size="md"
-              variant="secondary"
+              variant="ghost"
               icon={<Icon icon={MoreHorizontalOutline} />}
               aria-label={t("common.options")}
             />

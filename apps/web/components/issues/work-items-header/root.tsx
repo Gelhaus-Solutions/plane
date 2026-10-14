@@ -31,10 +31,13 @@ import { copyTextToClipboard } from "@plane/utils";
 // components
 import { WorkItemsModal } from "@/components/analytics/work-items/modal";
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
+import { AppSidebarToggleButton } from "@/components/sidebar/sidebar-toggle-button";
 // hooks
+import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
+import { useProjectNavigationPreferences } from "@/hooks/use-navigation-preferences";
 // local imports
 import { WorkItemsLayoutTabs } from "./layout-tabs";
 import { WorkItemsPQLToolbar } from "./pql-toolbar";
@@ -51,6 +54,8 @@ export const WorkItemsHeader = observer(function WorkItemsHeader() {
   // states
   const [analyticsModal, setAnalyticsModal] = useState(false);
   // store hooks
+  const { sidebarCollapsed } = useAppTheme();
+  const { preferences: projectPreferences } = useProjectNavigationPreferences();
   const { currentProjectDetails } = useProject();
   const { toggleCreateViewModal } = useCommandPalette();
   const {
@@ -99,7 +104,11 @@ export const WorkItemsHeader = observer(function WorkItemsHeader() {
       />
       <header className="flex shrink-0 flex-col gap-2 px-[18px] pt-3">
         <div className="flex min-h-7 flex-wrap items-center gap-2">
-          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-secondary">
+          {sidebarCollapsed && projectPreferences.navigationMode !== "TABBED" && <AppSidebarToggleButton />}
+          <nav
+            aria-label={t("aria_labels.breadcrumb.trail")}
+            className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-secondary"
+          >
             {currentProjectDetails && (
               <Link
                 href={`/${workspaceSlug}/projects/${projectId}/issues/`}

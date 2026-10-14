@@ -9,14 +9,14 @@ import { useCallback, useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
 // plane imports
-import { Avatar } from "@makeplane/propel/components/avatar";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { EditorRefApi } from "@plane/editor";
 import { useHashScroll } from "@plane/hooks";
 import { GlobeOutline, LockOutline } from "@makeplane/propel/icons";
 import { EIssueCommentAccessSpecifier } from "@plane/types";
 import type { TCommentsOperations, TIssueComment } from "@plane/types";
-import { calculateTimeAgo, cn, getFileURL, renderFormattedDate, renderFormattedTime } from "@plane/utils";
+import { useTranslation } from "@plane/i18n";
+import { calculateTimeAgo, cn, renderFormattedDate, renderFormattedTime } from "@plane/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text";
 // local imports
@@ -56,6 +56,7 @@ export const CommentCardDisplay = observer(function CommentCardDisplay(props: TC
     renderFooter,
     renderQuickActions,
   } = props;
+  const { t } = useTranslation();
   // states
   const [highlightClassName, setHighlightClassName] = useState("");
   // state
@@ -64,10 +65,10 @@ export const CommentCardDisplay = observer(function CommentCardDisplay(props: TC
   const { getUserDetails } = useMember();
   // derived values
   const userDetails = getUserDetails(comment?.actor);
-  const displayName = comment?.actor_detail?.is_bot
-    ? comment?.actor_detail?.first_name + `Bot`
+  const isBot = !!comment?.actor_detail?.is_bot;
+  const displayName = isBot
+    ? comment?.actor_detail?.first_name || comment?.actor_detail?.display_name
     : (userDetails?.display_name ?? comment?.actor_detail?.display_name);
-  const avatarUrl = userDetails?.avatar_url ?? comment?.actor_detail?.avatar_url;
 
   const userReactions = activityOperations.userReactions(comment.id);
 
@@ -107,7 +108,7 @@ export const CommentCardDisplay = observer(function CommentCardDisplay(props: TC
   const shouldRenderReactions = hasReactions && !disabled;
 
   return (
-    <div id={commentBlockId} className="relative flex flex-col gap-2">
+    <div id={commentBlockId} className="relative flex flex-col gap-1">
       {showAccessSpecifier && (
         <div className="absolute top-2.5 right-2.5 z-[1] text-tertiary">
           {comment.access === EIssueCommentAccessSpecifier.INTERNAL ? (
@@ -117,24 +118,25 @@ export const CommentCardDisplay = observer(function CommentCardDisplay(props: TC
           )}
         </div>
       )}
-      <div className="relative mb-3 flex w-full items-center gap-2">
-        <Avatar alt={displayName} fallback={displayName?.[0]?.toUpperCase()} size="2xs" src={getFileURL(avatarUrl)} />
-        <div className="flex flex-1 flex-wrap items-center gap-1">
-          <div className="text-caption-sm-medium">{displayName}</div>
-          <div className="text-caption-sm-regular text-tertiary">
-            commented{" "}
-            <Tooltip
-              label={`${renderFormattedDate(comment.created_at)} at ${renderFormattedTime(comment.created_at)}`}
-              side="bottom"
-              layout="single"
-              delay={200}
-            >
-              <span className="text-tertiary">
-                {calculateTimeAgo(comment.created_at)}
-                {comment.edited_at && " (edited)"}
-              </span>
-            </Tooltip>
-          </div>
+      <div className="relative flex w-full items-center gap-1.5">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 text-[12.5px]">
+          <span className="font-semibold text-primary">{displayName}</span>
+          {isBot && (
+            <span className="inline-flex h-4 items-center rounded-[5px] bg-loz-review-bg px-[5px] text-[9.5px] font-semibold tracking-[0.06em] text-loz-review-fg">
+              BOT
+            </span>
+          )}
+          <Tooltip
+            label={`${renderFormattedDate(comment.created_at)}, ${renderFormattedTime(comment.created_at)}`}
+            side="bottom"
+            layout="single"
+            delay={200}
+          >
+            <span className="text-tertiary">
+              {calculateTimeAgo(comment.created_at)}
+              {comment.edited_at && ` (${t("edited")})`}
+            </span>
+          </Tooltip>
         </div>
         {!disabled && (
           <div className="flex shrink-0 items-center gap-1">
@@ -170,7 +172,7 @@ export const CommentCardDisplay = observer(function CommentCardDisplay(props: TC
             initialValue={comment.comment_html ?? ""}
             workspaceId={workspaceId}
             workspaceSlug={workspaceSlug}
-            containerClassName={cn("!py-1 transition-[border-color] duration-500", highlightClassName)}
+            containerClassName={cn("!p-0 transition-[border-color] duration-500", highlightClassName)}
             projectId={projectId?.toString()}
             displayConfig={{
               fontSize: "small-font",

@@ -5,25 +5,41 @@
  */
 
 import { useMemo } from "react";
-import uniq from "lodash-es/uniq";
 import { observer } from "mobx-react";
+import { Avatar } from "@makeplane/propel/components/avatar";
+import { HistoryOutline } from "@makeplane/propel/icons";
 // plane package imports
 import type { TActivityFilters } from "@plane/constants";
-import { E_SORT_ORDER, defaultActivityFilters } from "@plane/constants";
+import { E_SORT_ORDER, EActivityFilterType, defaultActivityFilters } from "@plane/constants";
 import { useLocalStorage } from "@plane/hooks";
 // i18n
 import { useTranslation } from "@plane/i18n";
 //types
 import type { TFileSignedURLResponse, TIssueComment } from "@plane/types";
+import { cn, getFileURL } from "@plane/utils";
 // components
 import { CommentCreate } from "@/components/comments/comment-create";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
+import { useUser } from "@/hooks/store/user";
 // local imports
+import { IssueSubscription } from "../subscription";
 import { IssueActivityCommentRoot } from "./activity-comment-root";
 import { useWorkItemCommentOperations } from "./helper";
-import { ActivitySortRoot } from "./sort-root";
-import { ActivityFilterRoot } from "./filter-root";
+
+type TActivityView = "all" | "comments" | "history";
+
+/** The filter types each tab of the activity shows (4A: All, Comments, History) */
+const VIEW_FILTERS: Record<TActivityView, TActivityFilters[]> = {
+  all: defaultActivityFilters,
+  comments: [EActivityFilterType.COMMENT],
+  history: defaultActivityFilters.filter((filter) => filter !== EActivityFilterType.COMMENT),
+};
+
+const toView = (filters: TActivityFilters[]): TActivityView => {
+  if (!filters.includes(EActivityFilterType.COMMENT)) return "history";
+  return filters.length === 1 ? "comments" : "all";
+};
 
 type TIssueActivity = {
   workspaceSlug: string;
@@ -49,27 +65,11 @@ export const IssueActivity = observer(function IssueActivity(props: TIssueActivi
     "issue_activity_filters",
     defaultActivityFilters
   );
-  const { setValue: setSortOrder, storedValue: sortOrder } = useLocalStorage("activity_sort_order", E_SORT_ORDER.ASC);
 
   const { getProjectById } = useProject();
+  const { data: currentUser } = useUser();
 
-  // toggle filter
-  const toggleFilter = (filter: TActivityFilters) => {
-    if (!selectedFilters) return;
-    let _filters = [];
-    if (selectedFilters.includes(filter)) {
-      if (selectedFilters.length === 1) return selectedFilters; // Ensure at least one filter is applied
-      _filters = selectedFilters.filter((f) => f !== filter);
-    } else {
-      _filters = [...selectedFilters, filter];
-    }
-
-    setFilterValue(uniq(_filters));
-  };
-
-  const toggleSortOrder = () => {
-    setSortOrder(sortOrder === E_SORT_ORDER.ASC ? E_SORT_ORDER.DESC : E_SORT_ORDER.ASC);
-  };
+  const view = toView(selectedFilters ?? defaultActivityFilters);
 
   // helper hooks
   const activityOperations = useWorkItemCommentOperations(workspaceSlug, projectId, issueId);
@@ -77,54 +77,68 @@ export const IssueActivity = observer(function IssueActivity(props: TIssueActivi
   const project = getProjectById(projectId);
   const renderCommentCreationBox = useMemo(
     () => (
-      <CommentCreate
-        workspaceSlug={workspaceSlug}
-        entityId={issueId}
-        activityOperations={activityOperations}
-        showToolbarInitially
-        projectId={projectId}
-      />
-    ),
-    [workspaceSlug, issueId, activityOperations, projectId]
-  );
-  if (!project) return <></>;
-
-  return (
-    <div className="space-y-4">
-      {/* header */}
-      <div className="flex items-center justify-between">
-        <div className="text-h5-medium text-primary">{t("common.activity")}</div>
-        <div className="flex items-center gap-2">
-          <ActivitySortRoot sortOrder={sortOrder || E_SORT_ORDER.ASC} toggleSort={toggleSortOrder} />
-          <ActivityFilterRoot
-            selectedFilters={selectedFilters || defaultActivityFilters}
-            toggleFilter={toggleFilter}
-            isIntakeIssue={isIntakeIssue}
+      <div className="flex gap-2.5">
+        <Avatar
+          size="sm"
+          alt={currentUser?.display_name}
+          fallback={currentUser?.display_name?.[0]?.toUpperCase()}
+          src={currentUser?.avatar_url ? getFileURL(currentUser.avatar_url) : undefined}
+        />
+        <div className="min-w-0 flex-1">
+          <CommentCreate
+            workspaceSlug={workspaceSlug}
+            entityId={issueId}
+            activityOperations={activityOperations}
+            showToolbarInitially
             projectId={projectId}
           />
         </div>
       </div>
+    ),
+    [workspaceSlug, issueId, activityOperations, projectId, currentUser]
+  );
+  if (!project) return <></>;
 
-      {/* rendering activity */}
-      <div className="space-y-3">
-        <div className="min-h-[200px]">
-          <div className="space-y-3">
-            {!disabled && sortOrder === E_SORT_ORDER.DESC && renderCommentCreationBox}
-            <IssueActivityCommentRoot
-              projectId={projectId}
-              workspaceSlug={workspaceSlug}
-              isIntakeIssue={isIntakeIssue}
-              issueId={issueId}
-              selectedFilters={selectedFilters || defaultActivityFilters}
-              activityOperations={activityOperations}
-              showAccessSpecifier={!!project.anchor}
-              disabled={disabled}
-              sortOrder={sortOrder || E_SORT_ORDER.ASC}
-            />
-            {!disabled && sortOrder === E_SORT_ORDER.ASC && renderCommentCreationBox}
-          </div>
-        </div>
+  return (
+    <section aria-label={t("work_item_detail.activity")} className="flex flex-col gap-3">
+      <div className="flex h-[30px] items-center gap-2">
+        <HistoryOutline className="size-3.5 shrink-0 text-secondary" aria-hidden="true" />
+        <h2 className="text-[13.5px] font-semibold text-primary">{t("work_item_detail.activity")}</h2>
       </div>
-    </div>
+      <div className="flex items-center gap-2">
+        <div role="group" className="inline-flex items-center gap-0.5 rounded-lg bg-layer-2 p-0.5 text-12">
+          {(["all", "comments", "history"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={view === option}
+              onClick={() => setFilterValue(VIEW_FILTERS[option])}
+              className={cn(
+                "flex h-6 items-center rounded-md px-[9px] text-secondary transition-colors duration-[120ms] outline-none focus-visible:ring-2 focus-visible:ring-accent-strong",
+                { "ring-border-strong bg-surface-1 font-semibold text-primary shadow-e1 ring-1": view === option }
+              )}
+            >
+              {t(`work_item_detail.activity_${option}`)}
+            </button>
+          ))}
+        </div>
+        <span className="flex-1" />
+        {currentUser && !disabled && !isIntakeIssue && (
+          <IssueSubscription workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} compact />
+        )}
+      </div>
+      <IssueActivityCommentRoot
+        projectId={projectId}
+        workspaceSlug={workspaceSlug}
+        isIntakeIssue={isIntakeIssue}
+        issueId={issueId}
+        selectedFilters={selectedFilters || defaultActivityFilters}
+        activityOperations={activityOperations}
+        showAccessSpecifier={!!project.anchor}
+        disabled={disabled}
+        sortOrder={E_SORT_ORDER.ASC}
+      />
+      {!disabled && renderCommentCreationBox}
+    </section>
   );
 });
