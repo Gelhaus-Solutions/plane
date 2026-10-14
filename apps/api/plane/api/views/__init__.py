@@ -81,3 +81,11 @@ from .invite import WorkspaceInvitationsViewset
 from .sticky import StickyViewSet
 
 from .priority import PriorityListCreateAPIEndpoint, PriorityDetailAPIEndpoint
+from .property import (
+    PropertyDetailAPIEndpoint,
+    PropertyListCreateAPIEndpoint,
+    PropertyOptionDetailAPIEndpoint,
+    PropertyOptionListCreateAPIEndpoint,
+    WorkItemPropertyValueAPIEndpoint,
+    WorkItemPropertyValuesAPIEndpoint,
+)

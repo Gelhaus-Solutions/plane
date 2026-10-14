@@ -67,6 +67,13 @@ from .bot import WorkspaceBot
 from .agent_session import AgentSession
 from .mail import EmailDelivery
 from .priority import BUILTIN_PRIORITIES, PRIORITY_LEVELS, WorkspacePriority
+from .property import (
+    PropertyType,
+    RelationType,
+    WorkItemProperty,
+    WorkItemPropertyOption,
+    WorkItemPropertyValue,
+)
 from .view import IssueView
 from .webhook import Webhook, WebhookLog
 from .workspace import (

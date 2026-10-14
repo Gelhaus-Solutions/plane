@@ -280,7 +280,7 @@ class TestErrors:
             ('title > "a"', "unsupported_operator"),
             ('text = "a"', "unsupported_operator"),
             ("isDraft = 1", "invalid_value"),
-            ('cf["3f2a9c1e-5b7d-4e8a-9c21-7d4e5f6a8b90"] = 1', "unavailable_field"),
+            ('cf["3f2a9c1e-5b7d-4e8a-9c21-7d4e5f6a8b90"] = 1', "unknown_property"),
             ('milestone = "x"', "unavailable_field"),
             ("currentUser()", "value_as_condition"),
             ("dueDate < isOverdue()", "predicate_as_value"),

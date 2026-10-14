@@ -59,5 +59,9 @@
   "intake": {
     "actions": ["list", "retrieve", "create", "update", "delete"],
     "properties": {"cursor": "string", "description_html": "string", "duplicate_to": "string", "name": "string", "per_page": "integer", "priority": "string", "project_id": "string", "snoozed_till": "string", "source": "string", "source_email": "string", "status": "integer|null", "workitem_id": "string"}
+  },
+  "workitem_property": {
+    "actions": ["list", "retrieve", "create", "update", "delete", "manage_type_properties", "list_options", "retrieve_option", "create_option", "update_option", "delete_option", "get_value", "set_value", "delete_value"],
+    "properties": {"attach_ids": "string", "color": "string", "cursor": "string", "default_value": "string", "description": "string", "description_html": "string", "detach_ids": "string", "display_format": "string", "display_name": "string", "external_id": "string", "external_source": "string", "is_active": "boolean|null", "is_default": "boolean|null", "is_multi": "boolean|null", "is_required": "boolean|null", "name": "string", "option_id": "string", "options": "string", "per_page": "integer", "project_id": "string", "property_id": "string", "property_type": "string", "relation_type": "string", "value": "array|boolean|integer|number|string", "workitem_id": "string", "workitem_property_id": "string", "workitem_type_id": "string"}
   }
 }

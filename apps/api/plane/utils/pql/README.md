@@ -61,9 +61,9 @@ Limits: 50 conditions, 32 levels of nesting, 4,000 characters.
 | `dueDate`, `startDate` | `"YYYY-MM-DD"` or a date function | `=` `!=` `>` `>=` `<` `<=` `BETWEEN` `IS [NOT] NULL` |
 | `createdAt`, `updatedAt`, `completedAt` | date, ISO date-time, or a date function | same |
 | `isDraft`, `isArchived` | `true` `false` | `=` `!=` |
+| `cf["<property id or name>"]` | a custom property, by its type: text, URL and email take quoted text (`=` ignores case, `~` contains); numbers unquoted; dates as for `dueDate`; checkboxes `true` `false`; options an option's name or id; members a user id or a user function; work items an id | text: `=` `!=` `IN` `NOT IN` `~`; number: those and `>` `>=` `<` `<=` `BETWEEN`; date: `=` `!=` `>` `>=` `<` `<=` `BETWEEN`; checkbox: `=` `!=`; option, member, work item: `=` `!=` `IN` `NOT IN`; all: `IS [NOT] NULL/EMPTY` |
 
-Not available yet: `cf["<property id>"]` (custom properties, with work item types), `teamspaceProject`
-(teamspaces). `milestone` is not part of this Plane.
+Not available yet: `teamspaceProject` (teamspaces). `milestone` is not part of this Plane.
 
 ## Functions
 

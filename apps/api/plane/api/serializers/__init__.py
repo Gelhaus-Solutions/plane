@@ -69,3 +69,4 @@ from .member import (
 )
 from .sticky import StickySerializer
 from .priority import WorkspacePrioritySerializer
+from .property import WorkItemPropertyOptionSerializer, WorkItemPropertySerializer

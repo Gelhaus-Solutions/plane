@@ -15,6 +15,7 @@ import calendar
 import datetime
 import re
 import uuid
+from decimal import Decimal
 from collections import namedtuple
 
 from django.db.models import CharField, Q
@@ -36,6 +37,8 @@ from plane.db.models import (
     Profile,
     ProjectMember,
     Workspace,
+    WorkItemPropertyOption,
+    WorkItemPropertyValue,
     WorkspaceMember,
     WorkspacePriority,
     WorkspaceStateGroup,
@@ -605,6 +608,106 @@ class _ThroughField(_Field):
         return Q(pk__in=self.links().filter(_in_q(self.column, literal_ids, subqueries)))
 
 
+class _CustomPropertyField(_Field):
+    """cf["<property id or name>"]: a custom property (D39), compared the way its type allows."""
+
+    TEXT_KINDS = ("TEXT", "URL", "EMAIL")
+    ALLOWED = {
+        "TEXT": EQUALITY + SETS + ("~",) + EMPTINESS,
+        "URL": EQUALITY + SETS + ("~",) + EMPTINESS,
+        "EMAIL": EQUALITY + SETS + ("~",) + EMPTINESS,
+        "DECIMAL": EQUALITY + SETS + ORDERING + RANGES + EMPTINESS,
+        "DATETIME": EQUALITY + ORDERING + RANGES + EMPTINESS,
+        "BOOLEAN": EQUALITY + EMPTINESS,
+        "OPTION": EQUALITY + SETS + EMPTINESS,
+        "RELATION": EQUALITY + SETS + EMPTINESS,
+    }
+    ORDER_LOOKUPS = {">": "__gt", ">=": "__gte", "<": "__lt", "<=": "__lte"}
+
+    def compile(self, comparison, context):
+        from plane.utils.properties import find_property
+
+        prop = find_property(context.workspace_id, comparison.field.property_id)
+        if prop is None:
+            raise PQLError(
+                f'No custom property "{comparison.field.property_id}" in this workspace',
+                comparison.field.position,
+                "unknown_property",
+            )
+        if comparison.operator not in self.ALLOWED[prop.property_type]:
+            raise _unsupported(comparison)
+        q = self.build_for(prop, comparison, context)
+        return ~q if comparison.operator in NEGATED else q
+
+    def rows(self, prop, condition=None, **lookups):
+        rows = WorkItemPropertyValue.objects.filter(property=prop, deleted_at__isnull=True, **lookups)
+        return Q(pk__in=(rows.filter(condition) if condition is not None else rows).values("issue_id"))
+
+    def numbers(self, comparison, context, node=None):
+        nodes = [node] if node is not None else _values(comparison.value)
+        out = []
+        for item in nodes:
+            value = _evaluate(item, context)
+            if value.kind != NUMBER:
+                raise PQLError(
+                    f"{comparison.field.property_id} takes a number, unquoted", item.position, "invalid_value"
+                )
+            out.append(Decimal(str(value.value)))
+        return out
+
+    def build_for(self, prop, comparison, context):
+        operator, kind = comparison.operator, prop.property_type
+        if operator in EMPTINESS:
+            return ~self.rows(prop)
+        if kind in self.TEXT_KINDS:
+            texts = [_string_value("cf", node, context) for node in _values(comparison.value)]
+            if operator == "~":
+                return self.rows(prop, value_text__icontains=texts[0])
+            return self.rows(prop, _any_of([Q(value_text__iexact=text) for text in texts]))
+        if kind == "DECIMAL":
+            if operator in RANGES:
+                low = self.numbers(comparison, context, comparison.value.low)[0]
+                high = self.numbers(comparison, context, comparison.value.high)[0]
+                return self.rows(prop, value_decimal__gte=low, value_decimal__lte=high)
+            if operator in ORDERING:
+                return self.rows(
+                    prop, **{f"value_decimal{self.ORDER_LOOKUPS[operator]}": self.numbers(comparison, context)[0]}
+                )
+            return self.rows(prop, value_decimal__in=self.numbers(comparison, context))
+        if kind == "DATETIME":
+            dates = _DateField(f'cf["{comparison.field.property_id}"]', "value_datetime", has_time=True)
+            if operator in RANGES:
+                low = dates.moment(comparison.value.low, context)
+                high = dates.moment(comparison.value.high, context)
+                return self.rows(prop, Q(**dates.lookup(low, "__gte")) & Q(**dates.lookup(high, "__lte")))
+            return self.rows(prop, Q(**dates.lookup(dates.moment(comparison.value, context), dates.lookups[operator])))
+        if kind == "BOOLEAN":
+            value = _evaluate(comparison.value, context)
+            if value.kind != BOOLEAN:
+                raise PQLError(
+                    "A checkbox property takes true or false, unquoted", comparison.value.position, "invalid_value"
+                )
+            return self.rows(prop, value_boolean=value.value)
+        if kind == "OPTION":
+            option_ids = []
+            for node in _values(comparison.value):
+                text = _string_value("cf", node, context)
+                options = WorkItemPropertyOption.objects.filter(property=prop)
+                try:
+                    option = options.filter(pk=uuid.UUID(text)).first()
+                except ValueError:
+                    option = options.filter(name__iexact=text).first()
+                if option is None:
+                    raise PQLError(f'"{text}" is not an option of {prop.display_name}', node.position, "invalid_choice")
+                option_ids.append(option.id)
+            return self.rows(prop, value_option_id__in=option_ids)
+        if prop.relation_type == "USER":
+            literal_ids, subqueries = _ids("cf", "user", comparison, context)
+            return self.rows(prop, _in_q("value_user_id", literal_ids, subqueries))
+        literal_ids, subqueries = _ids("cf", "work item", comparison, context)
+        return self.rows(prop, _in_q("value_issue_id", literal_ids, subqueries))
+
+
 class _UnavailableField(_Field):
     def __init__(self, name, reason):
         super().__init__(name)
@@ -639,7 +742,7 @@ FIELDS = {
         _ThroughField("module", ModuleIssue, "module_id", "module"),
         _ThroughField("mention", IssueMention, "mention_id", "user"),
         _ThroughField("subscriber", IssueSubscriber, "subscriber_id", "user"),
-        _UnavailableField("cf", "(custom properties) is not available yet"),
+        _CustomPropertyField("cf"),
         _UnavailableField("milestone", "is not available in this Plane"),
         _UnavailableField("teamspaceProject", "is not available yet"),
     )

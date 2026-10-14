@@ -11,6 +11,7 @@ from .member import urlpatterns as member_patterns
 from .module import urlpatterns as module_patterns
 from .priority import urlpatterns as priority_patterns
 from .project import urlpatterns as project_patterns
+from .property import urlpatterns as property_patterns
 from .state import urlpatterns as state_patterns
 from .user import urlpatterns as user_patterns
 from .work_item import urlpatterns as work_item_patterns
@@ -27,6 +28,7 @@ urlpatterns = [
     *module_patterns,
     *priority_patterns,
     *project_patterns,
+    *property_patterns,
     *state_patterns,
     *user_patterns,
     *work_item_patterns,

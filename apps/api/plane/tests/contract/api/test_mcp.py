@@ -552,3 +552,32 @@ class TestPlanning:
         )
         assert not error and str(closed["state"]) == str(done.id) and "note" not in closed
         assert Issue.objects.get(pk=item["id"]).completed_at is not None
+
+    @pytest.mark.django_db
+    def test_properties(self, bot_client, api_key_client, project):
+        error, message = tool(
+            bot_client, "workitem_property", action="create", display_name="Severity", property_type="OPTION"
+        )
+        assert error and message.startswith("Plane answered 403")
+        error, severity = tool(
+            api_key_client,
+            "workitem_property",
+            action="create",
+            display_name="Severity",
+            property_type="option",
+            options='[{"name": "High"}, {"name": "Low"}]',
+        )
+        assert not error and [o["name"] for o in severity["options"]] == ["High", "Low"], severity
+
+        error, item = tool(bot_client, "workitem", action="create", project_id=str(project.id), name="Leak")
+        where = {"project_id": str(project.id), "workitem_id": item["id"], "property_id": "severity"}
+        error, set_to = tool(bot_client, "workitem_property", action="set_value", value="High", **where)
+        assert not error and set_to["value"] == severity["options"][0]["id"], set_to
+        error, read = tool(bot_client, "workitem_property", action="get_value", **where)
+        assert not error and read["name"] == "Severity"
+        error, found = tool(
+            bot_client, "workitem", action="list", project_id=str(project.id), pql='cf["Severity"] = "High"'
+        )
+        assert not error and [r["id"] for r in found["results"]] == [item["id"]]
+        error, message = tool(bot_client, "workitem_property", action="manage_type_properties", workitem_type_id="x")
+        assert error and "not available" in message
