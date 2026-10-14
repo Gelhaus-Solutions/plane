@@ -5,7 +5,7 @@
 # Django imports
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import Q, UUIDField, Value, QuerySet, OuterRef, Subquery
+from django.db.models import F, Q, UUIDField, Value, QuerySet, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 
 # Module imports
@@ -138,7 +138,8 @@ def issue_on_results(
         original_list.append(sub_group_by)
 
     required_fields.extend(original_list)
-    return list(issues.values(*required_fields))
+    # is_epic marks epics (E11), so a child's parent chip can show the epic icon
+    return list(issues.values(*required_fields, is_epic=Coalesce(F("type__is_epic"), Value(False))))
 
 
 def issue_group_values(

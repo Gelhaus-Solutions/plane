@@ -1,0 +1,135 @@
+{
+  "epics": {
+    "title": "Epics",
+    "count": "{count, plural, one {# Epic} other {# Epics}}",
+    "all_projects": "alle Projekte",
+    "new_epic": "Neues Epic",
+    "all": "Alle",
+    "open": "Offen",
+    "done": "Erledigt",
+    "group": {
+      "label": "Gruppe: {value}",
+      "wave": "Welle",
+      "project": "Projekt",
+      "none": "keine"
+    },
+    "order": {
+      "label": "Reihenfolge: {value}",
+      "target": "Ziel",
+      "id": "ID",
+      "progress": "Fortschritt"
+    },
+    "columns": {
+      "id": "ID",
+      "epic": "Epic",
+      "progress": "Fortschritt",
+      "health": "Zustand",
+      "lead": "Leitung",
+      "target": "Ziel",
+      "size": "Größe",
+      "wave": "Welle",
+      "project": "Projekt"
+    },
+    "health": {
+      "on_track": "Im Plan",
+      "at_risk": "Gefährdet",
+      "off_track": "Verzug",
+      "none": "Kein Update",
+      "from_pace": "Aus dem Tempo, kein Update gepostet",
+      "from_pace_date": "Aus dem Tempo: fertig am {date}, kein Update gepostet",
+      "posted": "Gepostet von {name}, {time}"
+    },
+    "no_lead": "Keine Leitung",
+    "no_wave": "Keine Welle",
+    "no_target": "Kein Zieldatum",
+    "working": "{name} an {id}",
+    "progress_aria": "{done} von {total} erledigt",
+    "more_in_project": "{count} weitere in {project}",
+    "show_fewer": "Weniger zeigen",
+    "empty": {
+      "title": "Noch keine Epics",
+      "description": "Ein Epic bündelt Arbeitselemente für ein Ziel. Sein Fortschritt kommt aus seinen Arbeitselementen.",
+      "filtered": "Keine Epics in dieser Welle",
+      "workspace_open": "Keine offenen Epics in deinen Projekten",
+      "workspace_done": "Noch keine fertigen Epics"
+    },
+    "stats": {
+      "epics_in_projects": "{projects, plural, one {Epics in # Projekt} other {Epics in # Projekten}}",
+      "in_progress": "in Arbeit",
+      "on_track": "im Plan",
+      "at_risk": "gefährdet",
+      "done_this_quarter": "erledigt in diesem Quartal"
+    },
+    "projects": {
+      "all": "Alle Projekte",
+      "some": "{count, plural, one {# Projekt} other {# Projekte}}"
+    },
+    "detail": {
+      "type": "Epic",
+      "percent": "{percent} %",
+      "summary": "{done} von {total} erledigt, {started} in Arbeit",
+      "bucket": {
+        "completed": "Erledigt",
+        "review": "In Prüfung",
+        "started": "In Arbeit",
+        "unstarted": "Zu erledigen",
+        "backlog": "Backlog"
+      },
+      "target": "Ziel {date}",
+      "pace": "In diesem Tempo: {date}",
+      "added_this_month": "{count, plural, one {# diesen Monat hinzugekommen} other {# diesen Monat hinzugekommen}}",
+      "burnup_aria": "Burn-up: Umfang auf {scope} Elemente gewachsen, {done} erledigt",
+      "scope_label": "Umfang {count}",
+      "done_label": "erledigt {count}",
+      "today": "Heute",
+      "work_items": "Arbeitselemente",
+      "add": "Hinzufügen",
+      "show": "Zeigen",
+      "hide": "Ausblenden",
+      "no_items": "Noch keine Arbeitselemente. Füge das erste hinzu.",
+      "status_update": "Statusupdate",
+      "no_update": "Noch kein Update.",
+      "post_update": "Update posten",
+      "needs": "Braucht",
+      "wave": "Welle",
+      "size": "Größe",
+      "lead": "Leitung",
+      "open_as_work_item": "Als Arbeitselement öffnen",
+      "position": "{index} von {total}",
+      "previous": "Vorheriges Epic",
+      "next": "Nächstes Epic"
+    },
+    "update_modal": {
+      "title": "Update posten",
+      "health": "Zustand",
+      "body_placeholder": "Was hat sich geändert, und was kommt als Nächstes?",
+      "post": "Update posten",
+      "posted": "Update gepostet",
+      "failed": "Das Update wurde nicht gepostet. Versuch es noch einmal."
+    },
+    "create": {
+      "title": "Neues Epic",
+      "name_placeholder": "Name des Epics",
+      "description_placeholder": "Wofür ist es da, und wann ist es fertig?",
+      "create": "Epic anlegen",
+      "creating": "Wird angelegt",
+      "created": "Epic angelegt",
+      "failed": "Das Epic wurde nicht angelegt. Versuch es noch einmal.",
+      "name_required": "Gib dem Epic einen Namen."
+    },
+    "wave_select": {
+      "placeholder": "Welle",
+      "search": "Wellen suchen",
+      "new": "Neue Welle",
+      "code_placeholder": "W4",
+      "name_placeholder": "Thema",
+      "add": "Welle hinzufügen",
+      "exists": "Dieses Projekt hat diese Welle schon.",
+      "create_hint": "Tippe einen Code und ein Thema, etwa W4 Prozess, dann Enter, um eine Welle hinzuzufügen."
+    },
+    "size_select": {
+      "placeholder": "Größe"
+    },
+    "update_failed": "Die Änderung wurde nicht gespeichert. Versuch es noch einmal."
+  }
+}

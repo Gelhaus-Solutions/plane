@@ -781,6 +781,9 @@ class IssueSerializer(DynamicBaseSerializer):
     attachment_count = serializers.IntegerField(read_only=True)
     link_count = serializers.IntegerField(read_only=True)
 
+    # An epic is a work item of the Epic type (E11)
+    is_epic = serializers.SerializerMethodField()
+
     class Meta:
         model = Issue
         fields = [
@@ -809,8 +812,12 @@ class IssueSerializer(DynamicBaseSerializer):
             "link_count",
             "is_draft",
             "archived_at",
+            "is_epic",
         ]
         read_only_fields = fields
+
+    def get_is_epic(self, obj):
+        return bool(obj.type_id) and obj.type.is_epic
 
     def validate(self, data):
         if (

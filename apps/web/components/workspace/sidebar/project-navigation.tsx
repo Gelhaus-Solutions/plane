@@ -12,6 +12,7 @@ import { EUserPermissionsLevel, EUserPermissions } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import {
   CyclesOutline,
+  EpicOutline,
   IntakeOutline,
   ModuleOutline,
   PagesOutline,
@@ -86,6 +87,16 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
         shouldRender: true,
         sortOrder: 1,
+      },
+      {
+        i18n_key: "epics.title",
+        key: "epics",
+        name: "Epics",
+        href: `/${slug}/projects/${id}/epics`,
+        icon: EpicOutline,
+        access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
+        shouldRender: true,
+        sortOrder: 1.5,
       },
       {
         i18n_key: "sidebar.cycles",

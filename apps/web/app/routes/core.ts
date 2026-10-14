@@ -77,6 +77,9 @@ export const coreRoutes: RouteConfigEntry[] = [
           route(":workspaceSlug/drafts", "./(all)/[workspaceSlug]/(projects)/drafts/page.tsx"),
         ]),
 
+        // Epics across projects (E11)
+        route(":workspaceSlug/epics", "./(all)/[workspaceSlug]/(projects)/epics/page.tsx"),
+
         // Notifications
         layout("./(all)/[workspaceSlug]/(projects)/notifications/layout.tsx", [
           route(":workspaceSlug/notifications", "./(all)/[workspaceSlug]/(projects)/notifications/page.tsx"),
@@ -139,6 +142,17 @@ export const coreRoutes: RouteConfigEntry[] = [
           route(
             ":workspaceSlug/projects/:projectId/issues/:issueId",
             "./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/issues/(detail)/[issueId]/page.tsx"
+          ),
+
+          // Epics List (E11)
+          route(
+            ":workspaceSlug/projects/:projectId/epics",
+            "./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/epics/(list)/page.tsx"
+          ),
+          // Epic Detail (E11)
+          route(
+            ":workspaceSlug/projects/:projectId/epics/:epicId",
+            "./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/epics/(detail)/[epicId]/page.tsx"
           ),
 
           // Cycle Detail

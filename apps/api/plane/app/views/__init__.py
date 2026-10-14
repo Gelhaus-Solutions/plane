@@ -246,3 +246,13 @@ from .notification.base import MarkAllReadNotificationViewSet
 from .user.base import AccountEndpoint, ProfileEndpoint, UserSessionEndpoint
 
 from .timezone.base import TimezoneEndpoint
+
+from .epic.base import (
+    EpicUpdatesEndpoint,
+    EpicWaveDetailEndpoint,
+    EpicWavesEndpoint,
+    ProjectEpicConvertEndpoint,
+    ProjectEpicDetailEndpoint,
+    ProjectEpicsEndpoint,
+    WorkspaceEpicsEndpoint,
+)

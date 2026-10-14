@@ -22,8 +22,8 @@ Find work with `workitem list` and a `pql` filter instead of listing whole proje
 Name a work item by its key (ENG-42) with `workitem retrieve_by_identifier`. Ids in arguments are UUIDs: resolve names
 with `project list`, `state list`, `label list` or `member list_workspace` first.
 description_html and comment HTML are stored as given: send <p>text</p>, never escaped text such as &lt;p&gt;.
-Epics are parent work items (labelled `epic` where a project uses that convention); list an epic's children with
-pql `parentOf` / `childOf` as described in the reference."""
+Epics are work items of the Epic type: pql `isEpic()` lists them, and `childOf("ENG-7")` lists an epic's work items
+(its sub-items). Older projects may still mark epics with an `epic` label instead."""
 
 
 def _version():

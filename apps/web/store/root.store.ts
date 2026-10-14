@@ -29,6 +29,8 @@ import { CycleFilterStore } from "./cycle_filter.store";
 import type { IDashboardStore } from "./dashboard.store";
 import { DashboardStore } from "./dashboard.store";
 import type { IEditorAssetStore } from "./editor/asset.store";
+import type { IEpicStore } from "./epic.store";
+import { EpicStore } from "./epic.store";
 import { EditorAssetStore } from "./editor/asset.store";
 import type { IProjectEstimateStore } from "./estimates/project-estimate.store";
 import { ProjectEstimateStore } from "./estimates/project-estimate.store";
@@ -80,6 +82,7 @@ export class CoreRootStore {
   cycleFilter: ICycleFilterStore;
   module: IModuleStore;
   moduleFilter: IModuleFilterStore;
+  epic: IEpicStore;
   projectView: IProjectViewStore;
   globalView: IGlobalViewStore;
   issue: IIssueRootStore;
@@ -117,6 +120,7 @@ export class CoreRootStore {
     this.cycleFilter = new CycleFilterStore(this);
     this.module = new ModulesStore(this);
     this.moduleFilter = new ModuleFilterStore(this);
+    this.epic = new EpicStore();
     this.projectView = new ProjectViewStore(this);
     this.globalView = new GlobalViewStore(this);
     this.issue = new IssueRootStore(this);
@@ -152,6 +156,7 @@ export class CoreRootStore {
     this.cycleFilter = new CycleFilterStore(this);
     this.module = new ModulesStore(this);
     this.moduleFilter = new ModuleFilterStore(this);
+    this.epic = new EpicStore();
     this.projectView = new ProjectViewStore(this);
     this.globalView = new GlobalViewStore(this);
     this.issue = new IssueRootStore(this);

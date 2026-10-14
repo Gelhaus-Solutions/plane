@@ -1,0 +1,135 @@
+{
+  "epics": {
+    "title": "Epics",
+    "count": "{count, plural, one {# epic} other {# epics}}",
+    "all_projects": "all projects",
+    "new_epic": "New epic",
+    "all": "All",
+    "open": "Open",
+    "done": "Done",
+    "group": {
+      "label": "Group: {value}",
+      "wave": "wave",
+      "project": "project",
+      "none": "none"
+    },
+    "order": {
+      "label": "Order: {value}",
+      "target": "target",
+      "id": "ID",
+      "progress": "progress"
+    },
+    "columns": {
+      "id": "ID",
+      "epic": "Epic",
+      "progress": "Progress",
+      "health": "Health",
+      "lead": "Lead",
+      "target": "Target",
+      "size": "Size",
+      "wave": "Wave",
+      "project": "Project"
+    },
+    "health": {
+      "on_track": "On track",
+      "at_risk": "At risk",
+      "off_track": "Off track",
+      "none": "No update",
+      "from_pace": "From the pace, no update posted",
+      "from_pace_date": "From the pace: done by {date}, no update posted",
+      "posted": "Posted by {name}, {time}"
+    },
+    "no_lead": "No lead",
+    "no_wave": "No wave",
+    "no_target": "No target date",
+    "working": "{name} on {id}",
+    "progress_aria": "{done} of {total} done",
+    "more_in_project": "{count} more in {project}",
+    "show_fewer": "Show fewer",
+    "empty": {
+      "title": "No epics yet",
+      "description": "An epic groups work items toward one goal. Its progress comes from its work items.",
+      "filtered": "No epics in this wave",
+      "workspace_open": "No open epics in your projects",
+      "workspace_done": "No finished epics yet"
+    },
+    "stats": {
+      "epics_in_projects": "{projects, plural, one {epics in # project} other {epics in # projects}}",
+      "in_progress": "in progress",
+      "on_track": "on track",
+      "at_risk": "at risk",
+      "done_this_quarter": "done this quarter"
+    },
+    "projects": {
+      "all": "All projects",
+      "some": "{count, plural, one {# project} other {# projects}}"
+    },
+    "detail": {
+      "type": "Epic",
+      "percent": "{percent}%",
+      "summary": "{done} of {total} done, {started} in progress",
+      "bucket": {
+        "completed": "Done",
+        "review": "In review",
+        "started": "In progress",
+        "unstarted": "Todo",
+        "backlog": "Backlog"
+      },
+      "target": "Target {date}",
+      "pace": "At this pace: {date}",
+      "added_this_month": "{count, plural, one {# added this month} other {# added this month}}",
+      "burnup_aria": "Burn-up: scope grew to {scope} items, {done} done",
+      "scope_label": "scope {count}",
+      "done_label": "done {count}",
+      "today": "Today",
+      "work_items": "Work items",
+      "add": "Add",
+      "show": "Show",
+      "hide": "Hide",
+      "no_items": "No work items yet. Add the first one.",
+      "status_update": "Status update",
+      "no_update": "No update yet.",
+      "post_update": "Post an update",
+      "needs": "Needs",
+      "wave": "Wave",
+      "size": "Size",
+      "lead": "Lead",
+      "open_as_work_item": "Open as work item",
+      "position": "{index} of {total}",
+      "previous": "Previous epic",
+      "next": "Next epic"
+    },
+    "update_modal": {
+      "title": "Post an update",
+      "health": "Health",
+      "body_placeholder": "What changed, and what comes next?",
+      "post": "Post update",
+      "posted": "Update posted",
+      "failed": "The update was not posted. Try again."
+    },
+    "create": {
+      "title": "New epic",
+      "name_placeholder": "Epic name",
+      "description_placeholder": "What is it for, and when is it done?",
+      "create": "Create epic",
+      "creating": "Creating",
+      "created": "Epic created",
+      "failed": "The epic was not created. Try again.",
+      "name_required": "Give the epic a name."
+    },
+    "wave_select": {
+      "placeholder": "Wave",
+      "search": "Search waves",
+      "new": "New wave",
+      "code_placeholder": "W4",
+      "name_placeholder": "Theme",
+      "add": "Add wave",
+      "exists": "This project already has that wave.",
+      "create_hint": "Type a code and a theme, such as W4 Process, then Enter to add a wave."
+    },
+    "size_select": {
+      "placeholder": "Size"
+    },
+    "update_failed": "The change was not saved. Try again."
+  }
+}
