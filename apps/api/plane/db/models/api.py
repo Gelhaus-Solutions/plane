@@ -36,6 +36,8 @@ class APIToken(BaseModel):
     workspace = models.ForeignKey("db.Workspace", related_name="api_tokens", on_delete=models.CASCADE, null=True)
     expired_at = models.DateTimeField(blank=True, null=True)
     is_service = models.BooleanField(default=False)
+    # A read token is refused on anything but GET, HEAD and OPTIONS
+    access = models.CharField(max_length=10, choices=(("read", "Read"), ("write", "Write")), default="write")
     allowed_rate_limit = models.CharField(max_length=255, default="60/min")
 
     class Meta:

@@ -23,6 +23,7 @@ from plane.app.serializers import (
 )
 from plane.app.views.base import BaseAPIView
 from plane.db.models import Project, ProjectMember, WorkspaceMember, DraftIssue
+from plane.db.models.user import INTERNAL_BOT_TYPES
 from plane.utils.cache import invalidate_cache
 
 from .. import BaseViewSet
@@ -91,8 +92,10 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def partial_update(self, request, slug, pk):
-        workspace_member = WorkspaceMember.objects.select_related("member", "member__avatar_asset").get(
-            pk=pk, workspace__slug=slug, member__is_bot=False, is_active=True
+        workspace_member = (
+            WorkspaceMember.objects.select_related("member", "member__avatar_asset")
+            .exclude(member__bot_type__in=INTERNAL_BOT_TYPES)
+            .get(pk=pk, workspace__slug=slug, is_active=True)
         )
         if request.user.id == workspace_member.member_id:
             return Response(
@@ -137,8 +140,8 @@ class WorkSpaceMemberViewSet(BaseViewSet):
     @allow_permission(allowed_roles=[ROLE.ADMIN], level="WORKSPACE")
     def destroy(self, request, slug, pk):
         # Check the user role who is deleting the user
-        workspace_member = WorkspaceMember.objects.get(
-            workspace__slug=slug, pk=pk, member__is_bot=False, is_active=True
+        workspace_member = WorkspaceMember.objects.exclude(member__bot_type__in=INTERNAL_BOT_TYPES).get(
+            workspace__slug=slug, pk=pk, is_active=True
         )
 
         # check requesting user role

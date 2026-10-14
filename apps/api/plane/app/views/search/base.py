@@ -41,6 +41,7 @@ from plane.db.models import (
     ProjectPage,
     WorkspaceMember,
 )
+from plane.db.models.user import INTERNAL_BOT_TYPES
 
 
 class GlobalSearchEndpoint(BaseAPIView):
@@ -330,10 +331,9 @@ class SearchEndpoint(BaseAPIView):
 
                     users = (
                         ProjectMember.objects.filter(
-                            q,
+                            q & ~Q(member__bot_type__in=INTERNAL_BOT_TYPES),
                             is_active=True,
                             workspace__slug=slug,
-                            member__is_bot=False,
                             project_id=project_id,
                         )
                         .annotate(
@@ -542,10 +542,9 @@ class SearchEndpoint(BaseAPIView):
                             q |= Q(**{f"{field}__icontains": query})
                     users = (
                         WorkspaceMember.objects.filter(
-                            q,
+                            q & ~Q(member__bot_type__in=INTERNAL_BOT_TYPES),
                             is_active=True,
                             workspace__slug=slug,
-                            member__is_bot=False,
                         )
                         .annotate(
                             member__avatar_url=Case(

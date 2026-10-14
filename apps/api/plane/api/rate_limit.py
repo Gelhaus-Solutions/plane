@@ -23,6 +23,12 @@ class ApiKeyRateThrottle(SimpleRateThrottle):
         return f"{self.scope}:{api_key}"
 
     def allow_request(self, request, view):
+        # A bot token carries its own limit; people's tokens share the instance setting
+        api_token = getattr(request, "api_token", None)
+        if api_token is not None and api_token.user_type == 1 and api_token.allowed_rate_limit:
+            self.rate = api_token.allowed_rate_limit
+            self.num_requests, self.duration = self.parse_rate(self.rate)
+
         allowed = super().allow_request(request, view)
 
         if allowed:

@@ -8,7 +8,8 @@ from django.db.models import Q
 
 # Third party imports
 from rest_framework import authentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from rest_framework.permissions import SAFE_METHODS
 
 # Module imports
 from plane.db.models import APIToken
@@ -27,6 +28,10 @@ class APIKeyAuthentication(authentication.BaseAuthentication):
         return request.headers.get(self.auth_header_name)
 
     def validate_api_token(self, token):
+        api_token = self.get_valid_token(token)
+        return (api_token.user, api_token.token)
+
+    def get_valid_token(self, token):
         try:
             api_token = APIToken.objects.get(
                 Q(Q(expired_at__gt=timezone.now()) | Q(expired_at__isnull=True)),
@@ -40,7 +45,7 @@ class APIKeyAuthentication(authentication.BaseAuthentication):
         # save api token last used
         api_token.last_used = timezone.now()
         api_token.save(update_fields=["last_used"])
-        return (api_token.user, api_token.token)
+        return api_token
 
     def authenticate(self, request):
         token = self.get_api_token(request=request)
@@ -48,5 +53,9 @@ class APIKeyAuthentication(authentication.BaseAuthentication):
             return None
 
         # Validate the API token
-        user, token = self.validate_api_token(token)
-        return user, token
+        api_token = self.get_valid_token(token)
+        if api_token.access == "read" and request.method not in SAFE_METHODS:
+            raise PermissionDenied("This API token is read-only")
+        # The rate limiter reads a bot token's own limit from here
+        request.api_token = api_token
+        return api_token.user, api_token.token

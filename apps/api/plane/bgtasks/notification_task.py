@@ -227,10 +227,11 @@ def notifications(
             2. From the latest set of mentions, extract the users which are not a subscribers & make them subscribers
             """
 
-            # get the list of active project members
-            project_members = ProjectMember.objects.filter(project_id=project_id, is_active=True).values_list(
-                "member_id", flat=True
-            )
+            # get the list of active project members. Bots are left out: they get no notifications
+            # or mail, and they have no notification preferences to read.
+            project_members = ProjectMember.objects.filter(
+                project_id=project_id, is_active=True, member__is_bot=False
+            ).values_list("member_id", flat=True)
 
             # Get new mentions from the newer instance
             new_mentions = get_new_mentions(requested_instance=requested_data, current_instance=current_instance)
@@ -289,7 +290,7 @@ def notifications(
 
             issue = Issue.objects.filter(pk=issue_id).first()
 
-            if subscriber:
+            if subscriber and not User.objects.filter(pk=actor_id, is_bot=True).exists():
                 # add the user to issue subscriber
                 try:
                     _ = IssueSubscriber.objects.get_or_create(

@@ -51,6 +51,16 @@ def get_default_product_tour():
 
 class BotTypeEnum(models.TextChoices):
     WORKSPACE_SEED = "WORKSPACE_SEED", "Workspace Seed"
+    # Made by a workspace admin, acting through its own API tokens
+    USER = "USER", "User Bot"
+    # The actor of an OAuth app
+    APP = "APP", "App Bot"
+    # The workspace's own actor for automations, recurring items and mail intake
+    SYSTEM = "SYSTEM", "System Bot"
+
+
+# Bots that never show in member lists, pickers or mentions
+INTERNAL_BOT_TYPES = (BotTypeEnum.WORKSPACE_SEED, BotTypeEnum.SYSTEM)
 
 
 class User(AbstractBaseUser, PermissionsMixin):

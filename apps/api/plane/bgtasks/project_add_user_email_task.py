@@ -29,6 +29,9 @@ def project_add_user_email(current_site, project_member_id, invitor_id):
         inviter_first_name = invitor.first_name
         # Get the project member
         project_member = ProjectMember.objects.get(pk=project_member_id)
+        # Bots have no mailbox
+        if project_member.member.is_bot:
+            return
         # Get the project member details
         project_name = project_member.project.name
         workspace_name = project_member.workspace.name

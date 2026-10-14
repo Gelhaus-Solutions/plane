@@ -94,6 +94,7 @@ from .module import (
 )
 
 from .api import APITokenSerializer, APITokenReadSerializer
+from .bot import WorkspaceBotSerializer, BotTokenSerializer, BotTokenSecretSerializer
 
 from .importer import ImporterSerializer
 

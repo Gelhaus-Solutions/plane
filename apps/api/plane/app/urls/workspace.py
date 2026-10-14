@@ -6,6 +6,10 @@ from django.urls import path
 
 
 from plane.app.views import (
+    WorkspaceBotEndpoint,
+    WorkspaceBotProjectEndpoint,
+    WorkspaceBotTokenEndpoint,
+    WorkspaceBotTokenDetailEndpoint,
     UserWorkspaceInvitationsViewSet,
     WorkSpaceViewSet,
     WorkspaceJoinEndpoint,
@@ -84,6 +88,41 @@ urlpatterns = [
         name="workspace-join",
     ),
     # user join workspace
+    path(
+        "workspaces/<str:slug>/bots/",
+        WorkspaceBotEndpoint.as_view(http_method_names=["get", "post"]),
+        name="workspace-bots",
+    ),
+    path(
+        "workspaces/<str:slug>/bots/<uuid:pk>/",
+        WorkspaceBotEndpoint.as_view(http_method_names=["get", "patch", "delete"]),
+        name="workspace-bot",
+    ),
+    path(
+        "workspaces/<str:slug>/bots/<uuid:pk>/projects/",
+        WorkspaceBotProjectEndpoint.as_view(http_method_names=["post"]),
+        name="workspace-bot-projects",
+    ),
+    path(
+        "workspaces/<str:slug>/bots/<uuid:pk>/projects/<uuid:project_id>/",
+        WorkspaceBotProjectEndpoint.as_view(http_method_names=["delete"]),
+        name="workspace-bot-project",
+    ),
+    path(
+        "workspaces/<str:slug>/bots/<uuid:pk>/tokens/",
+        WorkspaceBotTokenEndpoint.as_view(http_method_names=["get", "post"]),
+        name="workspace-bot-tokens",
+    ),
+    path(
+        "workspaces/<str:slug>/bots/<uuid:pk>/tokens/<uuid:token_id>/",
+        WorkspaceBotTokenDetailEndpoint.as_view(http_method_names=["delete"]),
+        name="workspace-bot-token",
+    ),
+    path(
+        "workspaces/<str:slug>/bots/<uuid:pk>/tokens/<uuid:token_id>/rotate/",
+        WorkspaceBotTokenDetailEndpoint.as_view(http_method_names=["post"]),
+        name="workspace-bot-token-rotate",
+    ),
     path(
         "workspaces/<str:slug>/members/",
         WorkSpaceMemberViewSet.as_view({"get": "list"}),

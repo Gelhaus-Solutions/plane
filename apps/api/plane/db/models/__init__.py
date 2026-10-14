@@ -62,7 +62,8 @@ from .project import (
 from .session import Session
 from .social_connection import SocialLoginConnection
 from .state import State, StateGroup, DEFAULT_STATES
-from .user import Account, Profile, User, BotTypeEnum
+from .user import Account, Profile, User, BotTypeEnum, INTERNAL_BOT_TYPES
+from .bot import WorkspaceBot
 from .view import IssueView
 from .webhook import Webhook, WebhookLog
 from .workspace import (

@@ -22,6 +22,7 @@ from plane.db.models import (
     ProjectPublicMember,
     IssueSequence,
 )
+from plane.db.models.user import INTERNAL_BOT_TYPES
 from plane.utils.content_validator import (
     validate_html_content,
 )
@@ -126,7 +127,11 @@ class ProjectListSerializer(DynamicBaseSerializer):
         project_members = getattr(obj, "members_list", None)
         if project_members is not None:
             # Filter members by the project ID
-            return [member.member_id for member in project_members if member.is_active and not member.member.is_bot]
+            return [
+                member.member_id
+                for member in project_members
+                if member.is_active and member.member.bot_type not in INTERNAL_BOT_TYPES
+            ]
         return []
 
     def get_next_work_item_sequence(self, obj):

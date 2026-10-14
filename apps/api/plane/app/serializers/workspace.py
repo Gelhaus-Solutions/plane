@@ -26,6 +26,7 @@ from plane.db.models import (
     Sticky,
     WorkspaceUserPreference,
 )
+from plane.db.models.user import INTERNAL_BOT_TYPES
 from plane.utils.constants import RESTRICTED_WORKSPACE_SLUGS
 from plane.utils.url import contains_url
 from plane.utils.content_validator import (
@@ -271,8 +272,10 @@ class ProjectRecentVisitSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "logo_props", "project_members", "identifier"]
 
     def get_project_members(self, obj):
-        members = ProjectMember.objects.filter(project_id=obj.id, member__is_bot=False, is_active=True).values_list(
-            "member", flat=True
+        members = (
+            ProjectMember.objects.filter(project_id=obj.id, is_active=True)
+            .exclude(member__bot_type__in=INTERNAL_BOT_TYPES)
+            .values_list("member", flat=True)
         )
 
         return members

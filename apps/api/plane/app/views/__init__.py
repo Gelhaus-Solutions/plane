@@ -60,6 +60,12 @@ from .workspace.member import (
     WorkspaceProjectMemberEndpoint,
     WorkspaceMemberUserViewsEndpoint,
 )
+from .workspace.bot import (
+    WorkspaceBotEndpoint,
+    WorkspaceBotProjectEndpoint,
+    WorkspaceBotTokenEndpoint,
+    WorkspaceBotTokenDetailEndpoint,
+)
 from .workspace.invite import (
     WorkspaceInvitationsViewset,
     WorkspaceJoinEndpoint,
