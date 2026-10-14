@@ -40,7 +40,7 @@ export function AppProvider(props: IAppProvider) {
         <TranslationProvider>
           {/* The toast viewport is a provider that calls `useTranslation`, so it sits inside
               TranslationProvider and wraps everything that can raise a toast. */}
-          <PlaneToastProvider>
+          <PlaneToastProvider besideSidebar>
             <StoreWrapper>
               <InstanceWrapper>
                 <Suspense>

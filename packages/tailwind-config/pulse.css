@@ -460,6 +460,17 @@
   --animate-pulse-caret: pulse-caret 1.1s steps(1) infinite;
   --animate-pulse-arrive: pulse-arrive 2.4s var(--ease-pulse-out) forwards;
   --animate-pulse-slide-in: pulse-slide-in 0.32s var(--ease-pulse-out) both;
+  /* The bar that counts down how long a toast's Undo stays; the toast sets --toast-countdown */
+  --animate-toast-countdown: toast-countdown var(--toast-countdown, 8s) linear forwards;
+}
+
+@keyframes toast-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
 @keyframes pulse-ring {

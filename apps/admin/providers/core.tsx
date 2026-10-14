@@ -30,7 +30,7 @@ export function CoreProviders({ children }: { children: React.ReactNode }) {
       {/* The toast viewport is a provider that calls `useTranslation`. Admin had no i18n provider,
           so TranslationProvider is mounted here for it. */}
       <TranslationProvider>
-        <PlaneToastProvider>
+        <PlaneToastProvider besideSidebar>
           <SWRConfig value={DEFAULT_SWR_CONFIG}>
             <StoreProvider>
               <InstanceProvider>

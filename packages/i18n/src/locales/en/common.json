@@ -846,5 +846,10 @@
       "short_description": "Export as json"
     }
   },
-  "labels_count": "{count, plural, one {# label} other {# labels}}"
+  "labels_count": "{count, plural, one {# label} other {# labels}}",
+  "toast_host": {
+    "undo": "Undo",
+    "dismiss": "Dismiss",
+    "notifications": "Notifications"
+  }
 }

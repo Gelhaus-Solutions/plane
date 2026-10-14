@@ -846,5 +846,10 @@
       "short_description": "Als JSON exportieren"
     }
   },
-  "labels_count": "{count, plural, one {# Label} other {# Labels}}"
+  "labels_count": "{count, plural, one {# Label} other {# Labels}}",
+  "toast_host": {
+    "undo": "Rückgängig",
+    "dismiss": "Ausblenden",
+    "notifications": "Benachrichtigungen"
+  }
 }

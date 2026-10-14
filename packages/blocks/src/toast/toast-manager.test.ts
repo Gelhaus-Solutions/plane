@@ -14,7 +14,15 @@ type ToastPayload = {
   title?: string;
   description?: string;
   timeout?: number;
-  data?: { variant?: string; actions?: { label: string }[]; primaryAction?: { label: string } };
+  priority?: string;
+  data?: {
+    variant?: string;
+    actions?: { label: string }[];
+    primaryAction?: { label: string };
+    undo?: () => void;
+    compact?: boolean;
+    loading?: boolean;
+  };
 };
 type AddOptions = ToastPayload & { id?: string };
 type PromiseOptions = {
@@ -24,7 +32,7 @@ type PromiseOptions = {
 };
 
 // `vi.mock` is hoisted above every `const`, and the module under test builds its manager at import
-// time — so the spies have to be created inside `vi.hoisted` to exist by then.
+// time, so the spies have to be created inside `vi.hoisted` to exist by then.
 const { add, update, close, promise } = vi.hoisted(() => ({
   add: vi.fn((_options: AddOptions) => "toast-1"),
   update: vi.fn((_id: string, _options: ToastPayload) => undefined),
@@ -32,11 +40,11 @@ const { add, update, close, promise } = vi.hoisted(() => ({
   promise: vi.fn((value: Promise<unknown>, _options: PromiseOptions) => value),
 }));
 
-vi.mock("@makeplane/propel/components/toast", () => ({
-  createToastManager: () => ({ add, update, close, promise }),
+vi.mock("@base-ui/react/toast", () => ({
+  Toast: { createToastManager: () => ({ add, update, close, promise }) },
 }));
 
-import { dismissToast, setPromiseToast, setToast, toastManager, updateToast } from "./toast-manager";
+import { dismissToast, setPromiseToast, setToast, toastManager, undoLastChange, updateToast } from "./toast-manager";
 import type { ToastActionItem } from "./toast-manager";
 
 /**
@@ -62,19 +70,19 @@ afterEach(() => {
 });
 
 describe("setToast", () => {
-  it("maps type to a Propel variant and message to description", () => {
+  it("maps type to a variant and message to description", () => {
     const id = setToast({ type: "error", title: "Could not save", message: "Try again." });
     expect(id).toBe("toast-1");
     expect(toastManager.add).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Could not save",
         description: "Try again.",
-        data: { variant: "danger", actions: undefined },
+        data: { variant: "danger", actions: undefined, dismissable: true },
       })
     );
   });
 
-  it("maps every legacy toast type to a Propel variant", () => {
+  it("maps every legacy toast type to a variant", () => {
     const cases = [
       ["success", "success"],
       ["error", "danger"],
@@ -101,15 +109,28 @@ describe("setToast", () => {
     expect(add.mock.calls[0][0]).toMatchObject({ id: "duplicating-page", timeout: 0 });
   });
 
-  it("omits the `timeout` key entirely for non-loading toasts", () => {
-    // Not merely `undefined` — absent. Propel's manager builds `{ priority, timeout: derived,
-    // ...options }` on add, so an own `timeout: undefined` would win the spread and wipe the 8s it
-    // derives for danger/warning, dropping them to Base UI's 5s default.
-    for (const type of ["success", "error", "warning", "info"] as const) {
+  it("leaves success and info toasts on the host's default timeout", () => {
+    // Absent, not undefined: the host's 5 seconds apply
+    for (const type of ["success", "info"] as const) {
       add.mockClear();
       setToast({ type, title: "Title" });
       expect(add.mock.calls[0][0]).not.toHaveProperty("timeout");
     }
+  });
+
+  it("keeps a refusal until it is dismissed and announces it assertively", () => {
+    setToast({ type: "error", title: "PLANE-60 needs an approval" });
+    expect(add.mock.calls[0][0]).toMatchObject({ timeout: 0, priority: "high" });
+  });
+
+  it("keeps a warning for 8 seconds", () => {
+    setToast({ type: "warning", title: "Heads up" });
+    expect(add.mock.calls[0][0]).toMatchObject({ timeout: 8000, priority: "high" });
+  });
+
+  it("shows a small toast for 2 seconds", () => {
+    setToast({ type: "success", title: "Copied PLANE-91", compact: true });
+    expect(add.mock.calls[0][0]).toMatchObject({ timeout: 2000, data: { compact: true } });
   });
 
   it("falls back to a default title for a bare loading toast", () => {
@@ -122,18 +143,18 @@ describe("setToast", () => {
     expect(add.mock.calls[0][0]).toMatchObject({ id: "42" });
   });
 
-  it("forwards data action items to Propel `data.actions`", () => {
+  it("forwards data action items to `data.actions`", () => {
     const onClick = vi.fn();
     setToast({ type: "success", title: "Cycle created", actionItems: [{ label: "View cycle", onClick }] });
     expect(add.mock.calls[0][0]).toMatchObject({ data: { actions: [{ label: "View cycle", onClick }] } });
   });
 
-  it("drops ReactNode action items rather than passing markup to Propel", () => {
+  it("drops ReactNode action items rather than passing markup on", () => {
     setToast({ type: "success", title: "Page duplicated", actionItems: "View duplicated page" });
     expect(add.mock.calls[0][0].data?.actions).toBeUndefined();
   });
 
-  it("routes a `primary` item to Propel's right-aligned slot and the rest to the left cluster", () => {
+  it("routes a `primary` item to the last slot and the rest before it", () => {
     setToast({
       type: "success",
       title: "Work item created",
@@ -158,7 +179,7 @@ describe("setToast", () => {
 });
 
 describe("dropped action items", () => {
-  // A JSX array is, at runtime, an array of React element objects — no `label` in sight.
+  // A JSX array is, at runtime, an array of React element objects: no `label` in sight.
   const jsxActionItems = [
     { type: "a", props: { href: "/p/1", children: "View duplicated page" }, key: null },
   ] as unknown as ToastActionItem[];
@@ -228,11 +249,14 @@ describe("updateToast", () => {
     expect(update.mock.calls[0][1]).toMatchObject({ timeout: 0, data: { variant: "neutral" } });
   });
 
-  it("omits the `timeout` key when settling into a non-loading type", () => {
-    // Propel skips its derived timeout on update whenever `Object.hasOwn(options, "timeout")`,
-    // which an undefined-valued own property satisfies.
-    updateToast("restoring-version", { type: "error", title: "Could not restore version" });
+  it("omits the `timeout` key when settling into a success", () => {
+    updateToast("restoring-version", { type: "success", title: "Version restored" });
     expect(update.mock.calls[0][1]).not.toHaveProperty("timeout");
+  });
+
+  it("keeps a toast that settles into a refusal", () => {
+    updateToast("restoring-version", { type: "error", title: "Could not restore version" });
+    expect(update.mock.calls[0][1]).toMatchObject({ timeout: 0, priority: "high" });
   });
 });
 
@@ -241,7 +265,7 @@ describe("setPromiseToast", () => {
     expect(setPromiseToast(Promise.resolve(1), { success: { title: "ok" }, error: { title: "no" } })).toBeUndefined();
   });
 
-  it("wires loading, success and error into the Propel promise options", () => {
+  it("wires loading, success and error into the promise options", () => {
     const value = Promise.resolve({ name: "Cycle" });
     setPromiseToast(value, {
       loading: "Creating cycle...",
@@ -266,16 +290,51 @@ describe("setPromiseToast", () => {
     });
   });
 
-  it("keeps `timeout` off the success and error payloads but pins it on loading", () => {
+  it("keeps `timeout` off the success payload and pins it on loading and error", () => {
     setPromiseToast(Promise.resolve({ name: "x" }), { success: { title: "ok" }, error: { title: "no" } });
     const options = promise.mock.calls[0][1];
     expect(options.loading).toHaveProperty("timeout", 0);
     expect(options.success({ name: "x" })).not.toHaveProperty("timeout");
-    expect(options.error({ name: "x" })).not.toHaveProperty("timeout");
+    expect(options.error({ name: "x" })).toHaveProperty("timeout", 0);
   });
 
   it("defaults the loading title when the caller omits it", () => {
     setPromiseToast(Promise.resolve(null), { success: { title: "ok" }, error: { title: "no" } });
     expect(promise.mock.calls[0][1].loading).toMatchObject({ title: "Loading..." });
+  });
+});
+
+describe("undo", () => {
+  it("offers Undo for 8 seconds and keeps the change for Cmd+Z", () => {
+    const run = vi.fn();
+    setToast({ type: "success", title: "Moved 3 items to Done", undo: run });
+    expect(add.mock.calls[0][0]).toMatchObject({ timeout: 8000, data: { undo: run } });
+
+    expect(undoLastChange()).toBe(true);
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledWith("toast-1");
+    // undone once; nothing is left to undo
+    expect(undoLastChange()).toBe(false);
+  });
+
+  it("undoes only the newest change", () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    add.mockReturnValueOnce("toast-a").mockReturnValueOnce("toast-b");
+    setToast({ type: "success", title: "First", undo: first });
+    setToast({ type: "success", title: "Second", undo: second });
+
+    undoLastChange();
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(first).not.toHaveBeenCalled();
+    expect(undoLastChange()).toBe(false);
+  });
+
+  it("forgets the change when its toast is updated without one", () => {
+    const run = vi.fn();
+    setToast({ type: "success", title: "Moved", undo: run });
+    updateToast("toast-1", { type: "error", title: "Could not move" });
+    expect(undoLastChange()).toBe(false);
+    expect(run).not.toHaveBeenCalled();
   });
 });
