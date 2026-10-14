@@ -53,7 +53,8 @@ def get_email_configuration():
             {"key": "EMAIL_USE_SSL", "default": os.environ.get("EMAIL_USE_SSL", "0")},
             {
                 "key": "EMAIL_FROM",
-                "default": os.environ.get("EMAIL_FROM", "Team Plane <team@mailer.plane.so>"),
+                # No plane.so fallback: without a From address, mail goes out as the SMTP username
+                "default": os.environ.get("EMAIL_FROM", ""),
             },
         ]
     )

@@ -10,18 +10,17 @@ from bs4 import BeautifulSoup
 
 # Third party imports
 from celery import shared_task
-from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 
 # Django imports
 from django.utils import timezone
 
 # Module imports
-from plane.db.models import EmailNotificationLog, Issue, User
-from plane.license.utils.instance_value import get_email_configuration
+from plane.db.models import EmailDelivery, EmailNotificationLog, Issue, User
 from plane.settings.redis import redis_instance
-from plane.utils.email import generate_plain_text_from_html
 from plane.utils.exception_logger import log_exception
+from plane.utils.host import base_host
+from plane.utils.mail import MAIL_TASK, TransientMailError, send_mail
 
 
 def remove_unwanted_characters(input_text):
@@ -149,8 +148,8 @@ def process_html_content(content):
     return processed_content_list
 
 
-@shared_task
-def send_email_notification(issue_id, notification_data, receiver_id, email_notification_ids):
+@shared_task(**MAIL_TASK)
+def send_email_notification(self, issue_id, notification_data, receiver_id, email_notification_ids):
     # Convert UUIDs to a sorted, concatenated string
     sorted_ids = sorted(email_notification_ids)
     ids_str = "_".join(str(id) for id in sorted_ids)
@@ -159,26 +158,11 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
     # acquire the lock for sending emails
     try:
         if acquire_lock(lock_id=lock_id):
-            # get the redis instance
-            ri = redis_instance()
-            base_api = ri.get(str(issue_id)).decode() if ri.get(str(issue_id)) else None
-
-            # Skip if base api is not present
-            if not base_api:
-                return
+            # Links point at the configured app URL. They used to come from a Redis key the
+            # activity task set with a 10 minute expiry; once it lapsed the mail was silently dropped.
+            base_api = base_host(request=None, is_app=True).rstrip("/")
 
             data = create_payload(notification_data=notification_data)
-
-            # Get email configurations
-            (
-                EMAIL_HOST,
-                EMAIL_HOST_USER,
-                EMAIL_HOST_PASSWORD,
-                EMAIL_PORT,
-                EMAIL_USE_TLS,
-                EMAIL_USE_SSL,
-                EMAIL_FROM,
-            ) = get_email_configuration()
 
             receiver = User.objects.get(pk=receiver_id)
             issue = Issue.objects.get(pk=issue_id)
@@ -260,46 +244,25 @@ def send_email_notification(issue_id, notification_data, receiver_id, email_noti
                 "entity_type": "issue",
             }
             html_content = render_to_string("emails/notifications/issue-updates.html", context)
-            text_content = generate_plain_text_from_html(html_content)
 
             try:
-                connection = get_connection(
-                    host=EMAIL_HOST,
-                    port=int(EMAIL_PORT),
-                    username=EMAIL_HOST_USER,
-                    password=EMAIL_HOST_PASSWORD,
-                    use_tls=EMAIL_USE_TLS == "1",
-                    use_ssl=EMAIL_USE_SSL == "1",
-                )
+                delivery = send_mail("work_item_updates", receiver.email, subject, html_content, task=self)
+            finally:
+                # release the lock, so a retry can take it again
+                release_lock(lock_id=lock_id)
 
-                msg = EmailMultiAlternatives(
-                    subject=subject,
-                    body=text_content,
-                    from_email=EMAIL_FROM,
-                    to=[receiver.email],
-                    connection=connection,
-                )
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
-                logging.getLogger("plane.worker").info("Email Sent Successfully")
-
+            if delivery.status == EmailDelivery.Status.SENT:
                 # Update the logs
                 EmailNotificationLog.objects.filter(pk__in=email_notification_ids).update(sent_at=timezone.now())
-
-                # release the lock
-                release_lock(lock_id=lock_id)
-                return
-            except Exception as e:
-                log_exception(e)
-                # release the lock
-                release_lock(lock_id=lock_id)
-                return
+            return
         else:
             logging.getLogger("plane.worker").info("Duplicate email received skipping")
             return
     except (Issue.DoesNotExist, User.DoesNotExist):
         release_lock(lock_id=lock_id)
         return
+    except TransientMailError:
+        raise
     except Exception as e:
         log_exception(e)
         release_lock(lock_id=lock_id)

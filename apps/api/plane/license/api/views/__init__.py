@@ -29,3 +29,4 @@ from .workspace import (
 
 
 from .bot import InstanceBotEndpoint
+from .mail import InstanceEmailDeliveryEndpoint

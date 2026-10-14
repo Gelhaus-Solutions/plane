@@ -2,38 +2,22 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-# Python imports
-import logging
-
 # Third party imports
 from celery import shared_task
 
 # Django imports
-# Third party imports
-from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 
 # Module imports
-from plane.license.utils.instance_value import get_email_configuration
-from plane.utils.email import generate_plain_text_from_html
 from plane.utils.exception_logger import log_exception
+from plane.utils.mail import MAIL_TASK, TransientMailError, send_mail
 
 
-@shared_task
-def forgot_password(first_name, email, uidb64, token, current_site):
+@shared_task(**MAIL_TASK)
+def forgot_password(self, first_name, email, uidb64, token, current_site):
     try:
         relative_link = f"/accounts/reset-password/?uidb64={uidb64}&token={token}&email={email}"
         abs_url = str(current_site) + relative_link
-
-        (
-            EMAIL_HOST,
-            EMAIL_HOST_USER,
-            EMAIL_HOST_PASSWORD,
-            EMAIL_PORT,
-            EMAIL_USE_TLS,
-            EMAIL_USE_SSL,
-            EMAIL_FROM,
-        ) = get_email_configuration()
 
         subject = "A new password to your Plane account has been requested"
 
@@ -44,29 +28,10 @@ def forgot_password(first_name, email, uidb64, token, current_site):
         }
 
         html_content = render_to_string("emails/auth/forgot_password.html", context)
-
-        text_content = generate_plain_text_from_html(html_content)
-
-        connection = get_connection(
-            host=EMAIL_HOST,
-            port=int(EMAIL_PORT),
-            username=EMAIL_HOST_USER,
-            password=EMAIL_HOST_PASSWORD,
-            use_tls=EMAIL_USE_TLS == "1",
-            use_ssl=EMAIL_USE_SSL == "1",
-        )
-
-        msg = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=EMAIL_FROM,
-            to=[email],
-            connection=connection,
-        )
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
-        logging.getLogger("plane.worker").info("Email sent successfully")
+        send_mail("password_reset", email, subject, html_content, task=self)
         return
+    except TransientMailError:
+        raise
     except Exception as e:
         log_exception(e)
         return

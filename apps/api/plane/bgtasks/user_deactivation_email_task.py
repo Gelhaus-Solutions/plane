@@ -2,11 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-# Python imports
-import logging
-
 # Django imports
-from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 
 # Third party imports
@@ -14,13 +10,12 @@ from celery import shared_task
 
 # Module imports
 from plane.db.models import User
-from plane.license.utils.instance_value import get_email_configuration
-from plane.utils.email import generate_plain_text_from_html
 from plane.utils.exception_logger import log_exception
+from plane.utils.mail import MAIL_TASK, TransientMailError, send_mail
 
 
-@shared_task
-def user_deactivation_email(current_site, user_id):
+@shared_task(**MAIL_TASK)
+def user_deactivation_email(self, current_site, user_id):
     try:
         # Send email to user when account is deactivated
         user = User.objects.get(id=user_id)
@@ -30,42 +25,10 @@ def user_deactivation_email(current_site, user_id):
 
         # Send email to user
         html_content = render_to_string("emails/user/user_deactivation.html", context)
-
-        text_content = generate_plain_text_from_html(html_content)
-        # Configure email connection from the database
-        (
-            EMAIL_HOST,
-            EMAIL_HOST_USER,
-            EMAIL_HOST_PASSWORD,
-            EMAIL_PORT,
-            EMAIL_USE_TLS,
-            EMAIL_USE_SSL,
-            EMAIL_FROM,
-        ) = get_email_configuration()
-
-        connection = get_connection(
-            host=EMAIL_HOST,
-            port=int(EMAIL_PORT),
-            username=EMAIL_HOST_USER,
-            password=EMAIL_HOST_PASSWORD,
-            use_tls=EMAIL_USE_TLS == "1",
-            use_ssl=EMAIL_USE_SSL == "1",
-        )
-
-        # Send email
-        msg = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=EMAIL_FROM,
-            to=[user.email],
-            connection=connection,
-        )
-
-        # Attach HTML content
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
-        logging.getLogger("plane.worker").info("Email sent successfully.")
+        send_mail("user_deactivated", user.email, subject, html_content, task=self)
         return
+    except TransientMailError:
+        raise
     except Exception as e:
         log_exception(e)
         return

@@ -18,6 +18,7 @@ from celery import shared_task
 
 # Module imports
 from plane.db.models import (
+    EmailDelivery,
     EmailNotificationLog,
     PageVersion,
     APIActivityLog,
@@ -104,6 +105,16 @@ def get_email_logs_queryset():
     )
 
 
+def get_email_deliveries_queryset():
+    """Get email delivery records older than the email retention window."""
+    cutoff_time = timezone.now() - timedelta(days=settings.EMAIL_LOG_RETENTION_DAYS)
+    return (
+        EmailDelivery.all_objects.filter(created_at__lte=cutoff_time)
+        .values_list("id", flat=True)
+        .iterator(chunk_size=BATCH_SIZE)
+    )
+
+
 def get_page_versions_queryset():
     """Get page versions beyond the maximum allowed (20 per page)."""
     subq = (
@@ -175,6 +186,16 @@ def delete_email_notification_logs():
         queryset_func=get_email_logs_queryset,
         model=EmailNotificationLog,
         task_name="Email Notification Log",
+    )
+
+
+@shared_task
+def delete_email_deliveries():
+    """Delete old email delivery records."""
+    process_cleanup_task(
+        queryset_func=get_email_deliveries_queryset,
+        model=EmailDelivery,
+        task_name="Email Delivery",
     )
 
 

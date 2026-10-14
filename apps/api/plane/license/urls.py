@@ -19,6 +19,7 @@ from plane.license.api.views import (
     InstanceWorkSpaceAvailabilityCheckEndpoint,
     InstanceWorkSpaceEndpoint,
     InstanceBotEndpoint,
+    InstanceEmailDeliveryEndpoint,
 )
 
 urlpatterns = [
@@ -72,6 +73,11 @@ urlpatterns = [
         name="instance-workspace-availability",
     ),
     path("workspaces/", InstanceWorkSpaceEndpoint.as_view(), name="instance-workspace"),
+    path(
+        "email-deliveries/",
+        InstanceEmailDeliveryEndpoint.as_view(http_method_names=["get"]),
+        name="instance-email-deliveries",
+    ),
     path("bots/", InstanceBotEndpoint.as_view(http_method_names=["get"]), name="instance-bots"),
     path("bots/<uuid:pk>/", InstanceBotEndpoint.as_view(http_method_names=["patch"]), name="instance-bot"),
 ]
