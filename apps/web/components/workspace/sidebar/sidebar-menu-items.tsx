@@ -7,7 +7,6 @@
 import React, { useMemo } from "react";
 import { observer } from "mobx-react";
 import { Collapsible } from "@makeplane/propel/components/collapsible";
-import { MoreHorizontalOutline } from "@makeplane/propel/icons";
 // plane imports
 import {
   WORKSPACE_SIDEBAR_DYNAMIC_NAVIGATION_ITEMS_LINKS,
@@ -17,15 +16,19 @@ import {
 } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 // components
-import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
+import { SidebarInboxCount } from "@/components/sidebar/sidebar-inbox-count";
 // store hooks
-import { useAppTheme } from "@/hooks/store/use-app-theme";
 import useLocalStorage from "@/hooks/use-local-storage";
 import {
   usePersonalNavigationPreferences,
   useWorkspaceNavigationPreferences,
 } from "@/hooks/use-navigation-preferences";
 import { SidebarItemBase } from "./sidebar-item";
+
+const ADDITIONAL_STATIC_ITEMS = ["inbox"];
+
+const renderInboxCount = (itemKey: string, workspaceSlug: string) =>
+  itemKey === "inbox" ? <SidebarInboxCount workspaceSlug={workspaceSlug} /> : null;
 
 export const SidebarMenuItems = observer(function SidebarMenuItems() {
   // routers
@@ -35,7 +38,6 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
   );
 
   // store hooks
-  const { isExtendedSidebarOpened, toggleExtendedSidebar } = useAppTheme();
   // hooks
   const { preferences: personalPreferences } = usePersonalNavigationPreferences();
   const { preferences: workspacePreferences } = useWorkspaceNavigationPreferences();
@@ -48,7 +50,8 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
 
   // Filter static navigation items based on personal preferences
   const filteredStaticNavigationItems = useMemo(() => {
-    const items = [...WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS_LINKS];
+    const inboxItem = WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["inbox"];
+    const items = [...WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS_LINKS, ...(inboxItem ? [inboxItem] : [])];
     const personalItems: Array<(typeof items)[0] & { sort_order: number }> = [];
 
     // Add personal items based on preferences with their sort_order
@@ -95,9 +98,13 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
   return (
     <>
       <div className="flex flex-col gap-0.5">
-        {filteredStaticNavigationItems.map((item, _index) => (
-          // oxlint-disable-next-line react/no-array-index-key
-          <SidebarItemBase key={`static_${_index}`} item={item} />
+        {filteredStaticNavigationItems.map((item) => (
+          <SidebarItemBase
+            key={`static_${item.key}`}
+            item={item}
+            additionalStaticItems={ADDITIONAL_STATIC_ITEMS}
+            additionalRender={renderInboxCount}
+          />
         ))}
       </div>
       <Collapsible
@@ -105,7 +112,9 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
         open={!!isWorkspaceMenuOpen}
         onOpenChange={toggleListDisclosure}
         trigger={
-          <span className="text-13 font-semibold whitespace-nowrap text-placeholder">{t("common.workspace")}</span>
+          <span className="text-10-5 font-semibold tracking-[0.08em] whitespace-nowrap text-secondary uppercase">
+            {t("common.workspace")}
+          </span>
         }
       >
         <div className="flex flex-col gap-0.5">
@@ -117,22 +126,6 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
             // oxlint-disable-next-line react/no-array-index-key
             <SidebarItemBase key={`dynamic_${_index}`} item={item} />
           ))}
-          <SidebarNavItem>
-            <button
-              type="button"
-              onClick={() => toggleExtendedSidebar()}
-              className="flex flex-grow items-center gap-1.5 text-13 font-medium text-tertiary"
-              id="extended-sidebar-toggle"
-              aria-label={t(
-                isExtendedSidebarOpened
-                  ? "aria_labels.app_sidebar.close_extended_sidebar"
-                  : "aria_labels.app_sidebar.open_extended_sidebar"
-              )}
-            >
-              <MoreHorizontalOutline className="size-4 flex-shrink-0" />
-              <span>{isExtendedSidebarOpened ? "Hide" : "More"}</span>
-            </button>
-          </SidebarNavItem>
         </div>
       </Collapsible>
     </>

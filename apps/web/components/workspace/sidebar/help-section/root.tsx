@@ -18,7 +18,12 @@ import { PlaneVersionNumber } from "@/components/global/version-number";
 // hooks
 import { usePowerK } from "@/hooks/store/use-power-k";
 
-export const HelpMenuRoot = observer(function HelpMenuRoot() {
+type HelpMenuRootProps = {
+  /** A small icon button that opens the menu upward, for the sidebar's bottom row. */
+  compact?: boolean;
+};
+
+export const HelpMenuRoot = observer(function HelpMenuRoot({ compact = false }: HelpMenuRootProps) {
   // store hooks
   const { t } = useTranslation();
   const { toggleShortcutsListModal } = usePowerK();
@@ -36,18 +41,28 @@ export const HelpMenuRoot = observer(function HelpMenuRoot() {
             the same chrome, with the item's own icon part inside it. */}
         <MenuTrigger
           render={
-            <button
-              type="button"
-              className="group flex flex-col items-center justify-center gap-0.5 text-tertiary"
-              aria-label={t("power_k.group_titles.help")}
-            >
-              <AppSidebarItem.Icon icon={<HelpOutline className="size-5" />} highlight={isNeedHelpOpen} />
-            </button>
+            compact ? (
+              <button
+                type="button"
+                className="grid size-7 place-items-center rounded-[7px] text-secondary transition-colors duration-[120ms] hover:bg-layer-1-hover hover:text-primary"
+                aria-label={t("power_k.group_titles.help")}
+              >
+                <HelpOutline className="size-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="group flex flex-col items-center justify-center gap-0.5 text-tertiary"
+                aria-label={t("power_k.group_titles.help")}
+              >
+                <AppSidebarItem.Icon icon={<HelpOutline className="size-5" />} highlight={isNeedHelpOpen} />
+              </button>
+            )
           }
         />
         <MenuContent
-          side="bottom"
-          align="end"
+          side={compact ? "top" : "bottom"}
+          align={compact ? "start" : "end"}
           footer={
             <div className="text-11 text-secondary">
               <PlaneVersionNumber />

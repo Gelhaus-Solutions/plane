@@ -4,5 +4,5 @@
  * See the LICENSE file for details.
  */
 
-export const SIDEBAR_WIDTH = 250;
+export const SIDEBAR_WIDTH = 240;
 export const EXTENDED_SIDEBAR_WIDTH = 300;

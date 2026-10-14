@@ -189,7 +189,7 @@ export const SidebarFavoritesMenu = observer(function SidebarFavoritesMenu() {
         trigger={
           <span
             ref={elementRef}
-            className={cn("text-13 font-semibold whitespace-nowrap text-placeholder", {
+            className={cn("text-10-5 font-semibold tracking-[0.08em] whitespace-nowrap text-secondary uppercase", {
               "bg-layer-1 opacity-60": isDragging,
             })}
           >

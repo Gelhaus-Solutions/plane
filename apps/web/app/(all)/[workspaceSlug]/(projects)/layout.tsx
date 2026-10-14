@@ -15,15 +15,14 @@ function WorkspaceLayout() {
   return (
     <>
       <ProjectsAppPowerKProvider />
-      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-lg border border-subtle">
-        <div id="full-screen-portal" className="absolute inset-0 w-full" />
-        <div className="relative flex size-full overflow-hidden">
-          <ProjectAppSidebar />
-          <ExtendedProjectSidebar />
-          <main className="relative flex h-full w-full flex-col overflow-hidden bg-surface-1">
-            <Outlet />
-          </main>
-        </div>
+      <div className="relative flex size-full overflow-hidden">
+        <ProjectAppSidebar />
+        <ExtendedProjectSidebar />
+        {/* The content panel, inset in the canvas */}
+        <main className="relative my-2 mr-2 flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-strong bg-surface-1 shadow-e1">
+          <div id="full-screen-portal" className="absolute inset-0 w-full" />
+          <Outlet />
+        </main>
       </div>
     </>
   );

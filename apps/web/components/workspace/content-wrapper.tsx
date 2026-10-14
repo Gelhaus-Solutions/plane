@@ -6,37 +6,15 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// plane imports
-import { cn } from "@plane/utils";
-import { AppRailRoot } from "@/components/navigation";
-import { useAppRailVisibility } from "@/lib/app-rail";
-import { TopNavigationRoot } from "@/components/navigation/top-navigation-root";
 
+/**
+ * The workspace shell in the Pulse design: no top bar and no app rail. The canvas shows around the sidebar and the
+ * inset content panel, which each layout draws itself.
+ */
 export const WorkspaceContentWrapper = observer(function WorkspaceContentWrapper({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Use the context to determine if app rail should render
-  const { shouldRenderAppRail } = useAppRailVisibility();
-
-  return (
-    <div className="relative flex size-full flex-col overflow-hidden bg-canvas transition-all duration-300 ease-in-out">
-      <TopNavigationRoot />
-      <div className="relative flex size-full overflow-hidden">
-        {/* Conditionally render AppRailRoot based on context */}
-        {shouldRenderAppRail && <AppRailRoot />}
-        <div
-          className={cn(
-            "relative size-full flex-grow overflow-hidden pr-2 pb-2 pl-2 transition-all duration-300 ease-in-out",
-            {
-              "pl-0!": shouldRenderAppRail,
-            }
-          )}
-        >
-          {children}
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="relative flex size-full overflow-hidden bg-canvas">{children}</div>;
 });

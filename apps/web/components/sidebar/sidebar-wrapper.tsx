@@ -4,36 +4,25 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { observer } from "mobx-react";
 // plane helpers
 import { useOutsideClickDetector } from "@plane/hooks";
-import { useTranslation } from "@plane/i18n";
-import { PreferencesOutline } from "@makeplane/propel/icons";
 import { ScrollArea } from "@makeplane/propel/components/scroll-area";
-// components
-import { CustomizeNavigationDialog } from "@/components/navigation/customize-navigation-dialog";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import useSize from "@/hooks/use-window-size";
-// plane web components
-import { WorkspaceEditionBadge } from "@/components/workspace/edition-badge";
-import { AppSidebarToggleButton } from "./sidebar-toggle-button";
-import { IconButton } from "@makeplane/propel/components/icon-button";
-import { Icon } from "@makeplane/propel/components/icon";
+// local imports
+import { SidebarHeader } from "./sidebar-header";
+import { SidebarUserRow } from "./sidebar-user-row";
 
 type TSidebarWrapperProps = {
-  title: string;
   children: React.ReactNode;
-  quickActions?: React.ReactNode;
 };
 
+/** The Pulse sidebar: the workspace, search and create on top, the tree in the middle, the user row at the bottom. */
 export const SidebarWrapper = observer(function SidebarWrapper(props: TSidebarWrapperProps) {
-  const { title, children, quickActions } = props;
-  // translation
-  const { t } = useTranslation();
-  // state
-  const [isCustomizeNavDialogOpen, setIsCustomizeNavDialogOpen] = useState(false);
+  const { children } = props;
   // store hooks
   const { toggleSidebar, sidebarCollapsed } = useAppTheme();
   const windowSize = useSize();
@@ -52,44 +41,12 @@ export const SidebarWrapper = observer(function SidebarWrapper(props: TSidebarWr
   }, [windowSize]);
 
   return (
-    <>
-      <CustomizeNavigationDialog isOpen={isCustomizeNavDialogOpen} onClose={() => setIsCustomizeNavDialogOpen(false)} />
-      <div ref={ref} className="flex h-full w-full animate-fade-in flex-col">
-        <div className="flex flex-col gap-3 px-3">
-          {/* Workspace switcher and settings */}
-
-          <div className="flex items-center justify-between gap-2 px-2">
-            <span className="pt-1 text-16 font-medium text-primary">{title}</span>
-            <div className="flex items-center gap-2">
-              {title === "Projects" && (
-                <IconButton
-                  size="sm"
-                  variant="ghost"
-                  icon={<Icon icon={PreferencesOutline} />}
-                  aria-label={t("customize_navigation")}
-                  onClick={() => setIsCustomizeNavDialogOpen(true)}
-                />
-              )}
-              <AppSidebarToggleButton />
-            </div>
-          </div>
-          {/* Quick actions */}
-          {quickActions}
-        </div>
-
-        <ScrollArea orientation="vertical">
-          <div className="flex flex-col gap-3 overflow-x-hidden px-3 pt-3 pb-0.5">{children}</div>
-        </ScrollArea>
-        {/* Help Section */}
-        <div className="flex h-12 items-center justify-between border-t border-subtle bg-surface-1 p-3">
-          <WorkspaceEditionBadge />
-          {/* TODO: To be checked if we need this */}
-          {/* <div className="flex items-center gap-2">
-          {!shouldRenderAppRail && <HelpMenu />}
-          {!isAppRailEnabled && <AppSidebarToggleButton />}
-        </div> */}
-        </div>
-      </div>
-    </>
+    <div ref={ref} className="flex h-full w-full flex-col gap-3.5 py-2.5 pr-2 pl-2.5">
+      <SidebarHeader />
+      <ScrollArea orientation="vertical">
+        <div className="flex flex-col gap-3.5 overflow-x-hidden pb-0.5">{children}</div>
+      </ScrollArea>
+      <SidebarUserRow />
+    </div>
   );
 });

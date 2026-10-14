@@ -24,7 +24,12 @@ import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useUser } from "@/hooks/store/user";
 
-export const UserMenuRoot = observer(function UserMenuRoot() {
+type UserMenuRootProps = {
+  /** rail is the avatar alone; row is the avatar with the name, for the sidebar's bottom row. */
+  variant?: "rail" | "row";
+};
+
+export const UserMenuRoot = observer(function UserMenuRoot({ variant = "rail" }: UserMenuRootProps) {
   // states
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   // router
@@ -56,33 +61,49 @@ export const UserMenuRoot = observer(function UserMenuRoot() {
   }, [isUserMenuOpen, toggleAnySidebarDropdown]);
 
   return (
-    <div className="flex items-center">
+    <div className={variant === "row" ? "flex min-w-0 flex-1 items-center" : "flex items-center"}>
       <Menu onOpenChange={setIsUserMenuOpen}>
         {/* propel: `AppSidebarItem` takes no arbitrary props, so it cannot be the Base UI trigger
             — the popup would have no element to anchor to. The trigger is a plain button wearing
             the same chrome, with the item's own icon part inside it. */}
         <MenuTrigger
           render={
-            <button
-              type="button"
-              className="group flex flex-col items-center justify-center gap-0.5 text-tertiary"
-              aria-label={t("aria_labels.projects_sidebar.open_user_menu")}
-            >
-              <AppSidebarItem.Icon
-                icon={
-                  <Avatar
-                    alt={currentUser?.display_name}
-                    fallback={currentUser?.display_name?.[0]?.toUpperCase()}
-                    src={getFileURL(currentUser?.avatar_url ?? "")}
-                    size="xs"
-                  />
-                }
-                highlight={isUserMenuOpen}
-              />
-            </button>
+            variant === "row" ? (
+              <button
+                type="button"
+                className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-[7px] px-1.5 text-left text-13 text-primary transition-colors duration-[120ms] hover:bg-layer-1-hover focus:outline-none"
+                aria-label={t("aria_labels.projects_sidebar.open_user_menu")}
+              >
+                <Avatar
+                  alt={currentUser?.display_name}
+                  fallback={currentUser?.display_name?.[0]?.toUpperCase()}
+                  src={getFileURL(currentUser?.avatar_url ?? "")}
+                  size="xs"
+                />
+                <span className="truncate font-medium">{currentUser?.display_name}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="group flex flex-col items-center justify-center gap-0.5 text-tertiary"
+                aria-label={t("aria_labels.projects_sidebar.open_user_menu")}
+              >
+                <AppSidebarItem.Icon
+                  icon={
+                    <Avatar
+                      alt={currentUser?.display_name}
+                      fallback={currentUser?.display_name?.[0]?.toUpperCase()}
+                      src={getFileURL(currentUser?.avatar_url ?? "")}
+                      size="xs"
+                    />
+                  }
+                  highlight={isUserMenuOpen}
+                />
+              </button>
+            )
           }
         />
-        <MenuContent side="bottom" align="end">
+        <MenuContent side={variant === "row" ? "top" : "bottom"} align={variant === "row" ? "start" : "end"}>
           <div className="flex w-72 max-w-full flex-col gap-y-3 p-2">
             <div className="relative h-29 w-full rounded-lg">
               <CoverImage

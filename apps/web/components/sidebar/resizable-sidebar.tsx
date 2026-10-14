@@ -142,6 +142,9 @@ export function ResizableSidebar({
     []
   );
 
+  // These two fire when the flag they list changes; the rest is read at that moment, not watched (watching the
+  // hover state would start the hide timer as the pointer enters the trigger).
+  // oxlint-disable react-hooks/exhaustive-deps
   useEffect(() => {
     if (!isAnySidebarDropdownOpen && isCollapsed && isHoveringTrigger) {
       handlePeekLeave();
@@ -153,6 +156,7 @@ export function ResizableSidebar({
       handlePeekLeave();
     }
   }, [isAnyExtendedSidebarExpanded]);
+  // oxlint-enable react-hooks/exhaustive-deps
 
   // Reset peek when sidebar is expanded
   useEffect(() => {
@@ -180,7 +184,7 @@ export function ResizableSidebar({
       <div
         id="main-sidebar"
         className={cn(
-          "z-20 h-full border-r border-subtle bg-surface-1",
+          "z-20 h-full",
           !isResizing && "transition-all duration-300 ease-in-out",
           isCollapsed ? "w-0 translate-x-[-100%] opacity-0" : "translate-x-0 opacity-100",
           isMobile && "absolute",
@@ -197,7 +201,7 @@ export function ResizableSidebar({
       >
         <aside
           className={cn(
-            "group/sidebar relative flex h-full w-full flex-col overflow-hidden bg-surface-1 pt-3",
+            "group/sidebar relative flex h-full w-full flex-col overflow-hidden",
             isAnyExtendedSidebarExpanded && "rounded-none"
           )}
         >
@@ -222,7 +226,7 @@ export function ResizableSidebar({
       {/* Peek View */}
       <div
         className={cn(
-          "shadow-sm absolute left-0 z-20 h-full bg-surface-1",
+          "absolute left-0 z-20 h-full bg-canvas shadow-e3",
           !isResizing && "transition-all duration-300 ease-in-out",
           isCollapsed && showPeek ? "translate-x-0 opacity-100" : "translate-x-[-100%] opacity-0",
           "pointer-events-none",
@@ -239,8 +243,8 @@ export function ResizableSidebar({
       >
         <aside
           className={cn(
-            "group/sidebar relative z-20 flex h-full w-full flex-col overflow-hidden bg-surface-1 pt-4",
-            "self-center rounded-md rounded-tl-none rounded-bl-none border-r border-subtle",
+            "group/sidebar relative z-20 flex h-full w-full flex-col overflow-hidden bg-canvas",
+            "self-center rounded-r-xl border-r border-strong",
             isAnyExtendedSidebarExpanded && "rounded-none"
           )}
         >
@@ -263,7 +267,7 @@ export function ResizableSidebar({
       </div>
 
       {/* Extended Sidebar */}
-      {extendedSidebar && extendedSidebar}
+      {extendedSidebar}
     </>
   );
 }

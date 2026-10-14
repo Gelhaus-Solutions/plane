@@ -69,13 +69,13 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
     projectPreferences.showLimitedProjects && joinedProjects.length > projectPreferences.limitedProjectsCount;
 
   const handleCopyText = (projectId: string) => {
-    copyUrlToClipboard(`${workspaceSlug}/projects/${projectId}/issues`).then(() => {
+    copyUrlToClipboard(`${workspaceSlug}/projects/${projectId}/issues`).then(() =>
       setToast({
         type: "success",
         title: t("link_copied"),
         message: t("project_link_copied_to_clipboard"),
-      });
-    });
+      })
+    );
   };
 
   const handleOnProjectDrop = (
@@ -176,7 +176,11 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
             render={<div className="group/projects-section" />}
             open={isAllProjectsListOpen}
             onOpenChange={toggleListDisclosure}
-            trigger={<span className="text-13 font-semibold whitespace-nowrap text-placeholder">{t("projects")}</span>}
+            trigger={
+              <span className="text-10-5 font-semibold tracking-[0.08em] whitespace-nowrap text-secondary uppercase">
+                {t("projects")}
+              </span>
+            }
             trailing={
               isAuthorizedUser ? (
                 <span className="hidden text-placeholder group-focus-within/projects-section:inline-flex group-hover/projects-section:inline-flex">

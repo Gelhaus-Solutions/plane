@@ -17,10 +17,10 @@ export function SidebarNavItem(props: TSidebarNavItem) {
   return (
     <div
       className={cn(
-        "group relative flex w-full cursor-pointer items-center justify-between gap-1.5 rounded-md px-2 py-1 outline-none",
+        "group relative flex h-7 w-full min-w-0 cursor-pointer items-center justify-between gap-[9px] rounded-[7px] px-2 text-13 text-primary transition-colors duration-[120ms] outline-none",
         {
-          "!bg-layer-transparent-active text-primary": isActive,
-          "text-secondary hover:bg-layer-transparent-hover active:bg-layer-transparent-active": !isActive,
+          "bg-layer-1-selected [&_svg]:text-accent-primary": isActive,
+          "hover:bg-layer-1-hover [&_svg]:text-secondary": !isActive,
         },
         className
       )}

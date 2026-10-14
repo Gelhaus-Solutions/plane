@@ -29,7 +29,7 @@ import { WorkspaceLogo } from "../logo";
 import SidebarDropdownItem from "./dropdown-item";
 
 type WorkspaceMenuRootProps = {
-  variant: "sidebar" | "top-navigation";
+  variant: "sidebar" | "top-navigation" | "sidebar-header";
 };
 
 export const WorkspaceMenuRoot = observer(function WorkspaceMenuRoot(props: WorkspaceMenuRootProps) {
@@ -79,6 +79,7 @@ export const WorkspaceMenuRoot = observer(function WorkspaceMenuRoot(props: Work
       className={cn("relative flex h-full w-fit max-w-48 truncate whitespace-nowrap", {
         "w-full justify-center text-center": variant === "sidebar",
         "flex-grow justify-stretch truncate text-left": variant === "top-navigation",
+        "max-w-none min-w-0 flex-1": variant === "sidebar-header",
       })}
     >
       <Menu open={isWorkspaceMenuOpen} onOpenChange={setIsWorkspaceMenuOpen}>
@@ -104,6 +105,28 @@ export const WorkspaceMenuRoot = observer(function WorkspaceMenuRoot(props: Work
                     />
                   }
                 />
+              </button>
+            }
+          />
+        )}
+        {variant === "sidebar-header" && (
+          <MenuTrigger
+            render={
+              <button
+                type="button"
+                className={cn(
+                  "flex h-[30px] min-w-0 flex-1 items-center gap-2 rounded-[7px] px-1.5 text-left text-13 font-semibold text-primary transition-colors duration-[120ms] hover:bg-layer-1-hover focus:outline-none",
+                  { "bg-layer-1-hover": isWorkspaceMenuOpen }
+                )}
+                aria-label={t("aria_labels.projects_sidebar.open_workspace_switcher")}
+              >
+                <WorkspaceLogo
+                  logo={activeWorkspace?.logo_url}
+                  name={activeWorkspace?.name}
+                  classNames="size-5 shrink-0 rounded-md text-11 font-bold"
+                />
+                <span className="truncate">{activeWorkspace?.name ?? t("loading")}</span>
+                <ChevronDownOutline className="size-3 shrink-0 text-secondary" />
               </button>
             }
           />
