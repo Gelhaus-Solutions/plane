@@ -39,6 +39,17 @@
 		client_ip_headers X-Forwarded-For X-Real-IP
 		trusted_proxies static {$TRUSTED_PROXIES:0.0.0.0/0}
 	}
+	# Error logs carry the request headers. Caddy redacts Cookie and Authorization on its own, but not the API
+	# key header, so it is deleted here before anything is written.
+	log default {
+		output stderr
+		format filter {
+			wrap json
+			fields {
+				request>headers>X-Api-Key delete
+			}
+		}
+	}
 }
 
 {$SITE_ADDRESS} {

@@ -1,26 +1,52 @@
+# While an upstream restarts (every deploy recreates the containers), keep dialing it for a while instead of
+# answering 502 at once. A request is retried when the connection itself failed, or, for a GET, when the
+# upstream dropped it; nothing that changes data is sent twice.
+(upstream_retry) {
+	lb_try_duration 30s
+	lb_try_interval 250ms
+}
+
 (plane_proxy) {
 	request_body {
 		max_size {$FILE_SIZE_LIMIT}
 	}
 
   redir /spaces /spaces/ permanent
-	reverse_proxy /spaces/* space:3000
+	reverse_proxy /spaces/* space:3000 {
+		import upstream_retry
+	}
 
   redir /god-mode /god-mode/ permanent
-	reverse_proxy /god-mode/* admin:3000
+	reverse_proxy /god-mode/* admin:3000 {
+		import upstream_retry
+	}
 	
-	reverse_proxy /live/* live:3000
+	reverse_proxy /live/* live:3000 {
+		import upstream_retry
+	}
 
-	reverse_proxy /api/* api:8000
+	reverse_proxy /api/* api:8000 {
+		import upstream_retry
+	}
 
-	reverse_proxy /auth/* api:8000
+	reverse_proxy /auth/* api:8000 {
+		import upstream_retry
+	}
 
-	reverse_proxy /static/* api:8000
+	reverse_proxy /static/* api:8000 {
+		import upstream_retry
+	}
 
-	reverse_proxy /{$BUCKET_NAME}/* plane-minio:9000
-	reverse_proxy /{$BUCKET_NAME} plane-minio:9000
+	reverse_proxy /{$BUCKET_NAME}/* plane-minio:9000 {
+		import upstream_retry
+	}
+	reverse_proxy /{$BUCKET_NAME} plane-minio:9000 {
+		import upstream_retry
+	}
 
-	reverse_proxy /* web:3000
+	reverse_proxy /* web:3000 {
+		import upstream_retry
+	}
 }
 
 {
@@ -31,6 +57,17 @@
 		max_header_size 25MB
 		client_ip_headers X-Forwarded-For X-Real-IP
 		trusted_proxies static {$TRUSTED_PROXIES:0.0.0.0/0}
+	}
+	# Error logs carry the request headers. Caddy redacts Cookie and Authorization on its own, but not the API
+	# key header, so it is deleted here before anything is written.
+	log default {
+		output stderr
+		format filter {
+			wrap json
+			fields {
+				request>headers>X-Api-Key delete
+			}
+		}
 	}
 }
 
