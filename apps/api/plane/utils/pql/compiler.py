@@ -37,6 +37,8 @@ from plane.db.models import (
     ProjectMember,
     Workspace,
     WorkspaceMember,
+    WorkspacePriority,
+    WorkspaceStateGroup,
 )
 
 from .errors import PQLError
@@ -347,6 +349,83 @@ class _ChoiceField(_Field):
         return Q(**{f"{self.column}__in": chosen})
 
 
+class _StateGroupField(_ChoiceField):
+    """A category (or triage), or the name of one of the workspace's state groups, such as "Review" (E30)."""
+
+    def build(self, comparison, context):
+        categories, group_ids = [], []
+        for node in _values(comparison.value):
+            value = _evaluate(node, context)
+            if value.kind == STRING:
+                normalized = value.value.lower()
+                if normalized in self.choices:
+                    categories.append(normalized)
+                    continue
+                found = list(
+                    WorkspaceStateGroup.objects.filter(workspace_id=context.workspace_id)
+                    .filter(Q(name__iexact=value.value) | Q(key=normalized))
+                    .values_list("id", flat=True)
+                )
+                if not found:
+                    raise PQLError(
+                        f'"{value.value}" is not a state group; use a category ({", ".join(self.choices)}) '
+                        "or the name of one of this workspace's state groups",
+                        node.position,
+                        "invalid_choice",
+                    )
+                group_ids.extend(found)
+            elif value.kind == self.function_kind:
+                categories.extend(value.value)
+            else:
+                raise PQLError(f"{self.name} takes a quoted {self.name}", node.position, "invalid_value")
+        q = Q(pk__in=[])
+        if categories:
+            q |= Q(**{f"{self.column}__in": categories})
+        if group_ids:
+            q |= Q(state__state_group_id__in=group_ids)
+        return q
+
+
+class _PriorityField(_ChoiceField):
+    """A level, or the name of one of the workspace's priorities, such as "Blocker" (E35). A level matches every
+    priority at that level; a name matches only work items that carry that priority."""
+
+    def build(self, comparison, context):
+        levels, rows = [], []
+        for node in _values(comparison.value):
+            value = _evaluate(node, context)
+            if value.kind != STRING:
+                raise PQLError(f"{self.name} takes a quoted {self.name}", node.position, "invalid_value")
+            normalized = value.value.lower()
+            if normalized in self.choices:
+                levels.append(normalized)
+                continue
+            found = list(
+                WorkspacePriority.objects.filter(workspace_id=context.workspace_id)
+                .filter(Q(name__iexact=value.value) | Q(key=normalized))
+                .values_list("id", "level", "is_builtin")
+            )
+            if not found:
+                raise PQLError(
+                    f'"{value.value}" is not a priority; use a level ({", ".join(self.choices)}) '
+                    "or the name of one of this workspace's priorities",
+                    node.position,
+                    "invalid_choice",
+                )
+            for ident, level, is_builtin in found:
+                if is_builtin:
+                    # A built-in priority is its level without a custom one on top
+                    rows.append(Q(priority=level, priority_option__isnull=True) | Q(priority_option_id=ident))
+                else:
+                    rows.append(Q(priority_option_id=ident, priority=level))
+        q = Q(pk__in=[])
+        if levels:
+            q |= Q(priority__in=levels)
+        for row in rows:
+            q |= row
+        return q
+
+
 class _BooleanField(_Field):
     operators = EQUALITY
 
@@ -538,8 +617,8 @@ class _UnavailableField(_Field):
 FIELDS = {
     field.name.lower(): field
     for field in (
-        _ChoiceField("priority", "priority", PRIORITIES),
-        _ChoiceField("stateGroup", "state__group", STATE_GROUPS, function_kind=GROUPS),
+        _PriorityField("priority", "priority", PRIORITIES),
+        _StateGroupField("stateGroup", "state__group", STATE_GROUPS, function_kind=GROUPS),
         _BooleanField("isDraft", lambda value: Q(is_draft=value)),
         _BooleanField("isArchived", lambda value: Q(archived_at__isnull=not value)),
         _TitleField("title"),

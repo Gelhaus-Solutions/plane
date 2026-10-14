@@ -30,7 +30,7 @@ from .issue import (
     IssueRelationSerializer,
     RelatedIssueSerializer,
 )
-from .state import StateLiteSerializer, StateSerializer
+from .state import StateLiteSerializer, StateSerializer, WorkspaceStateGroupSerializer
 from .cycle import (
     CycleSerializer,
     CycleIssueSerializer,
@@ -68,3 +68,4 @@ from .member import (
     ProjectMemberLiteAPISerializer,
 )
 from .sticky import StickySerializer
+from .priority import WorkspacePrioritySerializer

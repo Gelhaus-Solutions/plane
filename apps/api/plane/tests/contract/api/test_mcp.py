@@ -502,3 +502,33 @@ class TestPlanning:
         assert not error and accepted["status"] == 1
         error, listed = tool(bot_client, "intake", action="list", **here)
         assert not error and [str(r["issue"]) for r in listed["results"]] == [issue_id]
+
+    @pytest.mark.django_db
+    def test_state_groups(self, bot_client, api_key_client, project):
+        error, groups = tool(bot_client, "state_group", action="list")
+        assert not error and "review" in [g["key"] for g in groups]
+        error, message = tool(bot_client, "state_group", action="create", name="Waiting", category="started")
+        assert error and message.startswith("Plane answered 403")  # groups are a workspace admin's to change
+        error, waiting = tool(api_key_client, "state_group", action="create", name="Waiting", category="started")
+        assert not error, waiting
+
+        where = {"project_id": str(project.id), "color": "#ccc"}
+        error, parked = tool(api_key_client, "state", action="create", name="Parked", group="waiting", **where)
+        assert not error and (parked["group"], parked["state_group"]) == ("started", waiting["id"]), parked
+        error, message = tool(api_key_client, "state", action="create", name="Lost", group="Nowhere", **where)
+        assert error and "No state group named Nowhere" in message
+
+    @pytest.mark.django_db
+    def test_priorities(self, bot_client, api_key_client, project):
+        error, message = tool(bot_client, "priority", action="create", name="Blocker", level="urgent")
+        assert error and message.startswith("Plane answered 403")
+        error, blocker = tool(api_key_client, "priority", action="create", name="Blocker", level="urgent")
+        assert not error, blocker
+        error, item = tool(
+            bot_client, "workitem", action="create", project_id=str(project.id), name="Fix", priority="Blocker"
+        )
+        assert not error and (item["priority"], item["priority_option"]) == ("urgent", blocker["id"]), item
+        error, found = tool(
+            bot_client, "workitem", action="list", project_id=str(project.id), pql='priority = "Blocker"'
+        )
+        assert not error and [r["id"] for r in found["results"]] == [item["id"]]

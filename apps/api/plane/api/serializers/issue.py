@@ -27,6 +27,7 @@ from plane.db.models import (
     User,
     EstimatePoint,
 )
+from plane.utils.priorities import LEVELS, find_priority
 from plane.utils.content_validator import (
     validate_html_content,
     validate_binary_data,
@@ -71,6 +72,26 @@ class IssueSerializer(BaseSerializer):
         model = Issue
         read_only_fields = ["id", "workspace", "project", "updated_by", "updated_at", "completed_at"]
         exclude = ["description_json", "description_stripped"]
+
+    def _workspace_id(self):
+        if self.instance is not None and getattr(self.instance, "workspace_id", None):
+            return self.instance.workspace_id
+        return self.context.get("workspace_id")
+
+    def to_internal_value(self, data):
+        # priority takes a level or a workspace priority's name or id (E35); a name sets both the level and the row
+        value = data.get("priority") if hasattr(data, "get") else None
+        if isinstance(value, str) and value.lower() not in LEVELS:
+            row = find_priority(self._workspace_id(), value)
+            if row is not None:
+                data = data.copy()
+                data["priority"], data["priority_option"] = row.level, str(row.id)
+        return super().to_internal_value(data)
+
+    def validate_priority_option(self, value):
+        if value is not None and value.workspace_id != self._workspace_id():
+            raise serializers.ValidationError("That priority belongs to another workspace")
+        return value
 
     def validate(self, data):
         if (
@@ -123,9 +144,9 @@ class IssueSerializer(BaseSerializer):
         # Validate labels are from project
         if data.get("labels", []):
             valid_label_ids = set(
-                Label.objects.filter(
-                    project_id=self.context.get("project_id"), id__in=data["labels"]
-                ).values_list("id", flat=True)
+                Label.objects.filter(project_id=self.context.get("project_id"), id__in=data["labels"]).values_list(
+                    "id", flat=True
+                )
             )
             invalid_label_ids = set(data["labels"]) - valid_label_ids
             if invalid_label_ids:

@@ -48,8 +48,8 @@ Limits: 50 conditions, 32 levels of nesting, 4,000 characters.
 
 | Field | Values | Operators |
 |---|---|---|
-| `priority` | `"urgent"` `"high"` `"medium"` `"low"` `"none"` | `=` `!=` `IN` `NOT IN` |
-| `stateGroup` | `"backlog"` `"unstarted"` `"started"` `"completed"` `"cancelled"` `"triage"`, or a state group function | `=` `!=` `IN` `NOT IN` |
+| `priority` | `"urgent"` `"high"` `"medium"` `"low"` `"none"` (levels; each matches every priority at that level), or the name of one of the workspace's priorities such as `"Blocker"` | `=` `!=` `IN` `NOT IN` |
+| `stateGroup` | `"backlog"` `"unstarted"` `"started"` `"completed"` `"cancelled"` `"triage"` (categories), the name of one of the workspace's state groups such as `"Review"`, or a state group function | `=` `!=` `IN` `NOT IN` |
 | `state`, `project`, `type` | id | `=` `!=` `IN` `NOT IN` `IS [NOT] NULL/EMPTY` |
 | `createdBy` | user id or a user function | same |
 | `assignee`, `mention`, `subscriber` | user id or a user function | same |

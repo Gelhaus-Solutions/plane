@@ -7,6 +7,8 @@ from django.urls import path
 from plane.api.views import (
     StateListCreateAPIEndpoint,
     StateDetailAPIEndpoint,
+    StateGroupListCreateAPIEndpoint,
+    StateGroupDetailAPIEndpoint,
 )
 
 urlpatterns = [
@@ -19,5 +21,15 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/states/<uuid:state_id>/",
         StateDetailAPIEndpoint.as_view(http_method_names=["get", "patch", "delete"]),
         name="states",
+    ),
+    path(
+        "workspaces/<str:slug>/state-groups/",
+        StateGroupListCreateAPIEndpoint.as_view(http_method_names=["get", "post"]),
+        name="state-groups",
+    ),
+    path(
+        "workspaces/<str:slug>/state-groups/<uuid:pk>/",
+        StateGroupDetailAPIEndpoint.as_view(http_method_names=["get", "patch", "delete"]),
+        name="state-group",
     ),
 ]

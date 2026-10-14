@@ -29,7 +29,6 @@ from plane.db.models import (
     DeployBoard,
     ProjectMember,
     State,
-    DEFAULT_STATES,
     Workspace,
     UserFavorite,
     Label,
@@ -39,6 +38,7 @@ from plane.db.models import (
     ProjectPage,
 )
 from plane.bgtasks.webhook_task import model_activity, webhook_activity
+from plane.utils.state_groups import default_states
 from plane.utils.exception_logger import log_exception
 from .base import BaseAPIView
 from plane.utils.host import base_host
@@ -254,21 +254,7 @@ class ProjectListCreateAPIEndpoint(BaseAPIView):
                             role=20,
                         )
 
-                    State.objects.bulk_create(
-                        [
-                            State(
-                                name=state["name"],
-                                color=state["color"],
-                                project=serializer.instance,
-                                sequence=state["sequence"],
-                                workspace=serializer.instance.workspace,
-                                group=state["group"],
-                                default=state.get("default", False),
-                                created_by=request.user,
-                            )
-                            for state in DEFAULT_STATES
-                        ]
-                    )
+                    State.objects.bulk_create(default_states(serializer.instance, request.user))
 
                     project = self.get_queryset().filter(pk=serializer.instance.id).first()
 

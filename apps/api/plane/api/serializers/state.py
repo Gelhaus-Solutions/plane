@@ -7,7 +7,7 @@ from django.db import transaction
 
 # Module imports
 from .base import BaseSerializer
-from plane.db.models import State, StateGroup
+from plane.db.models import Project, State, StateGroup, WorkspaceStateGroup
 from rest_framework import serializers
 
 
@@ -23,6 +23,20 @@ class StateSerializer(BaseSerializer):
         if data.get("group", None) == StateGroup.TRIAGE.value:
             raise serializers.ValidationError("Cannot create triage state")
         return data
+
+    def validate_state_group(self, value):
+        """A state group of the state's own workspace; setting it also sets ``group`` to its category."""
+        if value is None:
+            return value
+        if self.instance is not None:
+            workspace_id = self.instance.workspace_id
+        else:
+            workspace_id = (
+                Project.objects.filter(pk=self.context.get("project_id")).values_list("workspace_id", flat=True).first()
+            )
+        if value.workspace_id != workspace_id:
+            raise serializers.ValidationError("That state group belongs to another workspace")
+        return value
 
     def save(self, **kwargs):
         # Clear the old default only once the new one is saved, so a failed save keeps it
@@ -60,3 +74,29 @@ class StateLiteSerializer(BaseSerializer):
         model = State
         fields = ["id", "name", "color", "group"]
         read_only_fields = fields
+
+
+class WorkspaceStateGroupSerializer(BaseSerializer):
+    """A workspace state group (E30). Built-in groups keep their key and category."""
+
+    state_count = serializers.SerializerMethodField()
+
+    def get_state_count(self, obj):
+        return getattr(obj, "state_count", None)
+
+    class Meta:
+        model = WorkspaceStateGroup
+        fields = [
+            "id",
+            "name",
+            "key",
+            "category",
+            "color",
+            "description",
+            "sequence",
+            "is_builtin",
+            "state_count",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "key", "is_builtin", "state_count", "created_at", "updated_at"]

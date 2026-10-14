@@ -103,7 +103,7 @@ class IssueManager(SoftDeletionManager):
 
 
 class Issue(ChangeTrackerMixin, ProjectBaseModel):
-    TRACKED_FIELDS = ["state_id"]
+    TRACKED_FIELDS = ["state_id", "priority_option_id"]
 
     PRIORITY_CHOICES = (
         ("urgent", "Urgent"),
@@ -145,6 +145,10 @@ class Issue(ChangeTrackerMixin, ProjectBaseModel):
         verbose_name="Issue Priority",
         default="none",
     )
+    # A custom priority of the workspace (E35); ``priority`` is always its level. None shows the level's built-in.
+    priority_option = models.ForeignKey(
+        "db.WorkspacePriority", on_delete=models.SET_NULL, null=True, blank=True, related_name="issues"
+    )
     start_date = models.DateField(null=True, blank=True)
     target_date = models.DateField(null=True, blank=True)
     assignees = models.ManyToManyField(
@@ -180,6 +184,7 @@ class Issue(ChangeTrackerMixin, ProjectBaseModel):
 
     def save(self, *args, **kwargs):
         self._ensure_default_state()
+        self._sync_priority_option()
         kwargs = self._sync_completed_at(kwargs)
 
         if self._state.adding:
@@ -225,6 +230,15 @@ class Issue(ChangeTrackerMixin, ProjectBaseModel):
     def __str__(self):
         """Return name of the issue"""
         return f"{self.name} <{self.project.name}>"
+
+    def _sync_priority_option(self):
+        """A custom priority set here sets the level; a level changed on its own drops the custom priority."""
+        if not self.priority_option_id:
+            return
+        if self._state.adding or self.has_changed("priority_option_id"):
+            self.priority = self.priority_option.level
+        elif self.priority != self.priority_option.level:
+            self.priority_option = None
 
     def _ensure_default_state(self):
         """Assign a default state when none is set."""

@@ -13,6 +13,8 @@ from .project import (
 from .state import (
     StateListCreateAPIEndpoint,
     StateDetailAPIEndpoint,
+    StateGroupListCreateAPIEndpoint,
+    StateGroupDetailAPIEndpoint,
 )
 
 from .issue import (
@@ -77,3 +79,5 @@ from .user import UserEndpoint
 from .invite import WorkspaceInvitationsViewset
 
 from .sticky import StickyViewSet
+
+from .priority import PriorityListCreateAPIEndpoint, PriorityDetailAPIEndpoint

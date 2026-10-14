@@ -35,11 +35,11 @@ from plane.db.models import (
     ProjectNetwork,
     ProjectUserProperty,
     State,
-    DEFAULT_STATES,
     Workspace,
     WorkspaceMember,
 )
 from plane.db.models.intake import IntakeIssueStatus
+from plane.utils.state_groups import default_states
 from plane.utils.host import base_host
 from plane.utils.order_queryset import PROJECT_ORDER_BY_ALLOWLIST, sanitize_order_by
 
@@ -278,21 +278,7 @@ class ProjectViewSet(BaseViewSet):
                     role=ROLE.ADMIN.value,
                 )
 
-            State.objects.bulk_create(
-                [
-                    State(
-                        name=state["name"],
-                        color=state["color"],
-                        project=serializer.instance,
-                        sequence=state["sequence"],
-                        workspace=serializer.instance.workspace,
-                        group=state["group"],
-                        default=state.get("default", False),
-                        created_by=request.user,
-                    )
-                    for state in DEFAULT_STATES
-                ]
-            )
+            State.objects.bulk_create(default_states(serializer.instance, request.user))
 
             project = self.get_queryset().filter(pk=serializer.data["id"]).first()
 

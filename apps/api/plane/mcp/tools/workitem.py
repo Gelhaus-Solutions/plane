@@ -138,7 +138,8 @@ Actions:
   manage_assignee (project_id, workitem_id; add_user_id and/or remove_user_id, one id or several separated by commas);
   manage_label (project_id, workitem_id; add_label_id and/or remove_label_id, likewise).
 
-priority is urgent, high, medium, low or none. assignees, labels, state, parent and type_id take UUIDs.
+priority is a level (urgent, high, medium, low, none) or the name of one of the workspace's priorities
+(`priority list`). assignees, labels, state, parent and type_id take UUIDs.
 description_html is stored as given: send real HTML such as <p>text</p>, never escaped text such as &lt;p&gt;.
 description_stripped is plain text, wrapped into paragraphs; description_html wins if both are given.
 On update an empty string leaves a field alone; assignees=[] or labels=[] clear the list; start_date=null or

@@ -3,7 +3,8 @@
 # See the LICENSE file for details.
 
 # Django imports
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
+from django.db.models import Count, Q
 
 # Third party imports
 from rest_framework import status
@@ -12,9 +13,15 @@ from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
 
 # Module imports
-from plane.api.serializers import StateSerializer
-from plane.app.permissions import ProjectAdminPermission, ProjectEntityPermission
-from plane.db.models import Issue, State
+from plane.api.serializers import StateSerializer, WorkspaceStateGroupSerializer
+from plane.app.permissions import (
+    ProjectAdminPermission,
+    ProjectEntityPermission,
+    WorkspaceEntityPermission,
+    WorkspaceOwnerPermission,
+)
+from plane.db.models import Issue, State, Workspace, WorkspaceStateGroup
+from plane.utils.state_groups import builtin_state_groups
 from .base import BaseAPIView
 from plane.utils.openapi import (
     state_docs,
@@ -90,7 +97,7 @@ class StateListCreateAPIEndpoint(BaseAPIView):
         Supports external ID tracking for integration purposes.
         """
         try:
-            serializer = StateSerializer(data=request.data)
+            serializer = StateSerializer(data=request.data, context={"project_id": project_id})
             if serializer.is_valid():
                 if (
                     request.data.get("external_id")
@@ -309,3 +316,92 @@ class StateDetailAPIEndpoint(BaseAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class StateGroupListCreateAPIEndpoint(BaseAPIView):
+    """The workspace's state groups (E30): the built-in ones and the workspace's own."""
+
+    model = WorkspaceStateGroup
+    serializer_class = WorkspaceStateGroupSerializer
+
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [WorkspaceEntityPermission()]
+        return [WorkspaceOwnerPermission()]
+
+    def get(self, request, slug):
+        workspace = Workspace.objects.get(slug=slug)
+        builtin_state_groups(workspace.id)
+        groups = (
+            WorkspaceStateGroup.objects.filter(workspace=workspace)
+            .annotate(state_count=Count("states", filter=Q(states__deleted_at__isnull=True)))
+            .order_by("sequence", "created_at")
+        )
+        return Response(WorkspaceStateGroupSerializer(groups, many=True).data, status=status.HTTP_200_OK)
+
+    def post(self, request, slug):
+        workspace = Workspace.objects.get(slug=slug)
+        builtin_state_groups(workspace.id)  # the built-in names are taken first
+        serializer = WorkspaceStateGroupSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            with transaction.atomic():
+                serializer.save(workspace=workspace, key=None, is_builtin=False)
+        except IntegrityError:
+            existing = WorkspaceStateGroup.objects.filter(workspace=workspace, name=request.data.get("name")).first()
+            return Response(
+                {"error": "A state group with this name already exists", "id": str(existing.id) if existing else None},
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class StateGroupDetailAPIEndpoint(BaseAPIView):
+    """One state group. A built-in group can be renamed, recoloured and reordered, never deleted or recategorised."""
+
+    model = WorkspaceStateGroup
+    serializer_class = WorkspaceStateGroupSerializer
+
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [WorkspaceEntityPermission()]
+        return [WorkspaceOwnerPermission()]
+
+    def _group(self, slug, pk):
+        return WorkspaceStateGroup.objects.get(workspace__slug=slug, pk=pk)
+
+    def get(self, request, slug, pk):
+        return Response(WorkspaceStateGroupSerializer(self._group(slug, pk)).data, status=status.HTTP_200_OK)
+
+    def patch(self, request, slug, pk):
+        group = self._group(slug, pk)
+        category = request.data.get("category")
+        if group.is_builtin and category is not None and category != group.category:
+            return Response({"error": "A built-in state group keeps its category"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = WorkspaceStateGroupSerializer(group, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            with transaction.atomic():
+                group = serializer.save()
+                # A state's group is its state group's category (D36), so a new category moves its states with it
+                State.all_state_objects.filter(state_group=group).exclude(group=group.category).update(
+                    group=group.category
+                )
+        except IntegrityError:
+            return Response({"error": "A state group with this name already exists"}, status=status.HTTP_409_CONFLICT)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, slug, pk):
+        group = self._group(slug, pk)
+        if group.is_builtin:
+            return Response({"error": "A built-in state group cannot be deleted"}, status=status.HTTP_400_BAD_REQUEST)
+        in_use = State.objects.filter(state_group=group).count()
+        if in_use:
+            return Response(
+                {"error": f"{in_use} state(s) are in this group; move them to another group first"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        group.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

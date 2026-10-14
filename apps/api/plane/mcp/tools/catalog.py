@@ -38,6 +38,23 @@ def _states(ctx, args, suffix=""):
 
 
 STATE_FIELDS = ("name", "color", "description", "sequence", "group", "default", "external_source", "external_id")
+CATEGORIES = ("backlog", "unstarted", "started", "completed", "cancelled")
+
+
+def _state_body(ctx, args):
+    """group takes a category or the name of one of the workspace's state groups, such as Review."""
+    body = keep(args, STATE_FIELDS)
+    group = body.get("group")
+    if group and group.lower() not in CATEGORIES:
+        groups = api(ctx, "GET", f"workspaces/{ctx.slug}/state-groups/")
+        match = next((g for g in groups if group.lower() in (g["name"].lower(), (g["key"] or "").lower())), None)
+        if match is None:
+            names = ", ".join(g["name"] for g in groups)
+            raise ToolError(f"No state group named {group}; this workspace has: {names}")
+        body.pop("group")
+        body["state_group"] = match["id"]
+    return body
+
 
 Tool(
     "state",
@@ -47,8 +64,9 @@ Actions: list (project_id); retrieve (project_id, state_id); create (project_id,
     sequence, group, default, external_source, external_id); update (project_id, state_id; the fields to change);
     delete (project_id, state_id).
 
-group is backlog, unstarted, started, completed or cancelled. color is a hex code such as #EF4444. States belong to a
-project on this Plane, so project_id is always needed.""",
+group is a category (backlog, unstarted, started, completed, cancelled) or the name of one of the workspace's state
+groups, such as Review; `state_group list` shows them. color is a hex code such as #EF4444. States belong to a project
+on this Plane, so project_id is always needed.""",
     {
         "color": text(),
         "cursor": text(),
@@ -66,10 +84,10 @@ project on this Plane, so project_id is always needed.""",
     {
         "list": ((), lambda ctx, a: api(ctx, "GET", _states(ctx, a), keep(a, ("cursor", "per_page")))),
         "retrieve": (("state_id",), lambda ctx, a: api(ctx, "GET", _states(ctx, a, f"{a['state_id']}/"))),
-        "create": (("name", "color"), lambda ctx, a: api(ctx, "POST", _states(ctx, a), body=keep(a, STATE_FIELDS))),
+        "create": (("name", "color"), lambda ctx, a: api(ctx, "POST", _states(ctx, a), body=_state_body(ctx, a))),
         "update": (
             ("state_id",),
-            lambda ctx, a: api(ctx, "PATCH", _states(ctx, a, f"{a['state_id']}/"), body=keep(a, STATE_FIELDS)),
+            lambda ctx, a: api(ctx, "PATCH", _states(ctx, a, f"{a['state_id']}/"), body=_state_body(ctx, a)),
         ),
         "delete": (
             ("state_id",),
@@ -86,6 +104,97 @@ def _labels(ctx, args, suffix=""):
 
 
 LABEL_FIELDS = ("name", "color", "description", "parent", "sort_order", "external_source", "external_id")
+
+# -------------------------------------------------------------- state groups
+
+GROUP_FIELDS = ("name", "category", "color", "description", "sequence")
+
+
+def _groups(ctx, suffix=""):
+    return f"workspaces/{ctx.slug}/state-groups/{suffix}"
+
+
+Tool(
+    "state_group",
+    """State groups of the workspace: the columns states are grouped in.
+
+Actions: list; retrieve (state_group_id); create (name, category; optional color, description, sequence);
+    update (state_group_id; the fields to change); delete (state_group_id).
+
+Each group sits in a category (backlog, unstarted, started, completed, cancelled), which drives progress, cycles and
+archiving: a state in a custom "Waiting" group in the started category counts as started. Built-in groups (one per
+category, plus Review in started) can be renamed and recoloured but keep their category and cannot be deleted. A group
+with states in it cannot be deleted. Creating, changing and deleting groups needs a workspace admin. Move a state into
+a group with `state update` and group=<the group's name>.""",
+    {
+        "category": text(),
+        "color": text(),
+        "description": text(),
+        "name": text(),
+        "sequence": optional("number"),
+        "state_group_id": text(),
+    },
+    {
+        "list": ((), lambda ctx, a: api(ctx, "GET", _groups(ctx))),
+        "retrieve": (("state_group_id",), lambda ctx, a: api(ctx, "GET", _groups(ctx, f"{a['state_group_id']}/"))),
+        "create": (("name", "category"), lambda ctx, a: api(ctx, "POST", _groups(ctx), body=keep(a, GROUP_FIELDS))),
+        "update": (
+            ("state_group_id",),
+            lambda ctx, a: api(ctx, "PATCH", _groups(ctx, f"{a['state_group_id']}/"), body=keep(a, GROUP_FIELDS)),
+        ),
+        "delete": (
+            ("state_group_id",),
+            lambda ctx, a: _delete(ctx, _groups(ctx, f"{a['state_group_id']}/"), a["state_group_id"]),
+        ),
+    },
+)
+
+
+# ---------------------------------------------------------------- priorities
+
+PRIORITY_FIELDS = ("name", "level", "color", "icon", "description", "sequence")
+
+
+def _priorities(ctx, suffix=""):
+    return f"workspaces/{ctx.slug}/priorities/{suffix}"
+
+
+Tool(
+    "priority",
+    """Priorities of the workspace.
+
+Actions: list; retrieve (priority_id); create (name, level; optional color, icon, description, sequence);
+    update (priority_id; the fields to change); delete (priority_id).
+
+Each priority sits at a level (urgent, high, medium, low, none), which sorting, PQL and analytics use: a custom
+"Blocker" at the urgent level counts as urgent, and `priority = "urgent"` finds it while `priority = "Blocker"` finds
+only Blocker items. Set one on a work item with `workitem update` and priority=<its name>. Built-in priorities (one per
+level) can be renamed and recoloured but keep their level and cannot be deleted. Deleting a custom priority returns
+its work items to their level's built-in one. Creating, changing and deleting priorities needs a workspace admin.""",
+    {
+        "color": text(),
+        "description": text(),
+        "icon": text(),
+        "level": text(),
+        "name": text(),
+        "priority_id": text(),
+        "sequence": optional("number"),
+    },
+    {
+        "list": ((), lambda ctx, a: api(ctx, "GET", _priorities(ctx))),
+        "retrieve": (("priority_id",), lambda ctx, a: api(ctx, "GET", _priorities(ctx, f"{a['priority_id']}/"))),
+        "create": (("name", "level"), lambda ctx, a: api(ctx, "POST", _priorities(ctx), body=keep(a, PRIORITY_FIELDS))),
+        "update": (
+            ("priority_id",),
+            lambda ctx, a: api(ctx, "PATCH", _priorities(ctx, f"{a['priority_id']}/"), body=keep(a, PRIORITY_FIELDS)),
+        ),
+        "delete": (
+            ("priority_id",),
+            lambda ctx, a: _delete(ctx, _priorities(ctx, f"{a['priority_id']}/"), a["priority_id"]),
+        ),
+    },
+)
+
 
 Tool(
     "label",
