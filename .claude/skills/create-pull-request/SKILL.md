@@ -1,6 +1,6 @@
 ---
 name: create-pull-request
-description: Use when creating a pull request for the current branch — gathers branch context, generates a PR description following the repo's pull_request_template.md, and creates the PR with a Plane work item ID prefix in the title.
+description: Use when creating a pull request for the current branch: gathers branch context, generates a PR description following the repo's pull_request_template.md, and creates the PR with a Plane work item ID prefix in the title.
 user_invocable: true
 ---
 
@@ -10,14 +10,14 @@ Create a pull request using the repo's PR template, a Plane work item ID as the 
 
 ## Workflow
 
-1. **Determine the base branch**: Default to `preview` unless the user specifies otherwise.
+1. **Determine the base branch**: Default to `main` unless the user specifies otherwise.
 
 2. **Gather context** (in parallel):
-   - `git status -s` — check for uncommitted changes
-   - `git diff <base>...HEAD --stat` — files changed
-   - `git log <base>...HEAD --oneline` — all commits on the branch
-   - `git diff <base>...HEAD --no-color` — full diff for understanding changes (if very large, focus on the most important files first)
-   - `git rev-parse --abbrev-ref --symbolic-full-name @{u}` — check if branch tracks a remote
+   - `git status -s`: check for uncommitted changes
+   - `git diff <base>...HEAD --stat`: files changed
+   - `git log <base>...HEAD --oneline`: all commits on the branch
+   - `git diff <base>...HEAD --no-color`: full diff for understanding changes (if very large, focus on the most important files first)
+   - `git rev-parse --abbrev-ref --symbolic-full-name @{u}`: check if branch tracks a remote
    - Read `.github/pull_request_template.md` from the repo root
 
 3. **Determine work item ID**:
@@ -30,17 +30,17 @@ Create a pull request using the repo's PR template, a Plane work item ID as the 
    - Type reflects the change: `fix`, `feat`, `chore`, `refactor`, `docs`, `perf`, etc.
 
    **Body**: Fill in every section from the PR template based on the actual diff:
-   - **Description** — Clear, concise summary of what the PR does and why. Focus on the "what" and "why", not line-by-line changes. Mention important implementation decisions.
-   - **Type of Change** — Check the appropriate box(es): Bug fix, Feature, Improvement, Code refactoring, Performance improvements, Documentation update.
-   - **Screenshots and Media** — Leave a placeholder: `<!-- Add screenshots here -->`
-   - **Test Scenarios** — Suggest concrete scenarios grounded in the actual changes (e.g., "Navigate to project settings and verify the new toggle works"), not generic ones.
-   - **References** — Include the work item ID, any linked issues the user mentions, and any Sentry issue links/IDs (e.g., `SENTRY-ABC123` or Sentry URLs) referenced earlier in the conversation.
+   - **Description**: Clear, concise summary of what the PR does and why. Focus on the "what" and "why", not line-by-line changes. Mention important implementation decisions.
+   - **Type of Change**: Check the appropriate box(es): Bug fix, Feature, Improvement, Code refactoring, Performance improvements, Documentation update.
+   - **Screenshots and Media**: Leave a placeholder: `<!-- Add screenshots here -->`
+   - **Test Scenarios**: Suggest concrete scenarios grounded in the actual changes (e.g., "Navigate to project settings and verify the new toggle works"), not generic ones.
+   - **References**: Include the work item ID, any linked issues the user mentions, and any Sentry issue links/IDs (e.g., `SENTRY-ABC123` or Sentry URLs) referenced earlier in the conversation.
 
-   Append a Claude Code session line at the bottom of the body.
+   Do not add any attribution to Claude, an AI or a tool: no session link, no "Generated with" line, no co-author.
 
 5. **Push and create** (in parallel where possible):
    - Push branch with `-u` if no upstream is set
-   - Create PR via `gh pr create` using a HEREDOC for the body
+   - Create PR via `gh pr create --repo Gelhaus-Solutions/plane --base <base>` using a HEREDOC for the body. This is a hard fork: never open a PR against `makeplane/plane`.
 
 6. **Return the PR URL** to the user.
 

@@ -1,165 +1,79 @@
-<br /><br />
+# Plane, Gelhaus Solutions fork
 
-<p align="center">
-<a href="https://plane.so">
-  <img src="https://media.docs.plane.so/logo/plane_github_readme.png" alt="Plane Logo" width="400">
-</a>
-</p>
-<p align="center"><b>Modern project management for all teams</b></p>
+This repository is a **hard fork** of [Plane](https://github.com/makeplane/plane), the open-source project management tool by Plane Software, Inc. It split from upstream on 2026-10-14 at upstream commit [`4605f0078`](https://github.com/makeplane/plane/commit/4605f0078fdcf7016cea646ea50c4b825efd9fac) (package version 1.4.2) and is developed independently from that point on.
 
-<p align="center">
-    <a href="https://plane.so/"><b>Website</b></a> •
-    <a href="https://forum.plane.so"><b>Forum</b></a> •
-    <a href="https://x.com/planepowers"><b>X</b></a> •
-    <a href="https://docs.plane.so/"><b>Documentation</b></a>
-</p>
+- Upstream changes are not merged, rebased or cherry-picked into this fork.
+- Changes made here are not contributed back to upstream.
+- Plane Software, Inc. does not maintain, support or endorse this fork. Do not report problems with it to them.
 
-<p>
-    <a href="https://app.plane.so/#gh-light-mode-only" target="_blank">
-      <img
-        src="https://media.docs.plane.so/GitHub-readme/github-top.webp"
-        alt="Plane Screens"
-        width="100%"
-      />
-    </a>
-</p>
+Plane and the Plane logo are trademarks of Plane Software, Inc.
 
-Meet [Plane](https://plane.so/), an open-source project management tool to track issues, run ~sprints~ cycles, and manage product roadmaps without the chaos of managing the tool itself. 🧘‍♀️
+## How this fork differs from upstream
 
-> Plane is evolving every day. Your suggestions, ideas, and reported bugs help us immensely. Do not hesitate to join in the conversation on [Forum](https://forum.plane.so) or raise a GitHub issue. We read everything and respond to most.
+- **No telemetry by default.** Upstream reports instance metrics to `telemetry.plane.so`. Here nothing is exported unless `OTLP_ENDPOINT` points at a collector you run.
+- **Own releases and images.** The update check, the self-host installers and the images use this repository: `ghcr.io/gelhaus-solutions/plane-*` instead of Docker Hub's `makeplane/*`.
+- **No upstream changelog.** The in-app "What's new" panel no longer embeds upstream's changelog, and the help menus no longer send bug reports to upstream's issue tracker.
 
-## 🚀 Installation
+## Images
 
-Getting started with Plane is simple. Choose the setup that works best for you:
+`.github/workflows/build-images.yml` builds and pushes:
 
-- **Plane Cloud**
-  Sign up for a free account on [Plane Cloud](https://app.plane.so)—it's the fastest way to get up and running without worrying about infrastructure.
+| Image | Contents |
+| --- | --- |
+| `ghcr.io/gelhaus-solutions/plane-frontend` | web app |
+| `ghcr.io/gelhaus-solutions/plane-space` | public spaces |
+| `ghcr.io/gelhaus-solutions/plane-admin` | instance admin (god mode) |
+| `ghcr.io/gelhaus-solutions/plane-live` | live collaboration server |
+| `ghcr.io/gelhaus-solutions/plane-backend` | API, worker, beat worker, migrator |
+| `ghcr.io/gelhaus-solutions/plane-proxy` | Caddy proxy |
+| `ghcr.io/gelhaus-solutions/plane-aio-community` | all-in-one image (releases, or on request) |
 
-- **Self-host Plane**
-  Prefer full control over your data and infrastructure? Install and run Plane on your own servers. Follow our detailed [deployment guides](https://developers.plane.so/self-hosting/overview) to get started.
+Tags:
 
-| Installation methods | Docs link                                                                                                                                                                               |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Docker               | [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://developers.plane.so/self-hosting/methods/docker-compose)         |
-| Kubernetes           | [![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)](https://developers.plane.so/self-hosting/methods/kubernetes) |
+- `:<branch>` on every push, with a slash turned into a dash (`main`, `feat/web-12-x` becomes `feat-web-12-x`). Branch builds are `linux/amd64` only.
+- `:<version>` and `:stable` when a release is published (`:stable` is skipped for prereleases). Releases are built for `linux/amd64` and `linux/arm64`.
 
-`Instance admins` can configure instance settings with [God mode](https://developers.plane.so/self-hosting/govern/instance-admin).
+To cut a release, publish a GitHub release with a semver tag:
 
-## 🌟 Features
+```bash
+gh release create v1.4.3 --repo Gelhaus-Solutions/plane --target main --generate-notes
+```
 
-- **Work Items**
-  Efficiently create and manage tasks with a robust rich text editor that supports file uploads. Enhance organization and tracking by adding sub-properties and referencing related issues.
+The workflow then builds the images and attaches the self-host files (`setup.sh`, `swarm.sh`, `docker-compose.yml`, `variables.env`, the restore scripts) to the release.
 
-- **Cycles**
-  Maintain your team’s momentum with Cycles. Track progress effortlessly using burn-down charts and other insightful tools.
+## Self-hosting
 
-- **Modules**
-  Simplify complex projects by dividing them into smaller, manageable modules.
+With Docker Compose, once at least one release exists:
 
-- **Views**
-  Customize your workflow by creating filters to display only the most relevant issues. Save and share these views with ease.
+```bash
+mkdir plane-selfhost && cd plane-selfhost
+curl -fsSL -o setup.sh https://github.com/Gelhaus-Solutions/plane/releases/latest/download/setup.sh
+chmod +x setup.sh
+./setup.sh
+```
 
-- **Pages**
-  Capture and organize ideas using Plane Pages, complete with AI capabilities and a rich text editor. Format text, insert images, add hyperlinks, or convert your notes into actionable items.
+- Docker Compose and Swarm: [deployments/cli/community/README.md](deployments/cli/community/README.md)
+- All-in-one container: [deployments/aio/community/README.md](deployments/aio/community/README.md)
+- Kubernetes: [deployments/kubernetes/community/README.md](deployments/kubernetes/community/README.md)
 
-- **Analytics**
-  Access real-time insights across all your Plane data. Visualize trends, remove blockers, and keep your projects moving forward.
+Upstream's [self-hosting documentation](https://developers.plane.so/self-hosting/overview) still describes configuration accurately for the shared code, but its install commands fetch upstream's images, not this fork's.
 
-## 🛠️ Local development
+## Local development
 
-See [CONTRIBUTING](./CONTRIBUTING.md)
+```bash
+./setup.sh                                      # writes the .env files
+docker compose -f docker-compose-local.yml up   # Postgres, Valkey, RabbitMQ, MinIO, API
+pnpm install && pnpm dev                        # web on :3000, admin on :3001
+```
 
-## ⚙️ Built with
+Then register the instance admin at http://localhost:3001/god-mode/ and sign in at http://localhost:3000. More in [CONTRIBUTING.md](CONTRIBUTING.md); the commands, code style and backend test setup are in [AGENTS.md](AGENTS.md).
 
-[![React Router](https://img.shields.io/badge/-React%20Router-CA4245?logo=react-router&style=for-the-badge&logoColor=white)](https://reactrouter.com/)
-[![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green)](https://www.djangoproject.com/)
-[![Node JS](https://img.shields.io/badge/node.js-339933?style=for-the-badge&logo=Node.js&logoColor=white)](https://nodejs.org/en)
+## Security
 
-## 📸 Screenshots
-
-  <p>
-    <a href="https://plane.so" target="_blank">
-      <img
-        src="https://media.docs.plane.so/GitHub-readme/github-work-items.webp"
-        alt="Plane Views"
-        width="100%"
-      />
-    </a>
-  </p>
-  <p>
-    <a href="https://plane.so" target="_blank">
-      <img
-        src="https://media.docs.plane.so/GitHub-readme/github-cycles.webp"
-        width="100%"
-      />
-    </a>
-  </p>
-  <p>
-    <a href="https://plane.so" target="_blank">
-      <img
-        src="https://media.docs.plane.so/GitHub-readme/github-modules.webp"
-        alt="Plane Cycles and Modules"
-        width="100%"
-      />
-    </a>
-  </p>
-  <p>
-    <a href="https://plane.so" target="_blank">
-      <img
-        src="https://media.docs.plane.so/GitHub-readme/github-views.webp"
-        alt="Plane Analytics"
-        width="100%"
-      />
-    </a>
-  </p>
-   <p>
-    <a href="https://plane.so" target="_blank">
-      <img
-        src="https://media.docs.plane.so/GitHub-readme/github-analytics.webp"
-        alt="Plane Pages"
-        width="100%"
-      />
-    </a>
-  </p>
-</p>
-
-## 📝 Documentation
-
-Explore Plane's [product documentation](https://docs.plane.so/) and [developer documentation](https://developers.plane.so/) to learn about features, setup, and usage.
-
-## ❤️ Community
-
-Join the Plane community on [GitHub Discussions](https://github.com/orgs/makeplane/discussions) and our [Forum](https://forum.plane.so). We follow a [Code of conduct](https://github.com/makeplane/plane/blob/master/CODE_OF_CONDUCT.md) in all our community channels.
-
-Feel free to ask questions, report bugs, participate in discussions, share ideas, request features, or showcase your projects. We’d love to hear from you!
-
-## 🛡️ Security
-
-If you discover a security vulnerability in Plane, please report it responsibly instead of opening a public issue. We take all legitimate reports seriously and will investigate them promptly. See [Security policy](https://github.com/makeplane/plane/blob/master/SECURITY.md) for more info.
-
-To disclose any security issues, please email us at security@plane.so.
-
-## 🤝 Contributing
-
-There are many ways you can contribute to Plane:
-
-- Report [bugs](https://github.com/makeplane/plane/issues/new?assignees=srinivaspendem%2Cpushya22&labels=%F0%9F%90%9Bbug&projects=&template=--bug-report.yaml&title=%5Bbug%5D%3A+) or submit [feature requests](https://github.com/makeplane/plane/issues/new?assignees=srinivaspendem%2Cpushya22&labels=%E2%9C%A8feature&projects=&template=--feature-request.yaml&title=%5Bfeature%5D%3A+).
-- Review the [documentation](https://docs.plane.so/) and submit [pull requests](https://github.com/makeplane/docs) to improve it—whether it's fixing typos or adding new content.
-- Talk or write about Plane or any other ecosystem integration and [let us know](https://forum.plane.so)!
-- Show your support by upvoting [popular feature requests](https://github.com/makeplane/plane/issues).
-
-Please read [CONTRIBUTING.md](https://github.com/makeplane/plane/blob/master/CONTRIBUTING.md) for details on the process for submitting pull requests to us.
-
-### Repo activity
-
-![Plane Repo Activity](https://repobeats.axiom.co/api/embed/2523c6ed2f77c082b7908c33e2ab208981d76c39.svg "Repobeats analytics image")
-
-### We couldn't have done this without you.
-
-<a href="https://github.com/makeplane/plane/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=makeplane/plane" />
-</a>
+Report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
-This project is licensed under the [GNU Affero General Public License v3.0](https://github.com/makeplane/plane/blob/master/LICENSE.txt).
+[GNU AGPL v3](LICENSE.txt) only. The upstream code is Copyright (c) 2023-present Plane Software, Inc. and contributors; the changes made in this fork are released under the same license.
+
+If you run a modified version of this software for users over a network, section 13 of the AGPL requires you to offer those users its source code. The GitHub link in the app's navigation points at this repository.
