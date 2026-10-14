@@ -107,3 +107,93 @@ describe("MemberSelect suspended members", () => {
     expect(onChange).toHaveBeenCalledWith([]);
   });
 });
+
+// D46: the assignee picker of a project with agents groups its rows (people, then bots with their sessions), draws
+// a bot's row from nodes, and checks a session's row without giving it a face on the trigger.
+
+const PERSON: MemberOption = { id: "ada", display_name: "Ada", group: "People" };
+const BOT: MemberOption = {
+  id: "claude",
+  display_name: "Claude",
+  group: "Bots",
+  bot: { harness: "claude-code" },
+  content: (
+    <span>
+      Claude <em>queue: any session can take it</em>
+    </span>
+  ),
+  trailing: <span>Claude Code</span>,
+};
+const SESSION: MemberOption = {
+  id: "session:1",
+  display_name: "plane@6995b6f5",
+  group: "Bots",
+  hiddenInTrigger: true,
+  content: <span>plane@6995b6f5 live</span>,
+};
+
+describe("MemberSelect agent rows", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"], shouldAdvanceTime: true });
+  });
+
+  afterEach(async () => {
+    cleanup();
+    try {
+      await act(() => vi.runOnlyPendingTimersAsync());
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  const rows = () => Promise.resolve({ results: [PERSON, BOT, SESSION], next_page_results: false });
+
+  it("opens a section per group, draws the content and trailing nodes, and shows the footer", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemberSelect
+        multiple
+        getValues={rows}
+        value={[]}
+        onChange={vi.fn()}
+        variant="pill-sm"
+        placeholder="Assignee"
+        footer={<p>A bot alone is a queue.</p>}
+        pinSelected={false}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Assignee/ }));
+    await popup().findByRole("option", { name: /Ada/ });
+    expect(popup().getByText("People")).toBeDefined();
+    expect(popup().getByText("Bots")).toBeDefined();
+    const bot = popup().getByRole("option", { name: /Claude/ });
+    expect(within(bot).getByText("queue: any session can take it")).toBeDefined();
+    expect(within(bot).getByText("Claude Code")).toBeDefined();
+    expect(popup().getByText("A bot alone is a queue.")).toBeDefined();
+  });
+
+  it("checks a session's row but leaves it off the trigger", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemberSelect
+        multiple
+        getValues={rows}
+        value={[BOT, SESSION]}
+        onChange={vi.fn()}
+        variant="select-ghost-md"
+        placeholder="Assignee"
+        pinSelected={false}
+      />
+    );
+
+    // the trigger names the bot once, not the session
+    const trigger = screen.getByRole("button");
+    expect(trigger.textContent).toContain("Claude");
+    expect(trigger.textContent).not.toContain("plane@6995b6f5");
+
+    await user.click(trigger);
+    const session = await popup().findByRole("option", { name: /plane@6995b6f5/ });
+    expect(session.getAttribute("aria-selected")).toBe("true");
+  });
+});

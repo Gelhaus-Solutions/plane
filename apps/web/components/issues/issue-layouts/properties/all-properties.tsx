@@ -28,7 +28,7 @@ import {
 // components
 import { CycleSelect } from "@/components/dropdowns/cycle/cycle-select";
 import { EstimateSelect } from "@/components/dropdowns/estimate/estimate-select";
-import { MemberSelect } from "@/components/dropdowns/member/member-select";
+import { AssigneeSelect } from "@/components/dropdowns/assignee/assignee-select";
 import { ModuleSelect } from "@/components/dropdowns/module/module-select";
 import { PrioritySelect } from "@/components/dropdowns/priority/priority-select";
 import { StateSelect } from "@/components/dropdowns/state/state-select";
@@ -319,12 +319,12 @@ export const IssueProperties = observer(function IssueProperties(props: IIssuePr
       <WithDisplayPropertiesHOC displayProperties={displayProperties} displayPropertyKey="assignee">
         {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
         <div className="h-5" onFocus={handleEventPropagation} onClick={handleEventPropagation}>
-          <MemberSelect
-            projectId={issue?.project_id ?? undefined}
+          <AssigneeSelect
+            issueId={issue.id}
+            projectId={issue?.project_id ?? ""}
             value={issue?.assignee_ids ?? []}
             onChange={handleAssignee}
             disabled={isReadOnly}
-            multiple
             variant={issue.assignee_ids?.length ? "avatar-group-sm" : "pill-sm"}
             placeholder={t("common.assignees")}
             tooltip={{ heading: t("common.assignees") }}

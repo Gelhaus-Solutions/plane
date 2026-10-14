@@ -62,6 +62,8 @@ type SelectOptionRowProps = {
   icon?: ReactNode;
   trailing?: ReactElement;
   description?: ReactNode;
+  /** The title as nodes, in place of `label`. */
+  content?: ReactNode;
   href?: string;
 };
 
@@ -69,16 +71,16 @@ type SelectOptionRowProps = {
  * The standard option row: `[checkbox] icon label [check] [trailing]`, with the mark read from
  * base-ui's selection rather than decided per picker.
  *
- * Propel's ready-made `ComboboxItem` draws it, except for a row with a description or an `href` —
+ * Propel's ready-made `ComboboxItem` draws it, except for a row with a description, content or an `href` —
  * it takes a `label` string only and sets its own `render`, so those are assembled from the same
  * `elements` parts, in the same order, for the same mark.
  */
 function SelectOptionRow(props: SelectOptionRowProps) {
-  const { value, index, setSize, disabled, multiple, label, icon, trailing, description, href } = props;
+  const { value, index, setSize, disabled, multiple, label, icon, trailing, description, content, href } = props;
   const itemProps = { value, index, disabled, "aria-setsize": setSize, "aria-posinset": index + 1 };
   const rowStyle = description === undefined ? undefined : TWO_LINE_ROW_STYLE;
 
-  if (description === undefined && href === undefined) {
+  if (description === undefined && content === undefined && href === undefined) {
     return (
       <ComboboxItem
         {...itemProps}
@@ -121,7 +123,7 @@ function SelectOptionRow(props: SelectOptionRowProps) {
       ) : null}
       {icon}
       <ComboboxItemContent>
-        <ComboboxItemTitle>{label}</ComboboxItemTitle>
+        <ComboboxItemTitle>{content ?? label}</ComboboxItemTitle>
         {description === undefined ? null : <span className={DESCRIPTION_CLASSNAME}>{description}</span>}
       </ComboboxItemContent>
       {multiple ? null : <ComboboxItemIndicator />}
@@ -154,6 +156,7 @@ type VirtualListBodyProps<T> = {
   getOptionIcon?: (option: T) => ReactNode;
   getOptionTrailing?: (option: T) => ReactElement | undefined;
   getOptionDescription?: (option: T) => ReactNode;
+  getOptionContent?: (option: T) => ReactNode;
   /** Deprecated hand-drawn row; when set it replaces the standard row wholesale. */
   renderOption?: (option: T) => ReactNode;
   /**
@@ -189,6 +192,7 @@ export function VirtualListBody<T>(props: VirtualListBodyProps<T>) {
     getOptionIcon,
     getOptionTrailing,
     getOptionDescription,
+    getOptionContent,
     renderOption,
     virtualizerRef,
   } = props;
@@ -335,6 +339,7 @@ export function VirtualListBody<T>(props: VirtualListBodyProps<T>) {
                   icon={getOptionIcon?.(item)}
                   trailing={getOptionTrailing?.(item)}
                   description={getOptionDescription?.(item)}
+                  content={getOptionContent?.(item)}
                   href={href}
                 />
               </div>

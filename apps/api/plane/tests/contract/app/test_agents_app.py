@@ -127,17 +127,15 @@ class TestAssigneeEdits:
         assert AgentInboxMessage.objects.filter(kind="assignment").count() == 1
 
     @pytest.mark.django_db
-    def test_an_edit_keeps_a_delegation_and_removing_the_bot_drops_it(
-        self, session_client, workspace, bot, item, create_user
-    ):
+    def test_an_edit_leaves_a_delegation_to_the_agents_path(self, session_client, workspace, bot, item, create_user):
         session_client.post(agents_url(workspace, item), {"bot": str(bot.user_id), "delegate": True}, format="json")
-        session_client.patch(
-            issue_url(workspace, item), {"assignee_ids": [str(bot.user_id), str(create_user.id)]}, format="json"
-        )
-        assert IssueAssignee.objects.get(issue=item, assignee=bot.user).delegated
-
+        # the picker lists people and queue bots, never a delegation, so the edit it sends has no delegate in it
         session_client.patch(issue_url(workspace, item), {"assignee_ids": [str(create_user.id)]}, format="json")
-        assert not IssueAssignee.objects.filter(issue=item, assignee=bot.user).exists()
+        assert IssueAssignee.objects.get(issue=item, assignee=bot.user).delegated
+        assert IssueAssignee.objects.filter(issue=item, assignee=create_user).exists()
+
+        gone = session_client.delete(agents_url(workspace, item) + f"?bot={bot.user_id}")
+        assert gone.status_code == status.HTTP_200_OK and gone.json()["agents"] == []
 
     @pytest.mark.django_db
     def test_adding_a_bot_through_assignee_ids_tells_its_queue_once(self, session_client, workspace, bot, item):
@@ -149,3 +147,37 @@ class TestAssigneeEdits:
         [told] = AgentInboxMessage.objects.filter(kind="assignment")
         assert told.session_id is None and told.bot_id == bot.id
         assert told.issue_id == item.id
+
+
+@pytest.mark.contract
+class TestAgentRows:
+    """What the list and board rows show: per item the agents on it and the session that holds it."""
+
+    @pytest.mark.django_db
+    def test_the_listing_names_the_session_that_holds_the_item(self, session_client, workspace, bot, item):
+        live = register(bot, workspace, "bbbbbbbb-2222")
+        agent_sessions.claim(item, live)
+        session_client.post(agents_url(workspace, item), {"bot": str(bot.user_id)}, format="json")
+        data = session_client.get(agents_url(workspace, item)).json()
+        assert data["claim"]["session"]["name"] == live.name
+        assert data["claim"]["session"]["bot"]["display_name"] == "Claude"
+        assert [agent["state"] for agent in data["agents"]] == ["queue"]
+
+    @pytest.mark.django_db
+    def test_a_project_lists_its_open_items_with_agents_or_claims(
+        self, session_client, workspace, bot, project, item, create_user
+    ):
+        live = register(bot, workspace, "bbbbbbbb-2222")
+        session_client.post(agents_url(workspace, item), {"session": str(live.id), "delegate": True}, format="json")
+        claimed = Issue.objects.create(name="Held", project=project, created_by=create_user)
+        agent_sessions.claim(claimed, live)
+        Issue.objects.create(name="No agent", project=project, created_by=create_user)
+
+        response = session_client.get(f"/api/workspaces/{workspace.slug}/projects/{project.id}/agent-rows/")
+        assert response.status_code == status.HTTP_200_OK, response.content
+        by_issue = {entry["issue_id"]: entry for entry in response.json()["results"]}
+        assert set(by_issue) == {str(item.id), str(claimed.id)}
+        [agent] = by_issue[str(item.id)]["agents"]
+        assert agent["session"]["name"] == live.name and agent["delegated"] and agent["state"] == "session"
+        assert by_issue[str(claimed.id)]["agents"] == []
+        assert by_issue[str(claimed.id)]["claim"]["session"]["id"] == str(live.id)

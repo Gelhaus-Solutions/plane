@@ -1,0 +1,34 @@
+{
+  "agents": {
+    "bot": "BOT",
+    "delegate": "Delegate",
+    "delegate_to": "Delegate to an agent",
+    "picker": {
+      "assignee_search": "Assignee: type a name or a session",
+      "delegate_search": "Delegate to an agent: type a name or a session",
+      "people": "People",
+      "bots_and_sessions": "Bots and their sessions, live first",
+      "queue_hint": "queue: any session can take it",
+      "assignee_footer": "A bot alone is a queue. A session is one live run.",
+      "delegate_footer": "{name} stays the assignee and is accountable.",
+      "delegate_footer_nobody": "The assignee stays accountable.",
+      "failed": "The agent could not be changed. Try again."
+    },
+    "status": {
+      "live": "Live",
+      "working": "Working",
+      "away": "Away",
+      "ended": "Ended"
+    },
+    "harness": {
+      "claude_code": "Claude Code",
+      "codex": "Codex CLI",
+      "garness": "GArness",
+      "other": "Agent"
+    },
+    "state": {
+      "queue": "In the queue",
+      "waiting": "Waiting for a session"
+    }
+  }
+}

@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from plane.app.permissions import ROLE, allow_permission
-from plane.db.models import AgentSession, Issue, WorkItemClaim
+from plane.db.models import AgentSession, Issue, IssueAssignee, WorkItemClaim
 from plane.utils import agent_assignments
 from plane.utils.agent_sessions import SessionError, session_data, sessions_in
 
@@ -66,6 +66,40 @@ class WorkspaceAgentSessionsEndpoint(BaseAPIView):
         return Response({"results": results}, status=status.HTTP_200_OK)
 
 
+class ProjectAgentRowsEndpoint(BaseAPIView):
+    """The agents on a project's open work items, one entry per item that has a bot assignee or an open claim: what
+    the list and board rows show next to the title (D46)."""
+
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
+    def get(self, request, slug, project_id):
+        rows = (
+            IssueAssignee.objects.filter(
+                workspace__slug=slug,
+                project_id=project_id,
+                assignee__is_bot=True,
+                issue__deleted_at__isnull=True,
+                issue__archived_at__isnull=True,
+                issue__is_draft=False,
+            )
+            .exclude(issue__state__group__in=agent_assignments.CLOSED_GROUPS)
+            .select_related("assignee", "agent_session")
+            .order_by("created_at")
+        )
+        claims = WorkItemClaim.objects.filter(
+            workspace__slug=slug, issue__project_id=project_id, ended_at__isnull=True
+        ).select_related("session__bot__user")
+        by_issue = {}
+        for row in rows:
+            entry = by_issue.setdefault(str(row.issue_id), {"issue_id": str(row.issue_id), "agents": [], "claim": None})
+            entry["agents"].append(agent_assignments.row_data(row, agent_assignments.row_state(row)))
+        for claim in claims:
+            entry = by_issue.setdefault(
+                str(claim.issue_id), {"issue_id": str(claim.issue_id), "agents": [], "claim": None}
+            )
+            entry["claim"] = agent_assignments.claim_data(claim)
+        return Response({"results": list(by_issue.values())}, status=status.HTTP_200_OK)
+
+
 class WorkItemAgentsEndpoint(BaseAPIView):
     """The agents on a work item: POST names a bot (its queue), one of its sessions, or a bot to delegate to; DELETE
     takes a bot off; GET lists them with where each stands (queue, session, or waiting after its session ended)."""
@@ -74,7 +108,12 @@ class WorkItemAgentsEndpoint(BaseAPIView):
         return Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, pk=issue_id).first()
 
     def _listing(self, issue):
-        return {"agents": [agent_assignments.row_data(row, state) for row, state in agent_assignments.rows_for(issue)]}
+        claim = WorkItemClaim.objects.filter(issue=issue, ended_at__isnull=True).select_related("session__bot__user")
+        claim = claim.first()
+        return {
+            "agents": [agent_assignments.row_data(row, state) for row, state in agent_assignments.rows_for(issue)],
+            "claim": agent_assignments.claim_data(claim) if claim else None,
+        }
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, issue_id):

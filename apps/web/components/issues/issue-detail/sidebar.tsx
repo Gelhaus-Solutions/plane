@@ -13,7 +13,7 @@ import { DateSelect } from "@plane/blocks/property-select";
 import { cn, getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@plane/utils";
 // components
 import { EstimateSelect } from "@/components/dropdowns/estimate/estimate-select";
-import { MemberSelect } from "@/components/dropdowns/member/member-select";
+import { AssigneeSelect } from "@/components/dropdowns/assignee/assignee-select";
 import { PrioritySelect } from "@/components/dropdowns/priority/priority-select";
 import { StateSelect } from "@/components/dropdowns/state/state-select";
 // hooks
@@ -23,6 +23,7 @@ import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useUserProfile } from "@/hooks/store/user";
 // components
+import { IssueDelegateProperty } from "@/components/issues/issue-delegate-property";
 import { IssueParentSelectRoot } from "@/components/issues/parent-select-root";
 import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/property-list-item";
 import { IssueCycleSelect } from "./cycle-select";
@@ -100,19 +101,25 @@ export const IssueDetailsSidebar = observer(function IssueDetailsSidebar(props: 
           </SidebarPropertyListItem>
 
           <SidebarPropertyListItem label={t("work_item_detail.assignee")}>
-            <MemberSelect
+            <AssigneeSelect
               testId="work-item-assignee-select"
+              projectId={projectId}
+              issueId={issueId}
               value={issue?.assignee_ids ?? []}
               onChange={(val) => issueOperations.update(workspaceSlug, projectId, issueId, { assignee_ids: val })}
               disabled={!isEditable}
-              projectId={projectId}
               placeholder={t("issue.add.assignee")}
-              multiple
               variant="select-ghost-md"
-              showLabel={(issue?.assignee_ids?.length ?? 0) <= 1}
               tooltip={{ heading: t("common.assignees") }}
             />
           </SidebarPropertyListItem>
+
+          <IssueDelegateProperty
+            workspaceSlug={workspaceSlug}
+            projectId={projectId}
+            issueId={issueId}
+            disabled={!isEditable}
+          />
 
           <SidebarPropertyListItem label={t("common.labels")}>
             <IssueLabel workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} disabled={!isEditable} />

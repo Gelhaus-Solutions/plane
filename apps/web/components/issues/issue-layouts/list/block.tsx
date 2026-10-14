@@ -30,7 +30,7 @@ import {
 } from "@plane/utils";
 // components
 import { MultipleSelectEntityAction } from "@/components/core/multiple-select";
-import { MemberSelect } from "@/components/dropdowns/member/member-select";
+import { AssigneeSelect } from "@/components/dropdowns/assignee/assignee-select";
 import { PrioritySelect } from "@/components/dropdowns/priority/priority-select";
 import { StateSelect } from "@/components/dropdowns/state/state-select";
 import { IssuePropertyLabels } from "@/components/issues/issue-layouts/properties/labels";
@@ -337,14 +337,13 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
         {/* assignee */}
         {columns.assignee && (
           <span role="presentation" className="flex min-w-0" onClick={swallow}>
-            <MemberSelect
+            <AssigneeSelect
+              issueId={issue.id}
               value={issue.assignee_ids ?? []}
-              projectId={issue.project_id ?? undefined}
+              projectId={issue.project_id ?? ""}
               onChange={(ids) => void updateIssue?.(issue.project_id, issue.id, { assignee_ids: ids })}
               disabled={!canEditIssueProperties}
-              multiple
               variant="select-ghost-md"
-              showLabel={(issue.assignee_ids?.length ?? 0) <= 1}
               placeholder={t("work_items_list.unassigned")}
               tooltip={{ heading: t("work_items_list.assignee") }}
             />

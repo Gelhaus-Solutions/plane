@@ -85,11 +85,14 @@ def tell_new_bot_assignees(issue, rows, actor=None):
 
 def set_assignees(issue, assignee_ids, actor=None):
     """Makes the item's assignees exactly ``assignee_ids``. Rows that stay keep what they name (a session, a
-    delegation), so a person editing the assignees never turns a session's item back into a queue item; bots that
-    are new on the item are told."""
+    delegation), so a person editing the assignees never turns a session's item back into a queue item, and a
+    delegated bot is left alone; bots that are new on the item are told."""
     wanted = {str(assignee_id) for assignee_id in assignee_ids}
-    existing = {str(row.assignee_id) for row in IssueAssignee.objects.filter(issue=issue)}
-    removed = existing - wanted
+    rows = list(IssueAssignee.objects.filter(issue=issue))
+    existing = {str(row.assignee_id) for row in rows}
+    # a delegation is the agents path's to give and take: the picker never lists it among the assignees
+    delegated = {str(row.assignee_id) for row in rows if row.delegated}
+    removed = existing - wanted - delegated
     if removed:
         IssueAssignee.objects.filter(issue=issue, assignee_id__in=removed).delete()
     added = [assignee_id for assignee_id in assignee_ids if str(assignee_id) not in existing]
@@ -127,15 +130,15 @@ def rows_for(issue):
     """The agent rows on an item, each with where it stands: in the bot's queue, with a session, or waiting for one
     because the session it named has ended (D20)."""
     rows = IssueAssignee.objects.filter(issue=issue, assignee__is_bot=True).select_related("assignee", "agent_session")
-    out = []
-    for row in rows:
-        session = row.agent_session
-        if session is None:
-            state = "queue"
-        else:
-            state = "waiting" if session.status == AgentSession.Status.ENDED else "session"
-        out.append((row, state))
-    return out
+    return [(row, row_state(row)) for row in rows]
+
+
+def row_state(row):
+    """Where an agent row stands: ``queue``, ``session``, or ``waiting`` once the session it named has ended."""
+    session = row.agent_session
+    if session is None:
+        return "queue"
+    return "waiting" if session.status == AgentSession.Status.ENDED else "session"
 
 
 def work_for(session):
@@ -160,4 +163,19 @@ def row_data(row, state):
         "session": {"id": str(session.id), "name": session.name, "status": session.status} if session else None,
         "state": state,
         "delegated": row.delegated,
+    }
+
+
+def claim_data(claim):
+    """The open claim on an item as the app shows it: which session works on it, since when."""
+    session = claim.session
+    bot_user = session.bot.user
+    return {
+        "session": {
+            "id": str(session.id),
+            "name": session.name,
+            "status": session.status,
+            "bot": {"id": str(bot_user.id), "display_name": bot_user.display_name},
+        },
+        "claimed_at": claim.claimed_at,
     }

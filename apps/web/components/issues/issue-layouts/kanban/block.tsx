@@ -32,7 +32,7 @@ import { cn, generateWorkItemLink, getDate, renderFormattedDate, shouldHighlight
 // components
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { HIGHLIGHT_CLASS, getIssueBlockId } from "@/components/issues/issue-layouts/utils";
-import { MemberSelect } from "@/components/dropdowns/member/member-select";
+import { AssigneeSelect } from "@/components/dropdowns/assignee/assignee-select";
 import { PrioritySelect } from "@/components/dropdowns/priority/priority-select";
 import { StateSelect } from "@/components/dropdowns/state/state-select";
 // hooks
@@ -150,12 +150,12 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
         {on("assignee") && (
           // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
           <div className="flex" onClick={handleEventPropagation}>
-            <MemberSelect
+            <AssigneeSelect
+              issueId={issue.id}
               value={issue.assignee_ids ?? []}
-              projectId={issue.project_id ?? undefined}
+              projectId={issue.project_id ?? ""}
               onChange={(ids) => void updateIssue?.(issue.project_id, issue.id, { assignee_ids: ids })}
               disabled={isReadOnly}
-              multiple
               variant={issue.assignee_ids?.length ? "avatar-group-sm" : "icon-sm"}
               tooltip={{ heading: t("work_items_list.assignee") }}
             />

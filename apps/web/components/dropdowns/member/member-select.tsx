@@ -15,6 +15,8 @@ import { useTranslation } from "@plane/i18n";
 import type { TPaginatedResponse } from "@plane/types";
 import { getFileURL } from "@plane/utils";
 // hooks
+import { botFaceOf } from "@/helpers/agent.helper";
+import { useAgent } from "@/hooks/store/use-agent";
 import { useMember } from "@/hooks/store/use-member";
 import { useUser } from "@/hooks/store/user";
 
@@ -91,6 +93,7 @@ export const MemberSelect = observer(function MemberSelect(props: MemberSelectWe
     workspace: { workspaceMemberIds, isUserSuspended },
   } = useMember();
   const { data: currentUser } = useUser();
+  const { getBotHarness } = useAgent();
   // translation
   const { t } = useTranslation();
   const resolvedTooltip = useMemo<SelectTooltipOverride | undefined>(() => {
@@ -116,9 +119,11 @@ export const MemberSelect = observer(function MemberSelect(props: MemberSelectWe
         name,
         avatar_url: getFileURL(member?.avatar_url ?? ""),
         suspended: !!slug && isUserSuspended(id, slug),
+        // an agent bot wears its harness's glyph, not initials
+        bot: member?.is_bot ? botFaceOf(getBotHarness(id, name)) : undefined,
       };
     },
-    [getUserDetails, currentUser?.id, youLabel, slug, isUserSuspended]
+    [getUserDetails, currentUser?.id, youLabel, slug, isUserSuspended, getBotHarness]
   );
 
   const getValues = useCallback(

@@ -1,0 +1,34 @@
+{
+  "agents": {
+    "bot": "BOT",
+    "delegate": "Delegiert an",
+    "delegate_to": "An einen Agenten delegieren",
+    "picker": {
+      "assignee_search": "Zuständig: Name oder Session eingeben",
+      "delegate_search": "An einen Agenten delegieren: Name oder Session eingeben",
+      "people": "Personen",
+      "bots_and_sessions": "Bots und ihre Sessions, laufende zuerst",
+      "queue_hint": "Warteschlange: jede Session kann es übernehmen",
+      "assignee_footer": "Ein Bot allein ist eine Warteschlange. Eine Session ist ein einzelner laufender Durchgang.",
+      "delegate_footer": "{name} bleibt zuständig und ist verantwortlich.",
+      "delegate_footer_nobody": "Die zuständige Person bleibt verantwortlich.",
+      "failed": "Der Agent konnte nicht geändert werden. Versuche es noch einmal."
+    },
+    "status": {
+      "live": "Live",
+      "working": "Arbeitet",
+      "away": "Abwesend",
+      "ended": "Beendet"
+    },
+    "harness": {
+      "claude_code": "Claude Code",
+      "codex": "Codex CLI",
+      "garness": "GArness",
+      "other": "Agent"
+    },
+    "state": {
+      "queue": "In der Warteschlange",
+      "waiting": "Wartet auf eine Session"
+    }
+  }
+}

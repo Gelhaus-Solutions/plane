@@ -65,6 +65,12 @@ type SelectBaseProps<T> = {
   getOptionIcon?: (option: T) => ReactNode;
   /** Content pinned at a row's inline end, after the single-select check — e.g. a project identifier. */
   getOptionTrailing?: (option: T) => ReactElement | undefined;
+  /**
+   * The row's text as nodes, in place of the plain `getOptionLabel` string — a name followed by a badge and a muted
+   * hint, a monospace id beside a status. The row keeps its standard chrome (selection mark, icon, trailing);
+   * `getOptionLabel` still names the option for search and assistive tech.
+   */
+  getOptionContent?: (option: T) => ReactNode;
   /** A second, muted line under the label. Rows carrying one grow past the standard single-line height. */
   getOptionDescription?: (option: T) => ReactNode;
   /**

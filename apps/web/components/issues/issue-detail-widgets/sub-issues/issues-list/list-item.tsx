@@ -26,7 +26,7 @@ import { ControlLink } from "@plane/blocks/layout";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // helpers
 import { useSubIssueOperations } from "@/components/issues/issue-detail-widgets/sub-issues/helper";
-import { MemberSelect } from "@/components/dropdowns/member/member-select";
+import { AssigneeSelect } from "@/components/dropdowns/assignee/assignee-select";
 import { PrioritySelect } from "@/components/dropdowns/priority/priority-select";
 import { StateSelect } from "@/components/dropdowns/state/state-select";
 // hooks
@@ -215,9 +215,10 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
                 variant="icon-sm"
                 tooltip
               />
-              <MemberSelect
+              <AssigneeSelect
+                issueId={issue.id}
                 value={issue.assignee_ids ?? []}
-                projectId={issue.project_id ?? undefined}
+                projectId={issue.project_id ?? ""}
                 onChange={(val) =>
                   issue.project_id &&
                   subIssueOperations.updateSubIssue(workspaceSlug, issue.project_id, parentIssueId, issueId, {
@@ -225,7 +226,6 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
                   })
                 }
                 disabled={!canEdit}
-                multiple
                 variant={issue.assignee_ids?.length ? "avatar-group-sm" : "icon-sm"}
                 tooltip
               />

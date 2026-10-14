@@ -5,6 +5,7 @@
  */
 
 import { useMemo } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { Avatar } from "@makeplane/propel/components/avatar";
 import { AvatarGroup } from "@makeplane/propel/components/avatar-group";
 import type { AvatarGroupSize } from "@makeplane/propel/components/avatar-group";
@@ -15,6 +16,8 @@ import { Select } from "../select/select";
 import type { SelectPaginationParams, SelectTooltip, SelectTriggerSize, SelectVariant } from "../select/types";
 import { splitSelectVariant } from "../select/utils";
 import { cn, getAvatarName } from "@plane/utils";
+import { BotAvatar } from "../bot-avatar/bot-avatar";
+import type { Harness } from "../bot-avatar/harness-glyph";
 
 /** Minimal member shape the dropdown needs — the client maps its richer record down to this. */
 export type MemberOption = {
@@ -32,6 +35,19 @@ export type MemberOption = {
    * keeps an enabled row so the selection can still be removed, and the trigger shows them as usual.
    */
   suspended?: boolean;
+  /** Section heading: the dropdown opens a labelled section whenever it changes down the list, so order the
+   *  options to keep each section together. */
+  group?: string;
+  /** Leading element of the row, in place of the avatar (a bot's glyph, a chevron that indents a session). */
+  icon?: ReactNode;
+  /** The row's text as nodes, in place of `display_name` (which still names the option for search). */
+  content?: ReactNode;
+  /** Content at the row's inline end, in place of the suspended badge. */
+  trailing?: ReactElement;
+  /** Takes part in the selection (its row is checked) without a face of its own on the trigger. */
+  hiddenInTrigger?: boolean;
+  /** An agent bot: its face is the harness's rounded square, not a circle with initials. */
+  bot?: { harness?: Harness; color?: string };
 };
 
 export type MemberSelectVariant = SelectVariant | `avatar-group-${SelectTriggerSize}`;
@@ -87,6 +103,24 @@ export const MAX_TRIGGER_AVATARS = 3;
 /** Id for the "No assignee" clear option — an empty string maps to `null` via `val || null`. */
 const CLEAR_OPTION_ID = "";
 
+const FACE_PX: Record<AvatarGroupSize, number> = { "2xs": 16, xs: 20, sm: 24 };
+
+/** A member's face: the avatar, or for an agent bot the rounded square of its harness. */
+function MemberFace({ member, size }: { member: MemberOption; size: AvatarGroupSize }) {
+  if (member.bot) {
+    return (
+      <BotAvatar
+        name={member.name || member.display_name}
+        bot
+        harness={member.bot.harness}
+        color={member.bot.color}
+        size={FACE_PX[size]}
+      />
+    );
+  }
+  return <Avatar alt={memberAvatarAlt(member)} src={member.avatar_url ?? ""} size={size} />;
+}
+
 /** Initials must not see labels like " (you)" — Propel uses first+last whitespace tokens. */
 function memberAvatarAlt(member: MemberOption): string {
   return getAvatarName(member.name || member.display_name);
@@ -116,6 +150,11 @@ type MemberSelectCommonProps = {
   filterOption?: (member: MemberOption) => boolean;
   /** Badge text on a {@link MemberOption.suspended} row. Defaults to "Suspended". */
   suspendedLabel?: string;
+  /** Sticky chrome under the list, outside the scroll area (a line of help). */
+  footer?: ReactNode;
+  /** Keep the options in the order given instead of lifting the selected ones to the top. Needed when the options
+   *  carry {@link MemberOption.group}s. Defaults to lifting them. */
+  pinSelected?: boolean;
 };
 
 export type MemberSelectProps = MemberSelectCommonProps &
@@ -129,6 +168,13 @@ export type MemberSelectProps = MemberSelectCommonProps &
         clearLabel?: string;
       }
   );
+
+/** The selected options that get a face on the trigger. */
+function shown(selected: MemberOption[]): MemberOption[] {
+  return selected.some((member) => member.hiddenInTrigger)
+    ? selected.filter((member) => !member.hiddenInTrigger)
+    : selected;
+}
 
 function triggerLabel(selected: MemberOption[], showCountOnMultiple: boolean, placeholder?: string): string {
   if (selected.length === 0) return placeholder ?? "";
@@ -167,6 +213,8 @@ export function MemberSelect(props: MemberSelectProps) {
     testId,
     tabIndex,
     suspendedLabel = "Suspended",
+    footer,
+    pinSelected,
   } = props;
   const clearable = !props.multiple && !!props.clearable;
 
@@ -229,8 +277,14 @@ export function MemberSelect(props: MemberSelectProps) {
     filterOption: isSearchInput ? combinedFilterOption : filterOption,
     getOptionValue: (member: MemberOption) => member.id,
     getOptionLabel: (member: MemberOption) => member.display_name,
+    getOptionGroup: (member: MemberOption) => member.group,
+    getOptionContent: (member: MemberOption) => member.content,
+    footer,
+    pinSelected,
     getOptionIcon: (member: MemberOption) =>
-      member.id === CLEAR_OPTION_ID ? (
+      member.icon !== undefined ? (
+        member.icon
+      ) : member.id === CLEAR_OPTION_ID ? (
         <span className={OPTION_ICON_SLOT_CLASSNAME}>
           <UserAltOutline className="h-4 w-4 text-primary" />
         </span>
@@ -240,16 +294,16 @@ export function MemberSelect(props: MemberSelectProps) {
         </span>
       ) : (
         <span className={OPTION_ICON_SLOT_CLASSNAME}>
-          <Avatar alt={memberAvatarAlt(member)} src={member.avatar_url ?? ""} size="xs" />
+          <MemberFace member={member} size="xs" />
         </span>
       ),
     // Suspended members cannot be newly picked; an already-selected one stays toggleable so it can be removed.
     getOptionDisabled: (member: MemberOption) => !!member.suspended && !selectedIds.has(member.id),
     getOptionTrailing: (member: MemberOption) =>
-      member.suspended ? <Badge variant="neutral" size="xs" label={suspendedLabel} /> : undefined,
+      member.trailing ?? (member.suspended ? <Badge variant="neutral" size="xs" label={suspendedLabel} /> : undefined),
     renderChip: (member: MemberOption) => (
       <>
-        <Avatar alt={memberAvatarAlt(member)} src={member.avatar_url ?? ""} size="2xs" />
+        <MemberFace member={member} size="2xs" />
         <span className="min-w-0 truncate">{member.display_name}</span>
       </>
     ),
@@ -263,34 +317,46 @@ export function MemberSelect(props: MemberSelectProps) {
       tabIndex={tabIndex}
       data-testid={testId}
       className={cn(isAvatarGroup && AVATAR_GROUP_TRIGGER_CLASSNAME, className)}
-      prependIcon={(members) =>
-        members.length === 0 ? props.multiple ? <AssigneeOutline /> : <UserAltOutline /> : undefined
+      prependIcon={(selected) =>
+        shown(selected).length === 0 ? props.multiple ? <AssigneeOutline /> : <UserAltOutline /> : undefined
       }
-      label={(members) => triggerLabel(members, showCountOnMultiple, placeholder)}
+      label={(selected) => triggerLabel(shown(selected), showCountOnMultiple, placeholder)}
       tooltip={tooltip}
     >
-      {(members) => (
-        <>
-          {members.length > 0 && (
-            <span
-              className={cn("flex items-center gap-1", !(showLabel && (members.length > 0 || !!placeholder)) && "grow")}
-            >
-              {/* Resolve one more than `MAX_TRIGGER_AVATARS` so `AvatarGroup` can render the real extra face
+      {(selected) => {
+        const members = shown(selected);
+        return (
+          <>
+            {members.length > 0 && (
+              <span
+                className={cn(
+                  "flex items-center gap-1",
+                  !(showLabel && (members.length > 0 || !!placeholder)) && "grow"
+                )}
+              >
+                {/* Resolve one more than `MAX_TRIGGER_AVATARS` so `AvatarGroup` can render the real extra face
                   instead of a "+1" chip when `total` is exactly `max + 1`; `total` covers the rest. */}
-              <AvatarGroup size={avatarSize} max={MAX_TRIGGER_AVATARS} total={members.length}>
-                {members.slice(0, MAX_TRIGGER_AVATARS + 1).map((member) => (
-                  <Avatar key={member.id} alt={memberAvatarAlt(member)} src={member.avatar_url ?? ""} />
-                ))}
-              </AvatarGroup>
-            </span>
-          )}
-          {showLabel && (members.length > 0 || !!placeholder) && (
-            <span className="min-w-0 grow truncate text-left">
-              {triggerLabel(members, showCountOnMultiple, placeholder)}
-            </span>
-          )}
-        </>
-      )}
+                <AvatarGroup size={avatarSize} max={MAX_TRIGGER_AVATARS} total={members.length}>
+                  {members
+                    .slice(0, MAX_TRIGGER_AVATARS + 1)
+                    .map((member) =>
+                      member.bot ? (
+                        <MemberFace key={member.id} member={member} size={avatarSize} />
+                      ) : (
+                        <Avatar key={member.id} alt={memberAvatarAlt(member)} src={member.avatar_url ?? ""} />
+                      )
+                    )}
+                </AvatarGroup>
+              </span>
+            )}
+            {showLabel && (members.length > 0 || !!placeholder) && (
+              <span className="min-w-0 grow truncate text-left">
+                {triggerLabel(members, showCountOnMultiple, placeholder)}
+              </span>
+            )}
+          </>
+        );
+      }}
     </Select.Trigger>
   );
 
