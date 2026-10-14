@@ -115,7 +115,7 @@ export const IssueActivity = observer(function IssueActivity(props: TIssueActivi
               onClick={() => setFilterValue(VIEW_FILTERS[option])}
               className={cn(
                 "flex h-6 items-center rounded-md px-[9px] text-secondary transition-colors duration-[120ms] outline-none focus-visible:ring-2 focus-visible:ring-accent-strong",
-                { "ring-border-strong bg-surface-1 font-semibold text-primary shadow-e1 ring-1": view === option }
+                { "bg-surface-1 font-semibold text-primary shadow-e1 ring-1 ring-(--border-strong)": view === option }
               )}
             >
               {t(`work_item_detail.activity_${option}`)}

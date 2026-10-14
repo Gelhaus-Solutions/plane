@@ -88,6 +88,15 @@ export class AnalyticsService extends APIService {
       });
   }
 
+  /** The workspace analytics screens (r5-10): one tab's tiles, series and tables for a period and a set of projects */
+  async getInsights<T>(workspaceSlug: string, params: Record<string, string>): Promise<T> {
+    return this.get(`/api/workspaces/${workspaceSlug}/analytics/insights/`, { params })
+      .then((res) => res?.data)
+      .catch((err) => {
+        throw err?.response?.data;
+      });
+  }
+
   processUrl<_T extends string>(
     endpoint: string,
     workspaceSlug: string,

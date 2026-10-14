@@ -217,6 +217,8 @@ from .analytic.advance import (
     AdvanceAnalyticsChartEndpoint,
 )
 
+from .analytic.insights import AnalyticsInsightsEndpoint
+
 from .analytic.project_analytics import (
     ProjectAdvanceAnalyticsEndpoint,
     ProjectAdvanceAnalyticsStatsEndpoint,

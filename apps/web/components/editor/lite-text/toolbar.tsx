@@ -118,7 +118,7 @@ export function IssueCommentToolbar(props: Props) {
                   aria-pressed={isAccessActive}
                   onClick={() => handleAccessChange?.(access.key)}
                   className={cn("grid size-5 place-items-center rounded-[5px] text-tertiary", {
-                    "ring-border-strong bg-surface-1 text-primary shadow-e1 ring-1": isAccessActive,
+                    "bg-surface-1 text-primary shadow-e1 ring-1 ring-(--border-strong)": isAccessActive,
                   })}
                 >
                   <access.icon className="size-3" strokeWidth={2} />

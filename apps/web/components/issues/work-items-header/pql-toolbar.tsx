@@ -105,7 +105,7 @@ export const WorkItemsPQLToolbar = observer(function WorkItemsPQLToolbar(props: 
               onClick={() => setMode(option)}
               className={cn(
                 "flex h-6 items-center rounded-md px-2.5 text-secondary transition-colors duration-[120ms] outline-none focus-visible:ring-2 focus-visible:ring-accent-strong",
-                { "ring-border-strong bg-surface-1 font-semibold text-primary shadow-e1 ring-1": mode === option }
+                { "bg-surface-1 font-semibold text-primary shadow-e1 ring-1 ring-(--border-strong)": mode === option }
               )}
             >
               {option === "filters" ? t("common.filters") : "PQL"}

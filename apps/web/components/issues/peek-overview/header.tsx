@@ -263,7 +263,7 @@ export const IssuePeekOverviewHeader = observer(function IssuePeekOverviewHeader
                   onClick={() => setPeekMode(option.key)}
                   className={cn(
                     "grid size-6 place-items-center rounded-[5px] text-tertiary transition-colors hover:text-secondary",
-                    { "ring-border-strong bg-surface-1 text-primary shadow-e1 ring-1": peekMode === option.key }
+                    { "bg-surface-1 text-primary shadow-e1 ring-1 ring-(--border-strong)": peekMode === option.key }
                   )}
                 >
                   <option.icon className="size-3.5" />

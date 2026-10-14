@@ -42,7 +42,7 @@ export const BoardSwimlanes = observer(function BoardSwimlanes(props: Props) {
               onClick={() => !active && onChange(lane.key)}
               className={cn(
                 "flex h-6 items-center rounded-md px-2.5 text-secondary transition-colors duration-[120ms] outline-none focus-visible:ring-2 focus-visible:ring-accent-strong disabled:cursor-not-allowed disabled:opacity-50",
-                { "ring-border-strong bg-surface-1 font-semibold text-primary shadow-e1 ring-1": active }
+                { "bg-surface-1 font-semibold text-primary shadow-e1 ring-1 ring-(--border-strong)": active }
               )}
             >
               {t(lane.label)}

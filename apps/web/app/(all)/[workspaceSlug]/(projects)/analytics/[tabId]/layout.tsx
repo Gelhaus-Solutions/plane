@@ -4,19 +4,16 @@
  * See the LICENSE file for details.
  */
 
-// components
 import { Outlet } from "react-router";
-import { AppHeader } from "@/components/core/app-header";
-import { ContentWrapper } from "@/components/core/content-wrapper";
-import { WorkspaceAnalyticsHeader } from "./header";
+import { AnalyticsHeader } from "@/components/analytics/insights/header";
 
 export default function WorkspaceAnalyticsTabLayout() {
   return (
-    <>
-      <AppHeader header={<WorkspaceAnalyticsHeader />} />
-      <ContentWrapper>
+    <div className="flex size-full flex-col overflow-hidden">
+      <AnalyticsHeader />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <Outlet />
-      </ContentWrapper>
-    </>
+      </div>
+    </div>
   );
 }

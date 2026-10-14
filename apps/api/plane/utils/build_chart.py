@@ -7,13 +7,19 @@ from typing import Dict, Any, Tuple, Optional, List, Union
 
 # Django imports
 from django.db.models import (
+    Case,
+    CharField,
     Count,
+    Exists,
     F,
+    OuterRef,
     QuerySet,
     Aggregate,
+    Value,
+    When,
 )
 
-from plane.db.models import Issue
+from plane.db.models import Issue, IssueAssignee
 from rest_framework.exceptions import ValidationError
 
 
@@ -31,6 +37,7 @@ x_axis_mapper = {
     "CREATED_AT": "CREATED_AT",
     "COMPLETED_AT": "COMPLETED_AT",
     "CREATED_BY": "CREATED_BY",
+    "PEOPLE_OR_BOTS": "PEOPLE_OR_BOTS",
 }
 
 
@@ -72,7 +79,20 @@ def get_x_axis_field() -> Dict[str, Tuple[str, str, Optional[Dict[str, Any]]]]:
         "CREATED_AT": ("created_at__date", "created_at__date", None),
         "COMPLETED_AT": ("completed_at__date", "completed_at__date", None),
         "CREATED_BY": ("created_by_id", "created_by__display_name", None),
+        "PEOPLE_OR_BOTS": ("people_or_bots", "people_or_bots", None),
     }
+
+
+def bot_assigned() -> Exists:
+    """Whether a work item has a bot among its assignees."""
+    return Exists(IssueAssignee.objects.filter(issue_id=OuterRef("pk"), assignee__is_bot=True, deleted_at__isnull=True))
+
+
+def annotate_people_or_bots(queryset: QuerySet[Issue]) -> QuerySet[Issue]:
+    """An item with a bot among its assignees is the bots' work, any other item the people's."""
+    return queryset.annotate(
+        people_or_bots=Case(When(bot_assigned(), then=Value("bots")), default=Value("people"), output_field=CharField())
+    )
 
 
 def process_grouped_data(
@@ -165,6 +185,9 @@ def build_analytics_chart(
         raise ValidationError(f"Invalid group_by field: {group_by}")
 
     field_mapping = get_x_axis_field()
+
+    if "PEOPLE_OR_BOTS" in (x_axis, group_by):
+        queryset = annotate_people_or_bots(queryset)
 
     id_field, name_field, additional_filter = field_mapping.get(x_axis, (None, None, {}))
     group_field, group_name_field, group_additional_filter = field_mapping.get(group_by, (None, None, {}))
