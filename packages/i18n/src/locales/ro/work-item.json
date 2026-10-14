@@ -328,10 +328,6 @@
         "title": "Imposibil de actualizat elementele de lucru",
         "message": "Schimbarea stării nu este permisă pentru unele elemente de lucru. Asigură-te că schimbarea stării este permisă."
       }
-    },
-    "upgrade_banner": {
-      "message": "Schimbă starea, prioritatea și multe altele pentru mai multe activități simultan. Economisește în medie trei minute per operațiune.",
-      "cta": "Treci la One"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Munca ta, pe pilot automat",
-        "description": "Setează o dată. Îl readucem când este necesar. Fă upgrade la Business pentru ca munca recurentă să fie fără efort."
-      },
       "no_templates": {
         "button": "Creează primul tău element de lucru recurent"
       }

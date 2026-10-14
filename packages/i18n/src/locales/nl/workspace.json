@@ -144,7 +144,6 @@
         "description": "Analyses over intaketrends verschijnen hier. Voeg werkitems toe aan de intake om trends te gaan volgen."
       }
     },
-    "upgrade_to_plan": "Upgrade naar {plan} om {tab} te ontgrendelen",
     "workitem_resolved_vs_pending": "Werkitems opgelost versus openstaand",
     "projects_by_status": "Projecten op status",
     "active_users": "Actieve gebruikers",

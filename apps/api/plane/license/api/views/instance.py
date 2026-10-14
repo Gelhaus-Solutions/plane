@@ -149,7 +149,6 @@ class InstanceEndpoint(BaseAPIView):
         data["space_base_url"] = settings.SPACE_BASE_URL
         data["app_base_url"] = settings.APP_BASE_URL
 
-        data["instance_changelog_url"] = settings.INSTANCE_CHANGELOG_URL
         data["is_self_managed"] = settings.IS_SELF_MANAGED
 
         instance_data = serializer.data

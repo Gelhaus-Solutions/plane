@@ -27,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _logger = logging.getLogger("plane")
 
-# Secret Key — use `or` so an explicitly empty env var is treated the same as unset,
+# Secret Key: use `or` so an explicitly empty env var is treated the same as unset,
 # falling back to a random key rather than passing "" to Django (GHSA-cmwv-pjmw-8483).
 SECRET_KEY = os.environ.get("SECRET_KEY") or get_random_secret_key()
 # Refuse to run silently with a publicly-known or placeholder SECRET_KEY
@@ -53,7 +53,7 @@ DEBUG = int(os.environ.get("DEBUG", "0"))
 # Self-hosted mode
 IS_SELF_MANAGED = True
 
-# Webhook IP allowlist — comma-separated IPs or CIDR ranges that are allowed as
+# Webhook IP allowlist: comma-separated IPs or CIDR ranges that are allowed as
 # webhook targets even if they resolve to private networks.
 # Example: "10.0.0.0/8,192.168.1.0/24,172.16.0.5"
 _webhook_allowed_ips_raw = os.environ.get("WEBHOOK_ALLOWED_IPS", "")
@@ -67,7 +67,7 @@ for _cidr in _webhook_allowed_ips_raw.split(","):
     except ValueError:
         _logger.warning("WEBHOOK_ALLOWED_IPS: skipping invalid entry %r", _cidr)
 
-# Webhook hostname allowlist — comma-separated hostnames that bypass the
+# Webhook hostname allowlist: comma-separated hostnames that bypass the
 # private-IP SSRF check. Useful for trusted internal services whose IPs are
 # dynamic in containerised deployments (e.g. docker-compose service DNS,
 # kubernetes service hostnames).
@@ -79,7 +79,7 @@ WEBHOOK_ALLOWED_HOSTS = [
     if _host.strip()
 ]
 
-# Webhook disallowed domains — comma-separated hostnames. Webhooks targeting
+# Webhook disallowed domains: comma-separated hostnames. Webhooks targeting
 # these domains or any of their subdomains are rejected (the request host is
 # always appended at validation time as a loop-back guard). Empty by default
 # for self-hosted deployments; set to e.g. "plane.so" to block specific domains.
@@ -342,7 +342,6 @@ CELERY_IMPORTS = (
     "plane.bgtasks.file_asset_task",
     "plane.bgtasks.email_notification_task",
     "plane.bgtasks.cleanup_task",
-    "plane.license.bgtasks.telemetry_metrics",
     # management tasks
     "plane.bgtasks.dummy_data_task",
     # issue version tasks
@@ -423,7 +422,7 @@ HARD_DELETE_AFTER_DAYS = int(os.environ.get("HARD_DELETE_AFTER_DAYS", 60))
 def _retention_days(env_var, default):
     """
     Read a retention window (in days) from the environment, falling back to the
-    default when the variable is unset, unparseable, or negative — a negative
+    default when the variable is unset, unparseable, or negative; a negative
     window would otherwise select rows with a future cutoff and delete everything.
     """
     raw = os.environ.get(env_var)
@@ -446,9 +445,6 @@ WEBHOOK_LOG_RETENTION_DAYS = _retention_days("WEBHOOK_LOG_RETENTION_DAYS", 14)
 
 # Email notification logs are retained on their own window.
 EMAIL_LOG_RETENTION_DAYS = _retention_days("EMAIL_LOG_RETENTION_DAYS", 7)
-
-# Instance Changelog URL
-INSTANCE_CHANGELOG_URL = os.environ.get("INSTANCE_CHANGELOG_URL", "")
 
 ATTACHMENT_MIME_TYPES = [
     # Images

@@ -20,8 +20,7 @@
       "open_project_menu": "Отвори менюто на проекта",
       "close_project_menu": "Затвори менюто на проекта",
       "collapse_sidebar": "Свий страничната лента",
-      "expand_sidebar": "Разгъни страничната лента",
-      "edition_badge": "Отвори прозореца с платените планове"
+      "expand_sidebar": "Разгъни страничната лента"
     },
     "auth_forms": {
       "clear_email": "Изчисти имейла",

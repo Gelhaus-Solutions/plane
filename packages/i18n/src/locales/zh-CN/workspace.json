@@ -144,7 +144,6 @@
         "description": "引入趋势分析将显示在此处。将工作项添加到引入中以开始跟踪趋势。"
       }
     },
-    "upgrade_to_plan": "升级到 {plan} 以解锁 {tab}",
     "workitem_resolved_vs_pending": "已解决 vs 待处理的工作项",
     "projects_by_status": "按状态分类的项目",
     "active_users": "活跃用户",

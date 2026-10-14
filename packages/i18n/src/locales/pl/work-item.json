@@ -328,10 +328,6 @@
         "title": "Nie można zaktualizować elementów pracy",
         "message": "Zmiana stanu nie jest dozwolona dla niektórych elementów pracy. Upewnij się, że zmiana stanu jest dozwolona."
       }
-    },
-    "upgrade_banner": {
-      "message": "Zmieniaj stan, priorytet i inne właściwości wielu elementów pracy jednocześnie. Zaoszczędź średnio trzy minuty na operację.",
-      "cta": "Uaktualnij do One"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Twoja praca na autopilocie",
-        "description": "Ustaw raz. Przywrócimy ją, gdy nadejdzie termin. Ulepsz do Business, aby cykliczna praca była bezwysiłkowa."
-      },
       "no_templates": {
         "button": "Utwórz swój pierwszy cykliczny element pracy"
       }

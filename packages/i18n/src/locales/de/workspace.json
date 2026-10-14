@@ -144,7 +144,6 @@
         "description": "Analyse der Intake-Trends wird hier angezeigt. Fügen Sie Arbeitsaufgaben zum Intake hinzu, um Trends zu verfolgen."
       }
     },
-    "upgrade_to_plan": "Upgrade auf {plan}, um {tab} freizuschalten",
     "workitem_resolved_vs_pending": "Gelöste vs. ausstehende Arbeitsaufgaben",
     "projects_by_status": "Projekte nach Status",
     "active_users": "Aktive Nutzer",

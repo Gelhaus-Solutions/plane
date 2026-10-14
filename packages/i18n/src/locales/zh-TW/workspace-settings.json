@@ -20,9 +20,7 @@
         "delete_btn": "刪除此工作區",
         "delete_modal": {
           "title": "您確定要刪除此工作區嗎？",
-          "description": "您有一個使用中的付費方案試用期。請先取消試用期再繼續。",
           "dismiss": "關閉",
-          "cancel": "取消試用",
           "success_title": "工作區已刪除。",
           "success_message": "您很快就會進入個人資料頁面。",
           "error_title": "操作失敗。",
@@ -64,14 +62,6 @@
             "invalid": "電子郵件無效"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "計費與方案",
-        "description": "選擇您的方案、管理訂閱，並在需求增加時輕鬆升級。",
-        "title": "計費和方案",
-        "current_plan": "目前方案",
-        "free_plan": "您目前使用的是免費方案",
-        "view_plans": "檢視方案"
       },
       "exports": {
         "heading": "匯出",
@@ -279,16 +269,6 @@
         "heading": "關聯",
         "description": "建立並管理能連接工作區中各工作事項的關聯類型。"
       },
-      "cancel_trial": {
-        "title": "請先取消您的試用期。",
-        "description": "您有一個我們付費方案的有效試用期。請先取消它才能繼續。",
-        "dismiss": "忽略",
-        "cancel": "取消試用期",
-        "cancel_success_title": "試用期已取消。",
-        "cancel_success_message": "您現在可以刪除工作空間。",
-        "cancel_error_title": "操作失敗。",
-        "cancel_error_message": "請再試一次。"
-      },
       "applications": {
         "internal": "內部",
         "title": "應用程式",
@@ -418,9 +398,6 @@
         "categories_error": "類別是必填項",
         "invalid_categories_error": "無效的類別",
         "categories_description": "選擇最能描述應用的類別",
-        "supported_plans": "支援的方案",
-        "supported_plans_description": "選擇可以安裝此應用程式的工作區方案。留空以允許所有方案。",
-        "select_plans": "選擇方案",
         "privacy_policy_url_title": "隱私政策URL",
         "privacy_policy_url_error": "隱私政策URL是必填項",
         "invalid_privacy_policy_url_error": "無效的隱私政策URL",

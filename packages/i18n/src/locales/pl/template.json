@@ -225,11 +225,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Szablony",
-        "description": "Dzięki szablonom projektów, elementów pracy i stron w Plane nie musisz tworzyć projektu od podstaw ani ręcznie ustawiać właściwości elementów pracy.",
-        "sub_description": "Odzyskaj 80% czasu administracyjnego, korzystając z Szablonów."
-      },
       "no_templates": {
         "button": "Utwórz swój pierwszy szablon"
       },

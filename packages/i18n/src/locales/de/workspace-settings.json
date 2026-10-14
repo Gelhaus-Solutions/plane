@@ -20,9 +20,7 @@
         "delete_btn": "Arbeitsbereich löschen",
         "delete_modal": {
           "title": "Möchten Sie diesen Arbeitsbereich wirklich löschen?",
-          "description": "Sie haben eine aktive Testversion. Bitte kündigen Sie diese zuerst.",
           "dismiss": "Schließen",
-          "cancel": "Testversion kündigen",
           "success_title": "Arbeitsbereich gelöscht.",
           "success_message": "Sie werden auf Ihr Profil umgeleitet.",
           "error_title": "Fehlgeschlagen.",
@@ -64,14 +62,6 @@
             "invalid": "E-Mail ist ungültig"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "Abrechnung und Pläne",
-        "description": "Wählen Sie Ihren Plan, verwalten Sie Abonnements und führen Sie bei Bedarf ein Upgrade durch.",
-        "title": "Abrechnung und Pläne",
-        "current_plan": "Aktueller Plan",
-        "free_plan": "Sie nutzen den kostenlosen Plan",
-        "view_plans": "Pläne anzeigen"
       },
       "exports": {
         "heading": "Exporte",
@@ -279,16 +269,6 @@
         "heading": "Beziehungen",
         "description": "Erstellen und verwalten Sie Beziehungstypen, die Arbeitselemente in Ihrem Arbeitsbereich verbinden."
       },
-      "cancel_trial": {
-        "title": "Kündigen Sie zuerst Ihre Testphase.",
-        "description": "Sie haben eine aktive Testphase für einen unserer kostenpflichtigen Pläne. Bitte kündigen Sie diese zuerst, um fortzufahren.",
-        "dismiss": "Schließen",
-        "cancel": "Testphase kündigen",
-        "cancel_success_title": "Testphase gekündigt.",
-        "cancel_success_message": "Sie können jetzt den Workspace löschen.",
-        "cancel_error_title": "Das hat nicht funktioniert.",
-        "cancel_error_message": "Bitte versuchen Sie es erneut."
-      },
       "applications": {
         "internal": "Intern",
         "title": "Anwendungen",
@@ -418,9 +398,6 @@
         "categories_error": "Kategorien sind erforderlich",
         "invalid_categories_error": "Ungültige Kategorien",
         "categories_description": "Wählen Sie die Kategorien, die am besten zu der App passen",
-        "supported_plans": "Unterstützte Pläne",
-        "supported_plans_description": "Wählen Sie die Workspace-Pläne aus, die diese Anwendung installieren können. Leer lassen, um alle Pläne zu erlauben.",
-        "select_plans": "Pläne Auswählen",
         "privacy_policy_url_title": "Datenschutzerklärung URL",
         "privacy_policy_url_error": "Datenschutzerklärung URL ist erforderlich",
         "invalid_privacy_policy_url_error": "Ungültige Datenschutzerklärung URL",

@@ -20,9 +20,7 @@
         "delete_btn": "Hapus ruang kerja ini",
         "delete_modal": {
           "title": "Apakah Anda yakin ingin menghapus ruang kerja ini?",
-          "description": "Anda memiliki percobaan aktif untuk salah satu rencana berbayar kami. Silakan batalkan terlebih dahulu untuk melanjutkan.",
           "dismiss": "Tutup",
-          "cancel": "Batalkan percobaan",
           "success_title": "Ruang kerja dihapus.",
           "success_message": "Anda akan segera diarahkan ke halaman profil Anda.",
           "error_title": "Itu tidak berhasil.",
@@ -64,14 +62,6 @@
             "invalid": "Email tidak valid"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "Penagihan & Rencana",
-        "description": "Pilih rencana Anda, kelola langganan, dan tingkatkan dengan mudah seiring pertumbuhan kebutuhan Anda.",
-        "title": "Penagihan & Rencana",
-        "current_plan": "Rencana saat ini",
-        "free_plan": "Anda saat ini menggunakan rencana gratis",
-        "view_plans": "Lihat rencana"
       },
       "exports": {
         "heading": "Ekspor",
@@ -279,16 +269,6 @@
         "heading": "Relasi",
         "description": "Buat dan kelola tipe relasi yang menghubungkan item kerja di seluruh ruang kerja Anda."
       },
-      "cancel_trial": {
-        "title": "Batalkan uji coba Anda terlebih dahulu.",
-        "description": "Anda memiliki uji coba aktif untuk salah satu paket berbayar kami. Silakan batalkan terlebih dahulu untuk melanjutkan.",
-        "dismiss": "Tutup",
-        "cancel": "Batalkan uji coba",
-        "cancel_success_title": "Uji coba dibatalkan.",
-        "cancel_success_message": "Anda sekarang dapat menghapus workspace.",
-        "cancel_error_title": "Itu tidak berhasil.",
-        "cancel_error_message": "Silakan coba lagi."
-      },
       "applications": {
         "internal": "Internal",
         "title": "Aplikasi",
@@ -418,9 +398,6 @@
         "categories_error": "Kategori diperlukan",
         "invalid_categories_error": "Kategori tidak valid",
         "categories_description": "Pilih kategori yang paling sesuai dengan aplikasi",
-        "supported_plans": "Paket yang Didukung",
-        "supported_plans_description": "Pilih paket workspace yang dapat menginstal aplikasi ini. Kosongkan untuk mengizinkan semua paket.",
-        "select_plans": "Pilih Paket",
         "privacy_policy_url_title": "URL Privacy Policy",
         "privacy_policy_url_error": "URL Privacy Policy diperlukan",
         "invalid_privacy_policy_url_error": "URL Privacy Policy tidak valid",

@@ -20,9 +20,7 @@
         "delete_btn": "Șterge acest spațiu de lucru",
         "delete_modal": {
           "title": "Ești sigur că vrei să ștergi acest spațiu de lucru?",
-          "description": "Ai o perioadă de probă activă pentru unul dintre planurile noastre plătite. Te rugăm să o anulezi înainte de a continua.",
           "dismiss": "Renunță",
-          "cancel": "Anulează perioadă de probă",
           "success_title": "Spațiul de lucru a fost șters.",
           "success_message": "Vei fi redirecționat în curând către pagina de profil.",
           "error_title": "Ceva nu a funcționat.",
@@ -64,14 +62,6 @@
             "invalid": "Adresa de email este invalidă"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "Facturare și abonamente",
-        "description": "Alege abonamentul tău, gestionează abonamentele și actualizează cu ușurință pe măsură ce nevoile tale cresc.",
-        "title": "Facturare și Abonamente",
-        "current_plan": "Abonament curent",
-        "free_plan": "Folosești în prezent abonamentul gratuit",
-        "view_plans": "Vezi abonamentele"
       },
       "exports": {
         "heading": "Exporturi",
@@ -279,16 +269,6 @@
         "heading": "Relații",
         "description": "Creează și gestionează tipurile de relații care conectează activitățile din spațiul tău de lucru."
       },
-      "cancel_trial": {
-        "title": "Anulează mai întâi perioada de probă.",
-        "description": "Ai o perioadă de probă activă pentru unul dintre planurile noastre plătite. Te rugăm să o anulezi mai întâi pentru a continua.",
-        "dismiss": "Respinge",
-        "cancel": "Anulează perioada de probă",
-        "cancel_success_title": "Perioada de probă anulată.",
-        "cancel_success_message": "Acum poți șterge workspace-ul.",
-        "cancel_error_title": "Asta nu a funcționat.",
-        "cancel_error_message": "Încearcă din nou, te rog."
-      },
       "applications": {
         "internal": "Intern",
         "title": "Applications",
@@ -418,9 +398,6 @@
         "categories_error": "Categorii sunt obligatorii",
         "invalid_categories_error": "Categorii sunt inva",
         "categories_description": "Selectează categorii care descriu cel mai bine aplicația",
-        "supported_plans": "Planuri Suportate",
-        "supported_plans_description": "Selectează planurile de spațiu de lucru care pot instala această aplicație. Lasă gol pentru a permite toate planurile.",
-        "select_plans": "Selectează Planuri",
         "privacy_policy_url_title": "URL-ul politică de confidențialitate",
         "privacy_policy_url_error": "Privacy Policy URL is required",
         "invalid_privacy_policy_url_error": "URL-ul politică de confidențialitate este invalid",

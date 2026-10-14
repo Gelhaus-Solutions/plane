@@ -64,14 +64,6 @@
     },
     "manage_widgets": "Widgets beheren",
     "title": "Home",
-    "star_us_on_github": "Geef ons een ster op GitHub",
-    "business_trial_banner": {
-      "title": "Je proefperiode van 14 dagen voor het Business-plan is actief!",
-      "description": "Ontdek alle Business-functies. Wanneer je er klaar voor bent, kun je ervoor kiezen om een abonnement te nemen. Er wordt niet automatisch afgerekend.",
-      "trial_ends_today": "Proefperiode eindigt vandaag",
-      "trial_ends_in_days": "Proefperiode eindigt over {days, plural, one {# dag} other {# dagen}}",
-      "start_subscription": "Abonnement starten",
-      "explore_business_features": "Business-functies ontdekken"
-    }
+    "star_us_on_github": "Geef ons een ster op GitHub"
   }
 }

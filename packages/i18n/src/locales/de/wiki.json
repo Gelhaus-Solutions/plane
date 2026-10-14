@@ -84,30 +84,5 @@
       "create_page_in_collection_error": "Seite konnte nicht erstellt oder zur Sammlung hinzugefügt werden. Bitte versuchen Sie es erneut.",
       "collection_link_copied": "Sammlungslink in die Zwischenablage kopiert."
     }
-  },
-  "wiki": {
-    "upgrade_flow": {
-      "title": "Upgrade zum Freischalten von Wiki",
-      "description": "Schalten Sie öffentliche Seiten, Versionsverlauf, geteilte Seiten, Echtzeit-Zusammenarbeit und Arbeitsbereichsseiten für Wikis, unternehmensweite Dokumente und Wissensdatenbanken mit Plane Pro frei.",
-      "upgrade_button": {
-        "text": "Upgrade"
-      },
-      "learn_more_button": {
-        "text": "Mehr erfahren"
-      },
-      "download_button": {
-        "text": "Daten herunterladen",
-        "loading": "Wird heruntergeladen"
-      },
-      "tabs": {
-        "nested_pages": "Verschachtelte Seiten",
-        "add_embeds": "Einbettungen hinzufügen",
-        "publish_pages": "Seiten veröffentlichen",
-        "comments": "Kommentare"
-      }
-    },
-    "nested_pages_download_banner": {
-      "title": "Verschachtelte Seiten erfordern einen kostenpflichtigen Plan. Führen Sie ein Upgrade durch, um sie freizuschalten."
-    }
   }
 }

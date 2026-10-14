@@ -233,11 +233,6 @@
       "no_automations": {
         "title": "Nie ma jeszcze automatyzacji do wyświetlenia.",
         "description": "Automatyzacje pomagają wyeliminować powtarzalne zadania poprzez ustawianie wyzwalaczy, warunków i akcji. Utwórz jedną, aby zaoszczędzić czas i utrzymać płynny przepływ pracy."
-      },
-      "upgrade": {
-        "title": "Automatyzacje",
-        "description": "Automatyzacje to sposób na automatyzację zadań w Twoim projekcie.",
-        "sub_description": "Odzyskaj 80% czasu administracyjnego, gdy używasz Automatyzacji."
       }
     },
     "global_automations": {

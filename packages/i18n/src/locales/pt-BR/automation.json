@@ -233,11 +233,6 @@
       "no_automations": {
         "title": "Ainda não há automações para mostrar.",
         "description": "As automações ajudam você a eliminar tarefas repetitivas definindo gatilhos, condições e ações. Crie uma para economizar tempo e manter o trabalho fluindo sem esforço."
-      },
-      "upgrade": {
-        "title": "Automações",
-        "description": "Automações são uma forma de automatizar tarefas no seu projeto.",
-        "sub_description": "Recupere 80% do seu tempo administrativo quando usar Automações."
       }
     },
     "global_automations": {

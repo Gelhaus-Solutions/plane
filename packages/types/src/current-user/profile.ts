@@ -26,11 +26,6 @@ export type TUserProfile = {
 
   use_case: string | undefined;
 
-  billing_address_country: string | undefined;
-  billing_address: string | undefined;
-  has_billing_address: boolean;
-  has_marketing_email_consent: boolean;
-
   created_at: Date | string;
   updated_at: Date | string;
 };

@@ -20,8 +20,7 @@
       "open_project_menu": "პროექტის მენიუს გახსნა",
       "close_project_menu": "პროექტის მენიუს დახურვა",
       "collapse_sidebar": "გვერდითი მენიუს ჩაკეცვა",
-      "expand_sidebar": "გვერდითი მენიუს გაშლა",
-      "edition_badge": "გადახდილი გეგმის ფანჯრის გახსნა"
+      "expand_sidebar": "გვერდითი მენიუს გაშლა"
     },
     "auth_forms": {
       "clear_email": "ელფოსტის გასუფთავება",

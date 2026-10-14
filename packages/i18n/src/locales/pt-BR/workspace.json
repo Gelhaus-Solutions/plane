@@ -144,7 +144,6 @@
         "description": "A análise de tendências de intake aparecerá aqui. Adicione itens de trabalho ao intake para começar a acompanhar as tendências."
       }
     },
-    "upgrade_to_plan": "Faça upgrade para {plan} para desbloquear {tab}",
     "workitem_resolved_vs_pending": "Itens de trabalho resolvidos vs pendentes",
     "projects_by_status": "Projetos por status",
     "active_users": "Usuários ativos",

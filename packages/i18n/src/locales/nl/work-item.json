@@ -328,10 +328,6 @@
         "title": "Kan werkitems niet bijwerken",
         "message": "Statuswijziging is niet toegestaan voor sommige werkitems. Zorg dat de statuswijziging is toegestaan."
       }
-    },
-    "upgrade_banner": {
-      "message": "Wijzig de status, prioriteit en meer van meerdere werkitems tegelijk. Bespaar gemiddeld drie minuten per handeling.",
-      "cta": "Upgrade naar One"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Je werk op de automatische piloot",
-        "description": "Stel het een keer in. Wij halen het terug wanneer het weer nodig is. Upgrade naar Business om terugkerend werk moeiteloos te maken."
-      },
       "no_templates": {
         "button": "Maak je eerste terugkerende werkitem aan"
       }

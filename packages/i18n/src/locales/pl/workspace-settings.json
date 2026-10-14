@@ -20,9 +20,7 @@
         "delete_btn": "Usuń przestrzeń",
         "delete_modal": {
           "title": "Czy na pewno chcesz usunąć tę przestrzeń?",
-          "description": "Masz aktywną wersję próbną. Najpierw ją anuluj.",
           "dismiss": "Zamknij",
-          "cancel": "Anuluj wersję próbną",
           "success_title": "Przestrzeń usunięta.",
           "success_message": "Zostaniesz przekierowany do profilu.",
           "error_title": "Nie udało się.",
@@ -64,14 +62,6 @@
             "invalid": "E-mail jest nieprawidłowy"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "Rozliczenia i plany",
-        "description": "Wybierz plan, zarządzaj subskrypcjami i łatwo dokonaj uaktualnienia w miarę rozwoju Twoich potrzeb.",
-        "title": "Rozliczenia i plany",
-        "current_plan": "Obecny plan",
-        "free_plan": "Używasz bezpłatnego planu",
-        "view_plans": "Wyświetl plany"
       },
       "exports": {
         "heading": "Eksporty",
@@ -279,16 +269,6 @@
         "heading": "Relacje",
         "description": "Twórz typy relacji i zarządzaj nimi, które łączą elementy pracy w całej przestrzeni roboczej."
       },
-      "cancel_trial": {
-        "title": "Najpierw anuluj swój okres próbny.",
-        "description": "Masz aktywny okres próbny jednego z naszych płatnych planów. Proszę najpierw go anulować, aby kontynuować.",
-        "dismiss": "Odrzuć",
-        "cancel": "Anuluj okres próbny",
-        "cancel_success_title": "Okres próbny anulowany.",
-        "cancel_success_message": "Teraz możesz usunąć workspace.",
-        "cancel_error_title": "To nie zadziałało.",
-        "cancel_error_message": "Spróbuj ponownie, proszę."
-      },
       "applications": {
         "internal": "Wewnętrzny",
         "title": "Aplikacje",
@@ -418,9 +398,6 @@
         "categories_error": "Kategorie są wymagane",
         "invalid_categories_error": "Nieprawidłowe kategorie",
         "categories_description": "Wybierz kategorie, które najlepiej opisują aplikację",
-        "supported_plans": "Obsługiwane Plany",
-        "supported_plans_description": "Wybierz plany obszaru roboczego, które mogą zainstalować tę aplikację. Pozostaw puste, aby zezwolić na wszystkie plany.",
-        "select_plans": "Wybierz Plany",
         "privacy_policy_url_title": "URL Polityki Prywatności",
         "privacy_policy_url_error": "URL Polityki Prywatności jest wymagany",
         "invalid_privacy_policy_url_error": "Nieprawidłowy URL Polityki Prywatności",

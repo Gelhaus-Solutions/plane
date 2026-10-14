@@ -20,9 +20,7 @@
         "delete_btn": "Xóa không gian làm việc này",
         "delete_modal": {
           "title": "Bạn có chắc chắn muốn xóa không gian làm việc này không?",
-          "description": "Bạn hiện đang dùng thử gói trả phí của chúng tôi. Vui lòng hủy dùng thử trước khi tiếp tục.",
           "dismiss": "Đóng",
-          "cancel": "Hủy dùng thử",
           "success_title": "Đã xóa không gian làm việc.",
           "success_message": "Sắp chuyển hướng đến trang hồ sơ của bạn.",
           "error_title": "Thao tác thất bại.",
@@ -64,14 +62,6 @@
             "invalid": "Email không hợp lệ"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "Thanh toán và Kế hoạch",
-        "description": "Chọn gói của bạn, quản lý đăng ký và dễ dàng nâng cấp khi nhu cầu của bạn phát triển.",
-        "title": "Thanh toán và Kế hoạch",
-        "current_plan": "Kế hoạch hiện tại",
-        "free_plan": "Bạn đang sử dụng kế hoạch miễn phí",
-        "view_plans": "Xem kế hoạch"
       },
       "exports": {
         "heading": "Xuất",
@@ -279,16 +269,6 @@
         "heading": "Quan hệ",
         "description": "Tạo và quản lý các loại quan hệ kết nối các mục công việc trong không gian làm việc của bạn."
       },
-      "cancel_trial": {
-        "title": "Hủy bỏ dùng thử trước.",
-        "description": "Bạn đang có gói dùng thử cho một trong các gói trả phí của chúng tôi. Vui lòng hủy nó trước để tiếp tục.",
-        "dismiss": "Bỏ qua",
-        "cancel": "Hủy dùng thử",
-        "cancel_success_title": "Đã hủy dùng thử.",
-        "cancel_success_message": "Bây giờ bạn có thể xóa workspace.",
-        "cancel_error_title": "Điều đó không hoạt động.",
-        "cancel_error_message": "Vui lòng thử lại."
-      },
       "applications": {
         "internal": "Nội bộ",
         "title": "Ứng dụng",
@@ -418,9 +398,6 @@
         "categories_error": "Danh mục là bắt buộc",
         "invalid_categories_error": "Danh mục không hợp lệ",
         "categories_description": "Chọn các danh mục phù hợp nhất với ứng dụng",
-        "supported_plans": "Gói được Hỗ trợ",
-        "supported_plans_description": "Chọn các gói không gian làm việc có thể cài đặt ứng dụng này. Để trống để cho phép tất cả các gói.",
-        "select_plans": "Chọn Gói",
         "privacy_policy_url_title": "URL Chính sách bảo mật",
         "privacy_policy_url_error": "URL Chính sách bảo mật là bắt buộc",
         "invalid_privacy_policy_url_error": "URL Chính sách bảo mật không hợp lệ",

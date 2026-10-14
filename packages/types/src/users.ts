@@ -74,10 +74,6 @@ export type TUserProfile = {
   is_onboarded: boolean;
   is_tour_completed: boolean;
   use_case: string | undefined;
-  billing_address_country: string | undefined;
-  billing_address: string | undefined;
-  has_billing_address: boolean;
-  has_marketing_email_consent: boolean;
   language: string;
   created_at: Date | string;
   updated_at: Date | string;

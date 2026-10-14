@@ -373,20 +373,6 @@
             "loading": "Konfigurowanie"
           }
         }
-      },
-      "get_pro": {
-        "title": "Zdobądź Pro, aby włączyć Typy elementów pracy.",
-        "description": "Kształtuj elementy pracy według swojej pracy za pomocą Typów elementów pracy. Dostosuj je za pomocą ikon, teł i właściwości oraz skonfiguruj je dla tego projektu.",
-        "primary_button": {
-          "text": "Zdobądź Pro"
-        }
-      },
-      "upgrade": {
-        "title": "Aktualizuj, aby włączyć Typy elementów pracy.",
-        "description": "Kształtuj elementy pracy według swojej pracy za pomocą Typów elementów pracy. Dostosuj je za pomocą ikon, teł i właściwości oraz skonfiguruj je dla tego projektu.",
-        "primary_button": {
-          "text": "Aktualizuj"
-        }
       }
     }
   },

@@ -328,10 +328,6 @@
         "title": "İş öğeleri güncellenemiyor",
         "message": "Bazı iş öğeleri için durum değişikliğine izin verilmiyor. Durum değişikliğine izin verildiğinden emin olun."
       }
-    },
-    "upgrade_banner": {
-      "message": "Birden fazla iş öğesinin durumunu, önceliğini ve daha fazlasını tek seferde değiştirin. İşlem başına ortalama üç dakika kazanın.",
-      "cta": "One'a yükseltin"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "İşiniz, otomatik pilotta",
-        "description": "Bir kez ayarlayın. Zamanı geldiğinde geri getireceğiz. Yinelenen işleri zahmetsiz hale getirmek için Business'a yükseltin."
-      },
       "no_templates": {
         "button": "İlk yinelenen iş öğenizi oluşturun"
       }

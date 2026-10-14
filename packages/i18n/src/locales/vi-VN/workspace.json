@@ -144,7 +144,6 @@
         "description": "Phân tích xu hướng intake sẽ hiển thị ở đây. Thêm các hạng mục công việc vào intake để bắt đầu theo dõi xu hướng."
       }
     },
-    "upgrade_to_plan": "Nâng cấp lên {plan} để mở khóa {tab}",
     "workitem_resolved_vs_pending": "Mục công việc đã giải quyết vs đang chờ",
     "projects_by_status": "Dự án theo trạng thái",
     "active_users": "Người dùng hoạt động",

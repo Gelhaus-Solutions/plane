@@ -144,7 +144,6 @@
         "description": "インテークの傾向分析がここに表示されます。作業項目をインテークに追加して傾向の追跡を開始してください。"
       }
     },
-    "upgrade_to_plan": "{tab} をアンロックするには {plan} にアップグレードしてください",
     "workitem_resolved_vs_pending": "解決済み／保留中の作業項目",
     "projects_by_status": "ステータス別のプロジェクト",
     "active_users": "アクティブユーザー",

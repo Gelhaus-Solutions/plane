@@ -20,9 +20,7 @@
         "delete_btn": "删除此工作区",
         "delete_modal": {
           "title": "确定要删除此工作区吗？",
-          "description": "您目前正在试用我们的付费方案。请先取消试用后再继续。",
           "dismiss": "关闭",
-          "cancel": "取消试用",
           "success_title": "工作区已删除。",
           "success_message": "即将跳转到您的个人资料页面。",
           "error_title": "操作失败。",
@@ -64,14 +62,6 @@
             "invalid": "电子邮件无效"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "账单与计划",
-        "description": "选择您的计划、管理订阅，并随着需求增长轻松升级。",
-        "title": "账单与计划",
-        "current_plan": "当前计划",
-        "free_plan": "您目前使用的是免费计划",
-        "view_plans": "查看计划"
       },
       "exports": {
         "heading": "导出",
@@ -279,16 +269,6 @@
         "heading": "关系",
         "description": "创建和管理连接工作区中工作项的关系类型。"
       },
-      "cancel_trial": {
-        "title": "请先取消试用期。",
-        "description": "您目前正在试用我们的付费计划。请先取消试用后再继续。",
-        "dismiss": "关闭",
-        "cancel": "取消试用",
-        "cancel_success_title": "试用已取消。",
-        "cancel_success_message": "现在您可以删除工作空间了。",
-        "cancel_error_title": "操作失败。",
-        "cancel_error_message": "请重试。"
-      },
       "applications": {
         "internal": "内部",
         "title": "应用程序",
@@ -418,9 +398,6 @@
         "categories_error": "类别是必填项",
         "invalid_categories_error": "无效的类别",
         "categories_description": "选择最能描述应用的类别",
-        "supported_plans": "支持的方案",
-        "supported_plans_description": "选择可以安装此应用的工作区方案。留空以允许所有方案。",
-        "select_plans": "选择方案",
         "privacy_policy_url_title": "隐私政策URL",
         "privacy_policy_url_error": "隐私政策URL是必填项",
         "invalid_privacy_policy_url_error": "无效的隐私政策URL",

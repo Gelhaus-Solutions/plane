@@ -328,10 +328,6 @@
         "title": "No se pueden actualizar elementos de trabajo",
         "message": "El cambio de estado no está permitido para algunos elementos de trabajo. Asegúrese de que el cambio de estado esté permitido."
       }
-    },
-    "upgrade_banner": {
-      "message": "Cambie el estado, la prioridad y más para varios elementos de trabajo a la vez. Ahorre en promedio tres minutos por operación.",
-      "cta": "Actualizar a One"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Tu trabajo, en piloto automático",
-        "description": "Configúralo una vez. Te lo recordaremos cuando sea necesario. Mejora a Business para que el trabajo recurrente sea sencillo."
-      },
       "no_templates": {
         "button": "Crea tu primera tarea recurrente"
       }

@@ -328,10 +328,6 @@
         "title": "Não é possível atualizar itens de trabalho",
         "message": "A mudança de estado não é permitida para alguns itens de trabalho. Certifique-se de que a mudança de estado seja permitida."
       }
-    },
-    "upgrade_banner": {
-      "message": "Altere o estado, a prioridade e muito mais para vários itens de trabalho de uma vez. Economize em média três minutos por operação.",
-      "cta": "Upgrade para One"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Seu trabalho no piloto automático",
-        "description": "Configure uma vez. Nós o traremos de volta quando chegar a hora. Faça upgrade para o Business para tornar o trabalho recorrente mais fácil."
-      },
       "no_templates": {
         "button": "Crie seu primeiro item de trabalho recorrente"
       }

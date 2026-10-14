@@ -373,20 +373,6 @@
             "loading": "Nastavuji"
           }
         }
-      },
-      "get_pro": {
-        "title": "Získejte Pro pro povolení typů pracovních položek.",
-        "description": "Upravte pracovní položky podle svých potřeb s typy pracovních položek. Přizpůsobte je ikonami, pozadím a vlastnostmi a nakonfigurujte je pro tento projekt.",
-        "primary_button": {
-          "text": "Získejte Pro"
-        }
-      },
-      "upgrade": {
-        "title": "Upgradujte pro povolení typů pracovních položek.",
-        "description": "Upravte pracovní položky podle svých potřeb s typy pracovních položek. Přizpůsobte je ikonami, pozadím a vlastnostmi a nakonfigurujte je pro tento projekt.",
-        "primary_button": {
-          "text": "Upgradovat"
-        }
       }
     }
   },

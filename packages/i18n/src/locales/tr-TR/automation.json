@@ -233,11 +233,6 @@
       "no_automations": {
         "title": "Henüz gösterilecek otomasyon yok.",
         "description": "Otomasyonlar, tetikleyiciler, koşullar ve eylemler ayarlayarak tekrarlayan görevleri ortadan kaldırmanıza yardımcı olur. Zaman kazanmak ve işlerin zahmetsizce devam etmesini sağlamak için bir tane oluşturun."
-      },
-      "upgrade": {
-        "title": "Otomasyonlar",
-        "description": "Otomasyonlar, projenizdeki görevleri otomatikleştirmenin bir yoludur.",
-        "sub_description": "Otomasyonları kullandığınızda yönetim zamanınızın %80'ini geri kazanın."
       }
     },
     "global_automations": {

@@ -144,7 +144,6 @@
         "description": "Analitik tren intake akan muncul di sini. Tambahkan item kerja ke intake untuk mulai melacak tren."
       }
     },
-    "upgrade_to_plan": "Tingkatkan ke {plan} untuk membuka {tab}",
     "workitem_resolved_vs_pending": "Item kerja yang diselesaikan vs tertunda",
     "projects_by_status": "Proyek berdasarkan status",
     "active_users": "Pengguna aktif",

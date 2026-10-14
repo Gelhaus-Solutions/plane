@@ -20,9 +20,7 @@
         "delete_btn": "Zmazať priestor",
         "delete_modal": {
           "title": "Naozaj chcete zmazať tento priestor?",
-          "description": "Máte aktívnu skúšobnú verziu. Najprv ju zrušte.",
           "dismiss": "Zatvoriť",
-          "cancel": "Zrušiť skúšobnú verziu",
           "success_title": "Priestor zmazaný.",
           "success_message": "Budete presmerovaný na profil.",
           "error_title": "Nepodarilo sa.",
@@ -64,14 +62,6 @@
             "invalid": "E-mail je neplatný"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "Fakturácia a plány",
-        "description": "Vyberte si plán, spravujte predplatné a jednoducho upgradujte podľa vašich potrieb.",
-        "title": "Fakturácia a plány",
-        "current_plan": "Aktuálny plán",
-        "free_plan": "Používate bezplatný plán",
-        "view_plans": "Zobraziť plány"
       },
       "exports": {
         "heading": "Exporty",
@@ -279,16 +269,6 @@
         "heading": "Vzťahy",
         "description": "Vytvárajte a spravujte typy vzťahov, ktoré prepájajú pracovné položky naprieč vaším pracovným priestorom."
       },
-      "cancel_trial": {
-        "title": "Najprv zrušte vašu skúšobnú verziu.",
-        "description": "Máte aktívnu skúšobnú verziu jedného z našich platených plánov. Prosím, najskôr ju zrušte, aby ste mohli pokračovať.",
-        "dismiss": "Zavrieť",
-        "cancel": "Zrušiť skúšobnú verziu",
-        "cancel_success_title": "Skúšobná verzia zrušená.",
-        "cancel_success_message": "Teraz môžete odstrániť vorkspejs.",
-        "cancel_error_title": "To nefungovalo.",
-        "cancel_error_message": "Skúste to znova, prosím."
-      },
       "applications": {
         "internal": "Interný",
         "title": "Aplikácie",
@@ -418,9 +398,6 @@
         "categories_error": "Kategórie sú povinné",
         "invalid_categories_error": "Neplatné kategórie",
         "categories_description": "Vyberte kategórie, ktoré najlepšie opisujú aplikáciu",
-        "supported_plans": "Podporované Plány",
-        "supported_plans_description": "Vyberte plány pracovného priestoru, ktoré môžu nainštalovať túto aplikáciu. Ponechajte prázdne, ak chcete povoliť všetky plány.",
-        "select_plans": "Vybrať Plány",
         "privacy_policy_url_title": "URL Pravidiel ochrany súkromia",
         "privacy_policy_url_error": "URL Pravidiel ochrany súkromia je povinné",
         "invalid_privacy_policy_url_error": "Neplatné URL Pravidiel ochrany súkromia",

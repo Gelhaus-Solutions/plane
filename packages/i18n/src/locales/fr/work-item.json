@@ -328,10 +328,6 @@
         "title": "Impossible de mettre à jour les éléments de travail",
         "message": "Le changement d'état n'est pas autorisé pour certains éléments de travail. Assurez-vous que le changement d'état est autorisé."
       }
-    },
-    "upgrade_banner": {
-      "message": "Modifiez l’état, la priorité et bien plus pour plusieurs éléments de travail à la fois. Économisez en moyenne trois minutes par opération.",
-      "cta": "Mettre à niveau vers One"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Votre travail, en pilote automatique",
-        "description": "Configurez-le une fois. Nous vous le rappellerons quand il sera dû. Passez à Business pour rendre le travail récurrent sans effort."
-      },
       "no_templates": {
         "button": "Créez votre premier élément de travail récurrent"
       }

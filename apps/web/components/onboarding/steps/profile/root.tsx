@@ -18,13 +18,11 @@ import { cn, getFileURL, getPasswordStrength, validatePersonName } from "@plane/
 // components
 import { UserImageUploadModal } from "@/components/core/modals/user-image-upload-modal";
 // hooks
-import { useInstance } from "@/hooks/store/use-instance";
-import { useUser, useUserProfile } from "@/hooks/store/user";
+import { useUser } from "@/hooks/store/user";
 // services
 import { AuthService } from "@/services/auth.service";
 // local components
 import { CommonOnboardingHeader } from "../common";
-import { MarketingConsent } from "./consent";
 import { SetPasswordRoot } from "./set-password";
 
 type Props = {
@@ -37,9 +35,6 @@ export type TProfileSetupFormValues = {
   avatar_url?: string | null;
   password?: string;
   confirm_password?: string;
-  role?: string;
-  use_case?: string[];
-  has_marketing_email_consent?: boolean;
 };
 
 const authService = new AuthService();
@@ -50,7 +45,6 @@ const defaultValues: Partial<TProfileSetupFormValues> = {
   avatar_url: "",
   password: undefined,
   confirm_password: undefined,
-  has_marketing_email_consent: true,
 };
 
 export const ProfileSetupStep = observer(function ProfileSetupStep({ handleStepChange }: Props) {
@@ -58,8 +52,6 @@ export const ProfileSetupStep = observer(function ProfileSetupStep({ handleStepC
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
   // store hooks
   const { data: user, updateCurrentUser } = useUser();
-  const { updateUserProfile } = useUserProfile();
-  const { config: instanceConfig } = useInstance();
   // form info
   const {
     getValues,
@@ -107,9 +99,6 @@ export const ProfileSetupStep = observer(function ProfileSetupStep({ handleStepC
 
   const onSubmit = async (formData: TProfileSetupFormValues) => {
     if (!user) return;
-    updateUserProfile({
-      has_marketing_email_consent: formData.has_marketing_email_consent,
-    });
     await handleSubmitUserDetail(formData);
     handleStepChange(EOnboardingSteps.PROFILE_SETUP);
   };
@@ -141,8 +130,7 @@ export const ProfileSetupStep = observer(function ProfileSetupStep({ handleStepC
 
   // Check for all available fields validation and if password field is available, then checks for password validation (strength + confirmation).
   // Also handles the condition for optional password i.e if password field is optional it only checks for above validation if it's not empty.
-  const isButtonDisabled =
-    !isSubmitting && isValid ? (isPasswordAlreadySetup ? false : isValidPassword ? false : true) : true;
+  const isButtonDisabled = isSubmitting || !isValid || !(isPasswordAlreadySetup || isValidPassword);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10">
@@ -175,7 +163,6 @@ export const ProfileSetupStep = observer(function ProfileSetupStep({ handleStepC
           {userAvatar ? (
             <img
               src={getFileURL(userAvatar ?? "")}
-              onClick={() => setIsImageUploadModalOpen(true)}
               alt={user?.display_name}
               className="h-full w-full rounded-full object-cover"
             />
@@ -222,6 +209,7 @@ export const ProfileSetupStep = observer(function ProfileSetupStep({ handleStepC
                 type="text"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                // oxlint-disable-next-line jsx-a11y/no-autofocus -- the step opens on its first field
                 autoFocus
                 className={cn(
                   "w-full rounded-md border border-strong bg-surface-1 px-3 py-2 text-secondary transition-all duration-200 placeholder:text-placeholder focus:border-transparent focus:ring-2 focus:ring-accent-strong focus:outline-none",
@@ -248,16 +236,6 @@ export const ProfileSetupStep = observer(function ProfileSetupStep({ handleStepC
       </div>
       {/* Continue Button */}
       <Button variant="primary" type="submit" stretch="full" size="lg" disabled={isButtonDisabled} label="Continue" />
-
-      {/* Marketing Consent */}
-      {!instanceConfig?.is_self_managed && (
-        <MarketingConsent
-          isChecked={!!watch("has_marketing_email_consent")}
-          handleChange={(has_marketing_email_consent) =>
-            setValue("has_marketing_email_consent", has_marketing_email_consent)
-          }
-        />
-      )}
     </form>
   );
 });

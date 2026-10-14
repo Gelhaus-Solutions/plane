@@ -244,10 +244,6 @@ class Profile(TimeAuditModel):
     is_onboarded = models.BooleanField(default=False)
     # Last visited workspace
     last_workspace_id = models.UUIDField(null=True)
-    # address data
-    billing_address_country = models.CharField(max_length=255, default="INDIA")
-    billing_address = models.JSONField(null=True)
-    has_billing_address = models.BooleanField(default=False)
     company_name = models.CharField(max_length=255, blank=True)
     notification_view_mode = models.CharField(
         max_length=255, choices=NotificationViewMode.choices, default=NotificationViewMode.FULL
@@ -266,9 +262,6 @@ class Profile(TimeAuditModel):
     # navigation tour
     is_navigation_tour_completed = models.BooleanField(default=False)
 
-    # marketing
-    has_marketing_email_consent = models.BooleanField(default=False)
-    is_subscribed_to_changelog = models.BooleanField(default=False)
     product_tour = models.JSONField(default=get_default_product_tour)
 
     class Meta:

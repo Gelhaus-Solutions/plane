@@ -144,7 +144,6 @@
         "description": "Intake trends analytics will appear here. Add work items to intake to start tracking trends."
       }
     },
-    "upgrade_to_plan": "Upgrade to {plan} to unlock {tab}",
     "workitem_resolved_vs_pending": "Work items resolved vs pending",
     "projects_by_status": "Projects by status",
     "active_users": "Active users",

@@ -20,9 +20,7 @@
         "delete_btn": "Deze werkruimte verwijderen",
         "delete_modal": {
           "title": "Weet je zeker dat je deze werkruimte wilt verwijderen?",
-          "description": "Je hebt een actieve proefperiode voor een van onze betaalde plannen. Annuleer die eerst om verder te gaan.",
           "dismiss": "Sluiten",
-          "cancel": "Proefperiode annuleren",
           "success_title": "Werkruimte verwijderd.",
           "success_message": "Je gaat zo naar je profielpagina.",
           "error_title": "Dat werkte niet.",
@@ -64,14 +62,6 @@
             "invalid": "E-mailadres is ongeldig"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "Facturering & plannen",
-        "description": "Kies je plan, beheer abonnementen en upgrade eenvoudig naarmate je behoeften groeien.",
-        "title": "Facturering & plannen",
-        "current_plan": "Huidig plan",
-        "free_plan": "Je gebruikt momenteel het gratis plan",
-        "view_plans": "Plannen bekijken"
       },
       "exports": {
         "heading": "Exports",
@@ -279,16 +269,6 @@
         "heading": "Relaties",
         "description": "Maak en beheer relatietypen die werkitems in je hele werkruimte met elkaar verbinden."
       },
-      "cancel_trial": {
-        "title": "Annuleer eerst je proefperiode.",
-        "description": "Je hebt een actieve proefperiode voor een van onze betaalde plannen. Annuleer die eerst om verder te gaan.",
-        "dismiss": "Sluiten",
-        "cancel": "Proefperiode annuleren",
-        "cancel_success_title": "Proefperiode geannuleerd.",
-        "cancel_success_message": "Je kunt de werkruimte nu verwijderen.",
-        "cancel_error_title": "Dat werkte niet.",
-        "cancel_error_message": "Probeer het opnieuw."
-      },
       "applications": {
         "internal": "Intern",
         "title": "Applicaties",
@@ -418,9 +398,6 @@
         "categories_error": "Categorieën zijn verplicht",
         "invalid_categories_error": "Ongeldige categorieën",
         "categories_description": "Selecteer de categorieën die de app het best omschrijven",
-        "supported_plans": "Ondersteunde plannen",
-        "supported_plans_description": "Selecteer de werkruimteplannen die deze applicatie kunnen installeren. Laat leeg om alle plannen toe te staan.",
-        "select_plans": "Plannen selecteren",
         "privacy_policy_url_title": "URL van privacybeleid",
         "privacy_policy_url_error": "URL van privacybeleid is verplicht",
         "invalid_privacy_policy_url_error": "Ongeldige URL van privacybeleid",

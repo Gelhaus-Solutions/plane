@@ -10,7 +10,6 @@ import type { ShouldRevalidateFunctionArgs } from "react-router";
 import useSWR from "swr";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
-import { PoweredBy } from "@/components/common/powered-by";
 import { SomethingWentWrongError } from "@/components/issues/issue-layouts/error";
 import { IssuesNavbarRoot } from "@/components/issues/navbar";
 // hooks
@@ -140,7 +139,6 @@ function IssuesLayout(props: Route.ComponentProps) {
           <Outlet />
         </div>
       </div>
-      <PoweredBy />
     </>
   );
 }

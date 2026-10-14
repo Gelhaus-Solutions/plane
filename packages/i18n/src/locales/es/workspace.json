@@ -144,7 +144,6 @@
         "description": "Los análisis de tendencias de entrada aparecerán aquí. Agrega elementos de trabajo a la entrada para comenzar a rastrear tendencias."
       }
     },
-    "upgrade_to_plan": "Mejora a {plan} para desbloquear {tab}",
     "workitem_resolved_vs_pending": "Elementos de trabajo resueltos vs pendientes",
     "projects_by_status": "Proyectos por estado",
     "active_users": "Usuarios activos",

@@ -233,11 +233,6 @@
       "no_automations": {
         "title": "Es gibt noch keine Automatisierungen anzuzeigen.",
         "description": "Automatisierungen helfen Ihnen, sich wiederholende Aufgaben zu eliminieren, indem Sie Auslöser, Bedingungen und Aktionen festlegen. Erstellen Sie eine, um Zeit zu sparen und die Arbeit mühelos am Laufen zu halten."
-      },
-      "upgrade": {
-        "title": "Automatisierungen",
-        "description": "Automatisierungen sind eine Möglichkeit, Aufgaben in Ihrem Projekt zu automatisieren.",
-        "sub_description": "Gewinnen Sie 80% Ihrer Verwaltungszeit zurück, wenn Sie Automatisierungen verwenden."
       }
     },
     "global_automations": {

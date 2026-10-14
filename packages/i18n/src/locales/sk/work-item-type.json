@@ -373,20 +373,6 @@
             "loading": "Nastavuje sa"
           }
         }
-      },
-      "get_pro": {
-        "title": "Získajte Pro pre povolenie Typov pracovných položiek.",
-        "description": "Formujte pracovné položky podľa vašej práce pomocou Typov pracovných položiek. Prispôsobte ich ikonami, pozadiami a vlastnosťami a nakonfigurujte ich pre tento projekt.",
-        "primary_button": {
-          "text": "Získať Pro"
-        }
-      },
-      "upgrade": {
-        "title": "Inovácia pre povolenie Typov pracovných položiek.",
-        "description": "Formujte pracovné položky podľa vašej práce pomocou Typov pracovných položiek. Prispôsobte ich ikonami, pozadiami a vlastnosťami a nakonfigurujte ich pre tento projekt.",
-        "primary_button": {
-          "text": "Inovovať"
-        }
       }
     }
   },

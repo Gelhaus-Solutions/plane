@@ -69,9 +69,6 @@ const PROFILE_ICONS: Record<TProfileSettingsTabs, TIcon> = {
   "api-tokens": KeyOutline,
 };
 
-// Billing and plans is upstream's; this fork drops billing and upgrade prompts (E09)
-const HIDDEN_WORKSPACE_SETTINGS = new Set(["billing-and-plans"]);
-
 // The path with exactly one trailing slash, so "/a/settings" and "/a/settings/" compare equal
 const withSlash = (path: string) => `${path.replace(/\/+$/, "")}/`;
 
@@ -195,7 +192,6 @@ export const SettingsNavigation = observer(function SettingsNavigation(props: Pr
 
   const workspace: TNavEntry[] = workspaceSlug
     ? WORKSPACE_SETTINGS_CATEGORIES.flatMap((category) => GROUPED_WORKSPACE_SETTINGS[category])
-        .filter((item) => !HIDDEN_WORKSPACE_SETTINGS.has(item.key))
         .filter((item) => allowPermissions(item.access, EUserPermissionsLevel.WORKSPACE, workspaceSlug))
         .map((item) => {
           const href = withSlash(`/${workspaceSlug}${item.href}`);

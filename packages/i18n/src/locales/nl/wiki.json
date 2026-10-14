@@ -84,30 +84,5 @@
       "create_page_in_collection_error": "Pagina kon niet worden aangemaakt of aan de verzameling worden toegevoegd. Probeer het opnieuw.",
       "collection_link_copied": "Koppeling naar verzameling gekopieerd naar klembord."
     }
-  },
-  "wiki": {
-    "upgrade_flow": {
-      "title": "Upgrade om Wiki te ontgrendelen",
-      "description": "Ontgrendel openbare pagina's, versiegeschiedenis, gedeelde pagina's, realtime samenwerking en werkruimtepagina's voor wiki's, bedrijfsbrede documenten en kennisbanken met Plane Pro.",
-      "upgrade_button": {
-        "text": "Upgraden"
-      },
-      "learn_more_button": {
-        "text": "Meer informatie"
-      },
-      "download_button": {
-        "text": "Gegevens downloaden",
-        "loading": "Downloaden"
-      },
-      "tabs": {
-        "nested_pages": "Geneste pagina's",
-        "add_embeds": "Insluitingen toevoegen",
-        "publish_pages": "Pagina's publiceren",
-        "comments": "Reacties"
-      }
-    },
-    "nested_pages_download_banner": {
-      "title": "Geneste pagina's vereisen een betaald abonnement. Upgrade om te ontgrendelen."
-    }
   }
 }

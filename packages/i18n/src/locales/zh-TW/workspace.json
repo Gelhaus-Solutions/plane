@@ -144,7 +144,6 @@
         "description": "引入趨勢分析將顯示在此處。將工作項目加入引入以開始追蹤趨勢。"
       }
     },
-    "upgrade_to_plan": "升級至 {plan} 以解鎖 {tab}",
     "workitem_resolved_vs_pending": "已解決 vs 待處理的工作項目",
     "projects_by_status": "按狀態分類的專案",
     "active_users": "活躍使用者",

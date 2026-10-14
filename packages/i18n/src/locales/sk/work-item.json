@@ -328,10 +328,6 @@
         "title": "Nemožno aktualizovať pracovné položky",
         "message": "Zmena stavu nie je povolená pre niektoré pracovné položky. Uistite sa, že zmena stavu je povolená."
       }
-    },
-    "upgrade_banner": {
-      "message": "Menite stav, prioritu a ďalšie vlastnosti viacerých pracovných položiek naraz. V priemere ušetríte tri minúty na operáciu.",
-      "cta": "Upgradovať na One"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Vaša práca na autopilote",
-        "description": "Nastavte raz. Pripomenieme vám to, keď bude čas. Upgradujte na Business, aby bola opakovaná práca bez námahy."
-      },
       "no_templates": {
         "button": "Vytvorte svoju prvú opakujúcu sa úlohu"
       }

@@ -373,20 +373,6 @@
             "loading": "Menyiapkan"
           }
         }
-      },
-      "get_pro": {
-        "title": "Dapatkan Pro untuk mengaktifkan Tipe item kerja.",
-        "description": "Bentuk item kerja sesuai dengan pekerjaan Anda dengan Tipe item kerja. Sesuaikan dengan ikon, latar belakang, dan properti dan konfigurasikan untuk proyek ini.",
-        "primary_button": {
-          "text": "Dapatkan Pro"
-        }
-      },
-      "upgrade": {
-        "title": "Tingkatkan untuk mengaktifkan Tipe item kerja.",
-        "description": "Bentuk item kerja sesuai dengan pekerjaan Anda dengan Tipe item kerja. Sesuaikan dengan ikon, latar belakang, dan properti dan konfigurasikan untuk proyek ini.",
-        "primary_button": {
-          "text": "Tingkatkan"
-        }
       }
     }
   },

@@ -20,9 +20,7 @@
         "delete_btn": "このワークスペースを削除",
         "delete_modal": {
           "title": "このワークスペースを削除してもよろしいですか？",
-          "description": "有料プランの無料トライアルが有効です。続行するには、まずトライアルをキャンセルしてください。",
           "dismiss": "閉じる",
-          "cancel": "トライアルをキャンセル",
           "success_title": "ワークスペースが削除されました。",
           "success_message": "まもなくプロフィールページに移動します。",
           "error_title": "操作に失敗しました。",
@@ -64,14 +62,6 @@
             "invalid": "メールアドレスが無効です"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "請求とプラン",
-        "description": "プランを選択してサブスクリプションを管理し、ニーズの拡大に応じて簡単にアップグレードできます。",
-        "title": "請求とプラン",
-        "current_plan": "現在のプラン",
-        "free_plan": "現在フリープランを使用中です",
-        "view_plans": "プランを表示"
       },
       "exports": {
         "heading": "エクスポート",
@@ -279,16 +269,6 @@
         "heading": "関連",
         "description": "ワークスペース全体で作業項目を接続する関連タイプを作成・管理します。"
       },
-      "cancel_trial": {
-        "title": "まずトライアルをキャンセルしてください。",
-        "description": "有料プランのトライアルが有効です。続行するには、まずキャンセルしてください。",
-        "dismiss": "閉じる",
-        "cancel": "トライアルをキャンセル",
-        "cancel_success_title": "トライアルがキャンセルされました。",
-        "cancel_success_message": "ワークスペースを削除できるようになりました。",
-        "cancel_error_title": "エラーが発生しました。",
-        "cancel_error_message": "もう一度お試しください。"
-      },
       "applications": {
         "internal": "内部",
         "title": "アプリケーション",
@@ -418,9 +398,6 @@
         "categories_error": "カテゴリーは必須です",
         "invalid_categories_error": "無効なカテゴリー",
         "categories_description": "アプリを最もよく説明するカテゴリーを選択してください",
-        "supported_plans": "サポートされているプラン",
-        "supported_plans_description": "このアプリケーションをインストールできるワークスペースプランを選択してください。空のままにすると、すべてのプランが許可されます。",
-        "select_plans": "プランを選択",
         "privacy_policy_url_title": "プライバシーポリシーURL",
         "privacy_policy_url_error": "プライバシーポリシーURLは必須です",
         "invalid_privacy_policy_url_error": "無効なプライバシーポリシーURL",

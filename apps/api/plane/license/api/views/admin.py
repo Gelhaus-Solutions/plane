@@ -92,7 +92,7 @@ class InstanceAdminSignUpEndpoint(View):
 
     @invalidate_cache(path="/api/instances/", user=False)
     def post(self, request):
-        # Check instance first (outside the transaction — no need to lock yet)
+        # Check instance first (outside the transaction, no need to lock yet)
         instance = Instance.objects.first()
         if instance is None:
             exc = AuthenticationException(
@@ -106,7 +106,7 @@ class InstanceAdminSignUpEndpoint(View):
             return HttpResponseRedirect(url)
 
         # Fast pre-check outside the lock (avoids contention when setup is
-        # already done — the common path after first boot).
+        # already done: the common path after first boot).
         # Use a global exists() check (not scoped to this instance row) so that
         # a stray second Instance row cannot bypass the guard (coderabbit).
         if instance.is_setup_done or InstanceAdmin.objects.exists():
@@ -126,7 +126,6 @@ class InstanceAdminSignUpEndpoint(View):
         first_name = request.POST.get("first_name", False)
         last_name = request.POST.get("last_name", "")
         company_name = request.POST.get("company_name", "")
-        is_telemetry_enabled = request.POST.get("is_telemetry_enabled", True)
 
         # return error if the email and password is not present
         if not email or not password or not first_name:
@@ -138,7 +137,6 @@ class InstanceAdminSignUpEndpoint(View):
                     "first_name": first_name,
                     "last_name": last_name,
                     "company_name": company_name,
-                    "is_telemetry_enabled": is_telemetry_enabled,
                 },
             )
             url = urljoin(
@@ -163,7 +161,6 @@ class InstanceAdminSignUpEndpoint(View):
                     "first_name": first_name,
                     "last_name": last_name,
                     "company_name": company_name,
-                    "is_telemetry_enabled": is_telemetry_enabled,
                 },
             )
             url = urljoin(
@@ -183,7 +180,6 @@ class InstanceAdminSignUpEndpoint(View):
                     "first_name": first_name,
                     "last_name": last_name,
                     "company_name": company_name,
-                    "is_telemetry_enabled": is_telemetry_enabled,
                 },
             )
             url = urljoin(
@@ -202,7 +198,6 @@ class InstanceAdminSignUpEndpoint(View):
                         "first_name": first_name,
                         "last_name": last_name,
                         "company_name": company_name,
-                        "is_telemetry_enabled": is_telemetry_enabled,
                     },
                 )
                 url = urljoin(
@@ -219,7 +214,7 @@ class InstanceAdminSignUpEndpoint(View):
                 # Re-acquire instance under a row-level lock.
                 instance = Instance.objects.select_for_update().get(pk=instance.pk)
 
-                # Re-check inside the lock — the pre-check above is racy; this
+                # Re-check inside the lock: the pre-check above is racy; this
                 # is the authoritative guard. Global exists() (not scoped to
                 # this instance row) matches the pre-check (coderabbit).
                 if instance.is_setup_done or InstanceAdmin.objects.exists():
@@ -256,10 +251,9 @@ class InstanceAdminSignUpEndpoint(View):
                 # Make the setup flag True
                 instance.is_setup_done = True
                 instance.instance_name = company_name
-                instance.is_telemetry_enabled = is_telemetry_enabled
                 instance.save()
 
-            # get tokens for user (outside the transaction — session writes must
+            # get tokens for user (outside the transaction: session writes must
             # not be held under the DB lock)
             user_login(request=request, user=user, is_admin=True)
             url = urljoin(base_host(request=request, is_admin=True), "general/")

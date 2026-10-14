@@ -144,7 +144,6 @@
         "description": "Analizele tendințelor de intake vor apărea aici. Adăugați elemente de lucru la intake pentru a începe să urmăriți tendințele."
       }
     },
-    "upgrade_to_plan": "Upgradează la {plan} pentru a debloca {tab}",
     "workitem_resolved_vs_pending": "Elemente de lucru rezolvate vs în așteptare",
     "projects_by_status": "Proiecte după statut",
     "active_users": "Utilizatori activi",

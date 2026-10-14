@@ -20,9 +20,7 @@
         "delete_btn": "Excluir este espaço de trabalho",
         "delete_modal": {
           "title": "Tem certeza de que deseja excluir este espaço de trabalho?",
-          "description": "Você tem uma avaliação ativa para um de nossos planos pagos. Cancele-o primeiro para prosseguir.",
           "dismiss": "Dispensar",
-          "cancel": "Cancelar avaliação",
           "success_title": "Espaço de trabalho excluído.",
           "success_message": "Em breve, você irá para a página do seu perfil.",
           "error_title": "Isso não funcionou.",
@@ -64,14 +62,6 @@
             "invalid": "E-mail inválido"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "Faturamento e planos",
-        "description": "Escolha seu plano, gerencie assinaturas e faça upgrade facilmente conforme suas necessidades crescem.",
-        "title": "Faturamento e planos",
-        "current_plan": "Plano atual",
-        "free_plan": "Você está usando o plano gratuito atualmente",
-        "view_plans": "Ver planos"
       },
       "exports": {
         "heading": "Exportações",
@@ -279,16 +269,6 @@
         "heading": "Relações",
         "description": "Crie e gerencie tipos de relação que conectam itens de trabalho em todo o seu espaço de trabalho."
       },
-      "cancel_trial": {
-        "title": "Cancele seu período de teste primeiro.",
-        "description": "Você tem um período de teste ativo para um de nossos planos pagos. Por favor, cancele-o primeiro para prosseguir.",
-        "dismiss": "Dispensar",
-        "cancel": "Cancelar período de teste",
-        "cancel_success_title": "Período de teste cancelado.",
-        "cancel_success_message": "Agora você pode excluir o workspace.",
-        "cancel_error_title": "Isso não funcionou.",
-        "cancel_error_message": "Tente novamente, por favor."
-      },
       "applications": {
         "internal": "Interno",
         "title": "Aplicativos",
@@ -418,9 +398,6 @@
         "categories_error": "Categorias são obrigatórias",
         "invalid_categories_error": "Categorias inválidas",
         "categories_description": "Selecione as categorias que melhor descrevem o aplicativo",
-        "supported_plans": "Planos Suportados",
-        "supported_plans_description": "Selecione os planos de workspace que podem instalar esta aplicação. Deixe vazio para permitir todos os planos.",
-        "select_plans": "Selecionar Planos",
         "privacy_policy_url_title": "URL da Política de Privacidade",
         "privacy_policy_url_error": "URL da Política de Privacidade é obrigatória",
         "invalid_privacy_policy_url_error": "URL da Política de Privacidade inválida",

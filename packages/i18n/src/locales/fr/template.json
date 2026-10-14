@@ -225,11 +225,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Modèles",
-        "description": "Avec les modèles de projet, d'élément de travail et de page dans Plane, vous n'avez pas à créer un projet à partir de zéro ou à définir manuellement les propriétés des éléments de travail.",
-        "sub_description": "Récupérez 80% de votre temps d'administration lorsque vous utilisez des modèles."
-      },
       "no_templates": {
         "button": "Créez votre premier modèle"
       },

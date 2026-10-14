@@ -144,7 +144,6 @@
         "description": "Analýza trendov príjmu sa zobrazí tu. Pridajte pracovné položky do príjmu, aby ste mohli sledovať trendy."
       }
     },
-    "upgrade_to_plan": "Inovujte na {plan}, aby ste odomkli kartu {tab}",
     "workitem_resolved_vs_pending": "Vyriešené vs. čakajúce pracovné položky",
     "projects_by_status": "Projekty podľa stavu",
     "active_users": "Aktívni používatelia",

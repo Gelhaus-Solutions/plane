@@ -20,9 +20,7 @@
         "delete_btn": "Bu çalışma alanını sil",
         "delete_modal": {
           "title": "Bu çalışma alanını silmek istediğinizden emin misiniz?",
-          "description": "Ücretli planlarımızdan birine aktif bir deneme sürümünüz var. Devam etmek için önce iptal edin.",
           "dismiss": "Kapat",
-          "cancel": "Denemeyi iptal et",
           "success_title": "Çalışma alanı silindi.",
           "success_message": "Kısa süre sonra profil sayfanıza yönlendirileceksiniz.",
           "error_title": "Bu işe yaramadı.",
@@ -64,14 +62,6 @@
             "invalid": "E-posta geçersiz"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "Faturalandırma ve Planlar",
-        "description": "Planınızı seçin, abonelikleri yönetin ve ihtiyaçlarınız arttıkça kolayca yükseltin.",
-        "title": "Faturalandırma ve Planlar",
-        "current_plan": "Mevcut plan",
-        "free_plan": "Şu anda ücretsiz planı kullanıyorsunuz",
-        "view_plans": "Planları görüntüle"
       },
       "exports": {
         "heading": "Dışa Aktarımlar",
@@ -279,16 +269,6 @@
         "heading": "İlişkiler",
         "description": "Çalışma alanınızdaki iş öğelerini birbirine bağlayan ilişki türlerini oluşturun ve yönetin."
       },
-      "cancel_trial": {
-        "title": "Önce deneme sürenizi iptal edin.",
-        "description": "Ücretli planlarımızdan birine ait aktif deneme süreniz var. Lütfen devam etmek için önce bunu iptal edin.",
-        "dismiss": "Kapat",
-        "cancel": "Denemeyi iptal et",
-        "cancel_success_title": "Deneme iptal edildi.",
-        "cancel_success_message": "Artık workspeysi silebilirsiniz.",
-        "cancel_error_title": "Bu işlem başarısız oldu.",
-        "cancel_error_message": "Lütfen tekrar deneyin."
-      },
       "applications": {
         "internal": "Dahili",
         "title": "Aplikasyonlar",
@@ -418,9 +398,6 @@
         "categories_error": "Kategoriler gerekli",
         "invalid_categories_error": "Geçersiz kategoriler",
         "categories_description": "En iyi açıklamayı veren kategorileri seçin",
-        "supported_plans": "Desteklenen Planlar",
-        "supported_plans_description": "Bu uygulamayı yükleyebilecek çalışma alanı planlarını seçin. Tüm planlara izin vermek için boş bırakın.",
-        "select_plans": "Planları Seç",
         "privacy_policy_url_title": "Gizlilik Politikası URL",
         "privacy_policy_url_error": "Gizlilik Politikası URL gerekli",
         "invalid_privacy_policy_url_error": "Geçersiz gizlilik politikası URL",

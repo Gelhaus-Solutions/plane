@@ -29,12 +29,6 @@
       "label": "Voor werkitems in",
       "state_change_label": "kan het verplaatst worden naar"
     },
-    "empty_state": {
-      "upgrade": {
-        "title": "Beheer de chaos van wijzigingen en reviews met Workflows.",
-        "description": "Stel met Workflows in Plane regels in voor waar je werk naartoe gaat, door wie en wanneer."
-      }
-    },
     "quick_actions": {
       "view_change_history": "Wijzigingsgeschiedenis bekijken",
       "reset_workflow": "Workflow resetten"

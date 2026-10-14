@@ -328,10 +328,6 @@
         "title": "Không thể cập nhật mục công việc",
         "message": "Thay đổi trạng thái không được phép cho một số mục công việc. Đảm bảo thay đổi trạng thái được cho phép."
       }
-    },
-    "upgrade_banner": {
-      "message": "Thay đổi trạng thái, mức ưu tiên và nhiều thứ khác cho nhiều mục công việc cùng lúc. Tiết kiệm trung bình ba phút cho mỗi thao tác.",
-      "cta": "Nâng cấp lên One"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Công việc của bạn, tự động hóa",
-        "description": "Thiết lập một lần. Chúng tôi sẽ tự động lặp lại khi đến hạn. Nâng cấp lên Doanh nghiệp để công việc lặp lại trở nên dễ dàng."
-      },
       "no_templates": {
         "button": "Tạo mục công việc lặp lại đầu tiên của bạn"
       }

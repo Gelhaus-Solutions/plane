@@ -233,11 +233,6 @@
       "no_automations": {
         "title": "Er zijn nog geen automatiseringen om te tonen.",
         "description": "Automatiseringen helpen je repetitieve taken te elimineren door triggers, voorwaarden en acties in te stellen. Maak er een aan om tijd te besparen en het werk moeiteloos door te laten lopen."
-      },
-      "upgrade": {
-        "title": "Automatiseringen",
-        "description": "Automatiseringen zijn een manier om taken in je project te automatiseren.",
-        "sub_description": "Krijg 80% van je beheertijd terug als je Automatiseringen gebruikt."
       }
     },
     "global_automations": {

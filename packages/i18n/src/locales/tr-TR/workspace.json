@@ -144,7 +144,6 @@
         "description": "Intake eğilim analizleri burada görünecek. Eğilimleri izlemeye başlamak için intake'e iş öğeleri ekleyin."
       }
     },
-    "upgrade_to_plan": "{tab} sekmesini açmak için {plan} planına geçin",
     "workitem_resolved_vs_pending": "Çözülen vs bekleyen iş öğeleri",
     "projects_by_status": "Durumuna göre projeler",
     "active_users": "Aktif kullanıcılar",

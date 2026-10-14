@@ -16,7 +16,6 @@ type TError = {
   status: string;
   message: string;
   data?: {
-    is_activated: boolean;
     is_setup_done: boolean;
   };
 };

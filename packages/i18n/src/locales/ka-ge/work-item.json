@@ -328,10 +328,6 @@
         "title": "Unable to update work items",
         "message": "State change is not allowed for some work items. Ensure the state change is allowed."
       }
-    },
-    "upgrade_banner": {
-      "message": "შეცვალეთ მდგომარეობა, პრიორიტეტი და სხვა რამდენიმე სამუშაო ელემენტისთვის ერთდროულად. საშუალოდ დაზოგეთ სამი წუთი თითოეულ ოპერაციაზე.",
-      "cta": "განახლება One-ზე"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Your work, on autopilot",
-        "description": "Set it once. We’ll bring it back when it’s due. Upgrade to Business to make recurring work feel effortless."
-      },
       "no_templates": {
         "button": "Create your first recurring work item"
       }

@@ -9,7 +9,6 @@ import { PlaneLockup } from "@plane/blocks/icons";
 // assets
 import UserLoggedInImage from "@/app/assets/user-logged-in.svg?url";
 // components
-import { PoweredBy } from "@/components/common/powered-by";
 import { UserAvatar } from "@/components/issues/navbar/user-avatar";
 // hooks
 import { useUser } from "@/hooks/store/use-user";
@@ -41,7 +40,6 @@ export const UserLoggedIn = observer(function UserLoggedIn() {
           </p>
         </div>
       </div>
-      <PoweredBy />
     </div>
   );
 });

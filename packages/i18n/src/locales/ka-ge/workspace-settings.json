@@ -20,9 +20,7 @@
         "delete_btn": "ამ სამუშაო სივრცის წაშლა",
         "delete_modal": {
           "title": "დარწმუნებული ხართ, რომ გსურთ ამ სამუშაო სივრცის წაშლა?",
-          "description": "თქვენ გაქვთ აქტიური საცდელი ერთ-ერთ ჩვენს ფასიან გეგმაზე. გთხოვთ, გააუქმეთ იგი ჯერ, რომ გააგრძელოთ.",
           "dismiss": "გაუქმება",
-          "cancel": "საცდელის გაუქმება",
           "success_title": "სამუშაო სივრცე წაიშალა.",
           "success_message": "მალე გადახვალთ თქვენს პროფილის გვერდზე.",
           "error_title": "ეს არ იმუშავა.",
@@ -64,14 +62,6 @@
             "invalid": "ელფოსტა არასწორია"
           }
         }
-      },
-      "billing_and_plans": {
-        "heading": "გადახდა და გეგმები",
-        "description": "აირჩიეთ თქვენი გეგმა, მართეთ გამოწერები და მარტივად განაახლეთ როგორც თქვენი საჭიროებები იზრდება.",
-        "title": "გადახდა და გეგმები",
-        "current_plan": "მიმდინარე გეგმა",
-        "free_plan": "თქვენ ამჟამად იყენებთ უფასო გეგმას",
-        "view_plans": "გეგმების ნახვა"
       },
       "exports": {
         "heading": "ექსპორტები",
@@ -279,16 +269,6 @@
         "heading": "Relations",
         "description": "Create and manage relation types that connect work items across your workspace."
       },
-      "cancel_trial": {
-        "title": "Cancel your trial first.",
-        "description": "You have an active trial to one of our paid plans. Please cancel it first to proceed.",
-        "dismiss": "Dismiss",
-        "cancel": "Cancel trial",
-        "cancel_success_title": "Trial cancelled.",
-        "cancel_success_message": "You can now delete the workspace.",
-        "cancel_error_title": "That didn't work.",
-        "cancel_error_message": "Try again, please."
-      },
       "applications": {
         "internal": "Internal",
         "title": "Applications",
@@ -418,9 +398,6 @@
         "categories_error": "Categories are required",
         "invalid_categories_error": "Invalid categories",
         "categories_description": "Select the categories that best describe the app",
-        "supported_plans": "Supported Plans",
-        "supported_plans_description": "Select the workspace plans that can install this application. Leave empty to allow all plans.",
-        "select_plans": "Select Plans",
         "privacy_policy_url_title": "Privacy Policy URL",
         "privacy_policy_url_error": "Privacy Policy URL is required",
         "invalid_privacy_policy_url_error": "Invalid privacy policy URL",

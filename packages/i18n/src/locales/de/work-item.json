@@ -328,10 +328,6 @@
         "title": "Arbeitsaufgaben können nicht aktualisiert werden",
         "message": "Statusänderung ist für einige Arbeitsaufgaben nicht erlaubt. Stellen Sie sicher, dass die Statusänderung zulässig ist."
       }
-    },
-    "upgrade_banner": {
-      "message": "Status, Priorität und mehr für mehrere Arbeitselemente gleichzeitig ändern. Im Schnitt drei Minuten pro Vorgang sparen.",
-      "cta": "Upgrade auf One"
     }
   },
   "recurring_work_items": {
@@ -365,10 +361,6 @@
       }
     },
     "empty_state": {
-      "upgrade": {
-        "title": "Ihre Arbeit, auf Autopilot",
-        "description": "Einmal einstellen. Wir erinnern Sie daran, wenn es fällig ist. Upgrade auf Business, um wiederkehrende Arbeit mühelos zu machen."
-      },
       "no_templates": {
         "button": "Erstellen Sie Ihre erste wiederkehrende Arbeitsaufgabe"
       }
