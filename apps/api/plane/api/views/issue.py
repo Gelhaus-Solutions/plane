@@ -89,6 +89,8 @@ from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from .base import BaseAPIView
 from plane.utils.host import base_host
 from plane.utils.issue_relation_mapper import get_actual_relation
+from plane.utils.pql.backend import apply_pql
+from plane.utils.pql.compiler import PQLContext
 from plane.bgtasks.webhook_task import model_activity
 from plane.app.permissions import ROLE
 from plane.utils.openapi import (
@@ -115,6 +117,7 @@ from plane.utils.openapi import (
     EXTERNAL_ID_PARAMETER,
     EXTERNAL_SOURCE_PARAMETER,
     ORDER_BY_PARAMETER,
+    PQL_PARAMETER,
     SEARCH_PARAMETER_REQUIRED,
     LIMIT_PARAMETER,
     WORKSPACE_SEARCH_PARAMETER,
@@ -174,6 +177,77 @@ def user_has_issue_permission(user_id, project_id, issue=None, allowed_roles=Non
         qs = qs.filter(role__in=allowed_roles)
 
     return qs.exists()
+
+
+def annotate_work_item_counts(queryset):
+    """The cycle, link count and attachment count the work item list returns."""
+    return (
+        queryset.annotate(
+            cycle_id=Subquery(
+                CycleIssue.objects.filter(issue=OuterRef("id"), deleted_at__isnull=True).values("cycle_id")[:1]
+            )
+        )
+        .annotate(
+            link_count=IssueLink.objects.filter(issue=OuterRef("id"))
+            .order_by()
+            .annotate(count=Func(F("id"), function="Count"))
+            .values("count")
+        )
+        .annotate(
+            attachment_count=FileAsset.objects.filter(
+                issue_id=OuterRef("id"),
+                entity_type=FileAsset.EntityTypeContext.ISSUE_ATTACHMENT,
+            )
+            .order_by()
+            .annotate(count=Func(F("id"), function="Count"))
+            .values("count")
+        )
+    )
+
+
+def order_work_items(queryset, order_by_param):
+    """Order a work item list; ``order_by_param`` must already be sanitized against the allowlist."""
+    priority_order = ["urgent", "high", "medium", "low", "none"]
+    state_order = ["backlog", "unstarted", "started", "completed", "cancelled"]
+
+    # Priority Ordering
+    if order_by_param == "priority" or order_by_param == "-priority":
+        priority_order = priority_order if order_by_param == "priority" else priority_order[::-1]
+        return queryset.annotate(
+            priority_order=Case(
+                *[When(priority=p, then=Value(i)) for i, p in enumerate(priority_order)],
+                output_field=CharField(),
+            )
+        ).order_by("priority_order")
+
+    # State Ordering
+    if order_by_param in [
+        "state__name",
+        "state__group",
+        "-state__name",
+        "-state__group",
+    ]:
+        state_order = state_order if order_by_param in ["state__name", "state__group"] else state_order[::-1]
+        return queryset.annotate(
+            state_order=Case(
+                *[When(state__group=state_group, then=Value(i)) for i, state_group in enumerate(state_order)],
+                default=Value(len(state_order)),
+                output_field=CharField(),
+            )
+        ).order_by("state_order")
+
+    # assignee and label ordering
+    if order_by_param in [
+        "labels__name",
+        "-labels__name",
+        "assignees__first_name",
+        "-assignees__first_name",
+    ]:
+        return queryset.annotate(
+            max_values=Max(order_by_param[1::] if order_by_param.startswith("-") else order_by_param)
+        ).order_by("-max_values" if order_by_param.startswith("-") else "max_values")
+
+    return queryset.order_by(order_by_param)
 
 
 class WorkspaceIssueAPIEndpoint(BaseAPIView):
@@ -299,6 +373,7 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
             ORDER_BY_PARAMETER,
             FIELDS_PARAMETER,
             EXPAND_PARAMETER,
+            PQL_PARAMETER,
         ],
         responses={
             200: create_paginated_response(
@@ -318,19 +393,13 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         Supports filtering, ordering, and field selection through query parameters.
         """
 
-        unsupported_filters = [param for param in ("pql", "filters") if request.GET.get(param)]
-        if unsupported_filters:
+        if request.GET.get("filters"):
             return Response(
-                {
-                    "pql": (
-                        "PQL and structured filters are not supported on this Plane edition. "
-                        "Remove the pql/filters parameter and filter results client-side, or use "
-                        "a Plane edition that supports work item query filtering."
-                    ),
-                    "unsupported_parameters": unsupported_filters,
-                },
+                {"filters": "Structured filters are not supported here; filter with the pql parameter instead."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        pql = request.GET.get("pql")
+        pql_context = PQLContext.for_request(request, slug) if pql else None
 
         external_id = request.GET.get("external_id")
         external_source = request.GET.get("external_source")
@@ -347,10 +416,6 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
                 status=status.HTTP_200_OK,
             )
 
-        # Custom ordering for priority and state
-        priority_order = ["urgent", "high", "medium", "low", "none"]
-        state_order = ["backlog", "unstarted", "started", "completed", "cancelled"]
-
         # Reject any field not in the allowlist before it reaches .order_by().
         # An unrecognised value is replaced with the safe default, preventing
         # ORM order_by injection via relational traversal (GHSA-p885-6jpg-cr2p).
@@ -360,69 +425,15 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
             default="-created_at",
         )
 
-        issue_queryset = (
-            self.get_queryset()
-            .annotate(
-                cycle_id=Subquery(
-                    CycleIssue.objects.filter(issue=OuterRef("id"), deleted_at__isnull=True).values("cycle_id")[:1]
-                )
-            )
-            .annotate(
-                link_count=IssueLink.objects.filter(issue=OuterRef("id"))
-                .order_by()
-                .annotate(count=Func(F("id"), function="Count"))
-                .values("count")
-            )
-            .annotate(
-                attachment_count=FileAsset.objects.filter(
-                    issue_id=OuterRef("id"),
-                    entity_type=FileAsset.EntityTypeContext.ISSUE_ATTACHMENT,
-                )
-                .order_by()
-                .annotate(count=Func(F("id"), function="Count"))
-                .values("count")
-            )
-        )
+        issue_queryset = annotate_work_item_counts(self.get_queryset())
 
         total_issue_queryset = Issue.issue_objects.filter(project_id=project_id, workspace__slug=slug)
 
-        # Priority Ordering
-        if order_by_param == "priority" or order_by_param == "-priority":
-            priority_order = priority_order if order_by_param == "priority" else priority_order[::-1]
-            issue_queryset = issue_queryset.annotate(
-                priority_order=Case(
-                    *[When(priority=p, then=Value(i)) for i, p in enumerate(priority_order)],
-                    output_field=CharField(),
-                )
-            ).order_by("priority_order")
+        if pql:
+            issue_queryset = apply_pql(issue_queryset, pql, pql_context)
+            total_issue_queryset = apply_pql(total_issue_queryset, pql, pql_context)
 
-        # State Ordering
-        elif order_by_param in [
-            "state__name",
-            "state__group",
-            "-state__name",
-            "-state__group",
-        ]:
-            state_order = state_order if order_by_param in ["state__name", "state__group"] else state_order[::-1]
-            issue_queryset = issue_queryset.annotate(
-                state_order=Case(
-                    *[When(state__group=state_group, then=Value(i)) for i, state_group in enumerate(state_order)],
-                    default=Value(len(state_order)),
-                    output_field=CharField(),
-                )
-            ).order_by("state_order")
-        # assignee and label ordering
-        elif order_by_param in [
-            "labels__name",
-            "-labels__name",
-            "assignees__first_name",
-            "-assignees__first_name",
-        ]:
-            issue_queryset = issue_queryset.annotate(
-                max_values=Max(order_by_param[1::] if order_by_param.startswith("-") else order_by_param)
-            ).order_by("-max_values" if order_by_param.startswith("-") else "max_values")
-        else:
-            issue_queryset = issue_queryset.order_by(order_by_param)
+        issue_queryset = order_work_items(issue_queryset, order_by_param)
 
         return self.paginate(
             request=request,

@@ -48,13 +48,14 @@ from plane.utils.host import base_host
 from .. import BaseViewSet, BaseAPIView
 from plane.utils.filters import ComplexFilterBackend
 from plane.utils.filters import IssueFilterSet
+from plane.utils.pql.backend import PQLFilterBackend
 
 
 class IssueArchiveViewSet(BaseViewSet):
     serializer_class = IssueFlatSerializer
     model = Issue
 
-    filter_backends = (ComplexFilterBackend,)
+    filter_backends = (ComplexFilterBackend, PQLFilterBackend)
     filterset_class = IssueFilterSet
 
     def apply_annotations(self, issues):

@@ -35,12 +35,13 @@ from plane.app.permissions import allow_permission, ROLE
 from plane.utils.host import base_host
 from plane.utils.filters import ComplexFilterBackend
 from plane.utils.filters import IssueFilterSet
+from plane.utils.pql.backend import PQLFilterBackend
 
 
 class CycleIssueViewSet(BaseViewSet):
     serializer_class = CycleIssueSerializer
     model = CycleIssue
-    filter_backends = (ComplexFilterBackend,)
+    filter_backends = (ComplexFilterBackend, PQLFilterBackend)
     filterset_class = IssueFilterSet
 
     webhook_event = "cycle_issue"

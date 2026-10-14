@@ -32,6 +32,11 @@ from .issue import (
     IssueSearchEndpoint,
     IssueRelationListCreateAPIEndpoint,
 )
+from .work_item_query import (
+    ArchivedWorkItemListAPIEndpoint,
+    WorkItemCountAPIEndpoint,
+    WorkspaceWorkItemListAPIEndpoint,
+)
 
 from .cycle import (
     CycleListCreateAPIEndpoint,

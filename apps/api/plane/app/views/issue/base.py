@@ -62,6 +62,7 @@ from plane.db.models import (
     UserRecentVisit,
 )
 from plane.utils.filters import ComplexFilterBackend, IssueFilterSet
+from plane.utils.pql.backend import PQLFilterBackend
 from plane.utils.global_paginator import paginate
 from plane.utils.grouper import (
     issue_group_values,
@@ -78,7 +79,7 @@ from .. import BaseAPIView, BaseViewSet
 
 
 class IssueListEndpoint(BaseAPIView):
-    filter_backends = (ComplexFilterBackend,)
+    filter_backends = (ComplexFilterBackend, PQLFilterBackend)
     filterset_class = IssueFilterSet
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
@@ -209,7 +210,7 @@ class IssueViewSet(BaseViewSet):
     model = Issue
     webhook_event = "issue"
     search_fields = ["name"]
-    filter_backends = (ComplexFilterBackend,)
+    filter_backends = (ComplexFilterBackend, PQLFilterBackend)
     filterset_class = IssueFilterSet
 
     def get_serializer_class(self):
@@ -973,7 +974,7 @@ class IssuePaginatedViewSet(BaseViewSet):
 
 
 class IssueDetailEndpoint(BaseAPIView):
-    filter_backends = (ComplexFilterBackend,)
+    filter_backends = (ComplexFilterBackend, PQLFilterBackend)
     filterset_class = IssueFilterSet
 
     def apply_annotations(self, issues):

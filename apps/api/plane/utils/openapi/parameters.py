@@ -350,6 +350,24 @@ ORDER_BY_PARAMETER = OpenApiParameter(
     ],
 )
 
+PQL_PARAMETER = OpenApiParameter(
+    name="pql",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.QUERY,
+    description=(
+        "Filter with a PQL (Plane Query Language) query. Fields, operators and functions are listed in "
+        "apps/api/plane/utils/pql/README.md. A query that does not parse returns 400 with the error's position."
+    ),
+    required=False,
+    examples=[
+        OpenApiExample(
+            name="My open high-priority work",
+            value='priority IN ("high", "urgent") AND assignee = currentUser() AND stateGroup IN openStates()',
+        ),
+        OpenApiExample(name="Overdue", value="isOverdue()"),
+    ],
+)
+
 # Search Parameters
 SEARCH_PARAMETER = OpenApiParameter(
     name="search",

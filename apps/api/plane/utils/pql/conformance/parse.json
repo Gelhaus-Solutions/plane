@@ -1,0 +1,879 @@
+{
+  "valid": [
+    {
+      "query": "priority = \"high\"",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "priority"
+        },
+        "operator": "=",
+        "value": {
+          "type": "literal",
+          "kind": "string",
+          "value": "high"
+        }
+      }
+    },
+    {
+      "query": "priority = \"high\" AND assignee = currentUser()",
+      "tree": {
+        "type": "and",
+        "children": [
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "priority"
+            },
+            "operator": "=",
+            "value": {
+              "type": "literal",
+              "kind": "string",
+              "value": "high"
+            }
+          },
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "assignee"
+            },
+            "operator": "=",
+            "value": {
+              "type": "call",
+              "name": "currentUser",
+              "args": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "query": "priority = \"high\" OR priority = \"urgent\" AND NOT isArchived = true",
+      "tree": {
+        "type": "or",
+        "children": [
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "priority"
+            },
+            "operator": "=",
+            "value": {
+              "type": "literal",
+              "kind": "string",
+              "value": "high"
+            }
+          },
+          {
+            "type": "and",
+            "children": [
+              {
+                "type": "comparison",
+                "field": {
+                  "type": "field",
+                  "name": "priority"
+                },
+                "operator": "=",
+                "value": {
+                  "type": "literal",
+                  "kind": "string",
+                  "value": "urgent"
+                }
+              },
+              {
+                "type": "not",
+                "child": {
+                  "type": "comparison",
+                  "field": {
+                    "type": "field",
+                    "name": "isArchived"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "type": "literal",
+                    "kind": "boolean",
+                    "value": true
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "query": "(priority = \"high\" OR priority = \"urgent\") AND label IS EMPTY",
+      "tree": {
+        "type": "and",
+        "children": [
+          {
+            "type": "or",
+            "children": [
+              {
+                "type": "comparison",
+                "field": {
+                  "type": "field",
+                  "name": "priority"
+                },
+                "operator": "=",
+                "value": {
+                  "type": "literal",
+                  "kind": "string",
+                  "value": "high"
+                }
+              },
+              {
+                "type": "comparison",
+                "field": {
+                  "type": "field",
+                  "name": "priority"
+                },
+                "operator": "=",
+                "value": {
+                  "type": "literal",
+                  "kind": "string",
+                  "value": "urgent"
+                }
+              }
+            ]
+          },
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "label"
+            },
+            "operator": "is_empty"
+          }
+        ]
+      }
+    },
+    {
+      "query": "a = 1 OR b = 2 OR c = 3",
+      "tree": {
+        "type": "or",
+        "children": [
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "a"
+            },
+            "operator": "=",
+            "value": {
+              "type": "literal",
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "b"
+            },
+            "operator": "=",
+            "value": {
+              "type": "literal",
+              "kind": "number",
+              "value": 2
+            }
+          },
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "c"
+            },
+            "operator": "=",
+            "value": {
+              "type": "literal",
+              "kind": "number",
+              "value": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "query": "a = 1 AND (b = 2 AND c = 3)",
+      "tree": {
+        "type": "and",
+        "children": [
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "a"
+            },
+            "operator": "=",
+            "value": {
+              "type": "literal",
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "b"
+            },
+            "operator": "=",
+            "value": {
+              "type": "literal",
+              "kind": "number",
+              "value": 2
+            }
+          },
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "c"
+            },
+            "operator": "=",
+            "value": {
+              "type": "literal",
+              "kind": "number",
+              "value": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "query": "NOT NOT isDraft()",
+      "tree": {
+        "type": "not",
+        "child": {
+          "type": "not",
+          "child": {
+            "type": "predicate",
+            "call": {
+              "type": "call",
+              "name": "isDraft",
+              "args": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "query": "not priority = \"low\" and stateGroup != \"completed\" or isOverdue()",
+      "tree": {
+        "type": "or",
+        "children": [
+          {
+            "type": "and",
+            "children": [
+              {
+                "type": "not",
+                "child": {
+                  "type": "comparison",
+                  "field": {
+                    "type": "field",
+                    "name": "priority"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "type": "literal",
+                    "kind": "string",
+                    "value": "low"
+                  }
+                }
+              },
+              {
+                "type": "comparison",
+                "field": {
+                  "type": "field",
+                  "name": "stateGroup"
+                },
+                "operator": "!=",
+                "value": {
+                  "type": "literal",
+                  "kind": "string",
+                  "value": "completed"
+                }
+              }
+            ]
+          },
+          {
+            "type": "predicate",
+            "call": {
+              "type": "call",
+              "name": "isOverdue",
+              "args": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "query": "isOverdue()",
+      "tree": {
+        "type": "predicate",
+        "call": {
+          "type": "call",
+          "name": "isOverdue",
+          "args": []
+        }
+      }
+    },
+    {
+      "query": "childOf(\"WEB-5\")",
+      "tree": {
+        "type": "predicate",
+        "call": {
+          "type": "call",
+          "name": "childOf",
+          "args": [
+            {
+              "type": "literal",
+              "kind": "string",
+              "value": "WEB-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "query": "stateGroup IN openStates() AND updatedAt < daysAgo(30)",
+      "tree": {
+        "type": "and",
+        "children": [
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "stateGroup"
+            },
+            "operator": "in",
+            "value": {
+              "type": "call",
+              "name": "openStates",
+              "args": []
+            }
+          },
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "updatedAt"
+            },
+            "operator": "<",
+            "value": {
+              "type": "call",
+              "name": "daysAgo",
+              "args": [
+                {
+                  "type": "literal",
+                  "kind": "number",
+                  "value": 30
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "query": "stateGroup NOT IN (\"completed\", \"cancelled\")",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "stateGroup"
+        },
+        "operator": "not_in",
+        "value": {
+          "type": "list",
+          "items": [
+            {
+              "type": "literal",
+              "kind": "string",
+              "value": "completed"
+            },
+            {
+              "type": "literal",
+              "kind": "string",
+              "value": "cancelled"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "query": "cycle IN activeCycle() AND stateGroup IN closedStates()",
+      "tree": {
+        "type": "and",
+        "children": [
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "cycle"
+            },
+            "operator": "in",
+            "value": {
+              "type": "call",
+              "name": "activeCycle",
+              "args": []
+            }
+          },
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "stateGroup"
+            },
+            "operator": "in",
+            "value": {
+              "type": "call",
+              "name": "closedStates",
+              "args": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "query": "title ~ \"capex\" AND priority IN (\"high\",\"urgent\")",
+      "tree": {
+        "type": "and",
+        "children": [
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "title"
+            },
+            "operator": "~",
+            "value": {
+              "type": "literal",
+              "kind": "string",
+              "value": "capex"
+            }
+          },
+          {
+            "type": "comparison",
+            "field": {
+              "type": "field",
+              "name": "priority"
+            },
+            "operator": "in",
+            "value": {
+              "type": "list",
+              "items": [
+                {
+                  "type": "literal",
+                  "kind": "string",
+                  "value": "high"
+                },
+                {
+                  "type": "literal",
+                  "kind": "string",
+                  "value": "urgent"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "query": "title ~ 'single quoted'",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "title"
+        },
+        "operator": "~",
+        "value": {
+          "type": "literal",
+          "kind": "string",
+          "value": "single quoted"
+        }
+      }
+    },
+    {
+      "query": "title ~ \"say \\\"hi\\\"\"",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "title"
+        },
+        "operator": "~",
+        "value": {
+          "type": "literal",
+          "kind": "string",
+          "value": "say \"hi\""
+        }
+      }
+    },
+    {
+      "query": "dueDate BETWEEN (daysAgo(7), today())",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "dueDate"
+        },
+        "operator": "between",
+        "value": {
+          "type": "range",
+          "low": {
+            "type": "call",
+            "name": "daysAgo",
+            "args": [
+              {
+                "type": "literal",
+                "kind": "number",
+                "value": 7
+              }
+            ]
+          },
+          "high": {
+            "type": "call",
+            "name": "today",
+            "args": []
+          }
+        }
+      }
+    },
+    {
+      "query": "dueDate BETWEEN \"2026-01-01\" AND \"2026-01-31\"",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "dueDate"
+        },
+        "operator": "between",
+        "value": {
+          "type": "range",
+          "low": {
+            "type": "literal",
+            "kind": "string",
+            "value": "2026-01-01"
+          },
+          "high": {
+            "type": "literal",
+            "kind": "string",
+            "value": "2026-01-31"
+          }
+        }
+      }
+    },
+    {
+      "query": "dueDate NOT BETWEEN \"2026-01-01\" AND \"2026-01-31\"",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "dueDate"
+        },
+        "operator": "not_between",
+        "value": {
+          "type": "range",
+          "low": {
+            "type": "literal",
+            "kind": "string",
+            "value": "2026-01-01"
+          },
+          "high": {
+            "type": "literal",
+            "kind": "string",
+            "value": "2026-01-31"
+          }
+        }
+      }
+    },
+    {
+      "query": "dueDate IS NULL",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "dueDate"
+        },
+        "operator": "is_null"
+      }
+    },
+    {
+      "query": "assignee IS NOT NULL",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "assignee"
+        },
+        "operator": "is_not_null"
+      }
+    },
+    {
+      "query": "label IS NOT EMPTY",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "label"
+        },
+        "operator": "is_not_empty"
+      }
+    },
+    {
+      "query": "createdAt >= startOfWeek()",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "createdAt"
+        },
+        "operator": ">=",
+        "value": {
+          "type": "call",
+          "name": "startOfWeek",
+          "args": []
+        }
+      }
+    },
+    {
+      "query": "id = \"WEB-11\"",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "id"
+        },
+        "operator": "=",
+        "value": {
+          "type": "literal",
+          "kind": "string",
+          "value": "WEB-11"
+        }
+      }
+    },
+    {
+      "query": "id ~ \"WEB\"",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "id"
+        },
+        "operator": "~",
+        "value": {
+          "type": "literal",
+          "kind": "string",
+          "value": "WEB"
+        }
+      }
+    },
+    {
+      "query": "cf[\"8c4bb0ee-0b65-4c36-9a0b-2b2a7c3c8f01\"] >= 5",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "cf",
+          "property": "8c4bb0ee-0b65-4c36-9a0b-2b2a7c3c8f01"
+        },
+        "operator": ">=",
+        "value": {
+          "type": "literal",
+          "kind": "number",
+          "value": 5
+        }
+      }
+    },
+    {
+      "query": "cf[\"8c4bb0ee-0b65-4c36-9a0b-2b2a7c3c8f01\"] = true",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "cf",
+          "property": "8c4bb0ee-0b65-4c36-9a0b-2b2a7c3c8f01"
+        },
+        "operator": "=",
+        "value": {
+          "type": "literal",
+          "kind": "boolean",
+          "value": true
+        }
+      }
+    },
+    {
+      "query": "assignee IN membersOf(\"project:8c4bb0ee-0b65-4c36-9a0b-2b2a7c3c8f01\")",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "assignee"
+        },
+        "operator": "in",
+        "value": {
+          "type": "call",
+          "name": "membersOf",
+          "args": [
+            {
+              "type": "literal",
+              "kind": "string",
+              "value": "project:8c4bb0ee-0b65-4c36-9a0b-2b2a7c3c8f01"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "query": "estimate >= -1.5",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "estimate"
+        },
+        "operator": ">=",
+        "value": {
+          "type": "literal",
+          "kind": "number",
+          "value": -1.5
+        }
+      }
+    },
+    {
+      "query": "  priority   =   \"low\"  ",
+      "tree": {
+        "type": "comparison",
+        "field": {
+          "type": "field",
+          "name": "priority"
+        },
+        "operator": "=",
+        "value": {
+          "type": "literal",
+          "kind": "string",
+          "value": "low"
+        }
+      }
+    }
+  ],
+  "errors": [
+    {
+      "query": "priority = high",
+      "code": "unquoted_value",
+      "position": 11
+    },
+    {
+      "query": "priority =",
+      "code": "unexpected_end",
+      "position": 10
+    },
+    {
+      "query": "priority",
+      "code": "unexpected_end",
+      "position": 8
+    },
+    {
+      "query": "(priority = \"high\"",
+      "code": "unbalanced_parenthesis",
+      "position": 18
+    },
+    {
+      "query": "priority = \"high\")",
+      "code": "unbalanced_parenthesis",
+      "position": 17
+    },
+    {
+      "query": "priority = \"high\" AND",
+      "code": "unexpected_end",
+      "position": 21
+    },
+    {
+      "query": "title ~ \"x",
+      "code": "unterminated_string",
+      "position": 8
+    },
+    {
+      "query": "assignee IS",
+      "code": "unexpected_token",
+      "position": 11
+    },
+    {
+      "query": "assignee IS NOT",
+      "code": "unexpected_token",
+      "position": 15
+    },
+    {
+      "query": "a = 1 &",
+      "code": "unexpected_character",
+      "position": 6
+    },
+    {
+      "query": "x = null",
+      "code": "null_comparison",
+      "position": 4
+    },
+    {
+      "query": "dueDate BETWEEN 1 2",
+      "code": "unexpected_token",
+      "position": 18
+    },
+    {
+      "query": "label IN ()",
+      "code": "empty_list",
+      "position": 9
+    },
+    {
+      "query": "()",
+      "code": "empty_group",
+      "position": 0
+    },
+    {
+      "query": "label IN \"x\"",
+      "code": "unexpected_token",
+      "position": 9
+    },
+    {
+      "query": "AND priority = \"high\"",
+      "code": "unexpected_token",
+      "position": 0
+    },
+    {
+      "query": "priority = \"high\" priority = \"low\"",
+      "code": "unexpected_token",
+      "position": 18
+    },
+    {
+      "query": "cf[x] = 1",
+      "code": "unexpected_token",
+      "position": 3
+    },
+    {
+      "query": "today(",
+      "code": "unexpected_end",
+      "position": 6
+    },
+    {
+      "query": "priority NOT = \"high\"",
+      "code": "unexpected_token",
+      "position": 13
+    },
+    {
+      "query": "a == 1",
+      "code": "unexpected_token",
+      "position": 3
+    }
+  ],
+  "empty": [
+    "",
+    "   "
+  ]
+}

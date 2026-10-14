@@ -47,6 +47,7 @@ from .. import BaseViewSet
 from plane.db.models import UserFavorite
 from plane.utils.filters import ComplexFilterBackend
 from plane.utils.filters import IssueFilterSet
+from plane.utils.pql.backend import PQLFilterBackend
 
 
 class WorkspaceViewViewSet(BaseViewSet):
@@ -142,7 +143,7 @@ class WorkspaceViewViewSet(BaseViewSet):
 
 
 class WorkspaceViewIssuesViewSet(BaseViewSet):
-    filter_backends = (ComplexFilterBackend,)
+    filter_backends = (ComplexFilterBackend, PQLFilterBackend)
     filterset_class = IssueFilterSet
 
     def _get_project_permission_filters(self):
