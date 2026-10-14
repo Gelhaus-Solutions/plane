@@ -217,9 +217,15 @@ class TestTools:
         error, features = tool(
             api_key_client, "project", action="update_features", project_id=str(project.id), modules=True
         )
-        assert not error and features["modules"] is True and features["epics"] is False, features
-        error, message = tool(bot_client, "project", action="update_features", project_id=str(project.id), epics=True)
-        assert error and "epics is not available" in message
+        assert not error and features["modules"] is True and features["epics"] is True, features
+        error, features = tool(
+            api_key_client, "project", action="update_features", project_id=str(project.id), epics=False
+        )
+        assert not error and features["epics"] is False, features
+        error, message = tool(
+            bot_client, "project", action="update_features", project_id=str(project.id), workflows=True
+        )
+        assert error and "workflows is not available" in message
         error, me = tool(bot_client, "member", action="me")
         assert not error and me["display_name"] == "Claude"
         error, bots_only = tool(api_key_client, "member", action="list_workspace", is_bot=True)

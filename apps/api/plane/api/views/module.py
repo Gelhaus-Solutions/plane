@@ -43,6 +43,7 @@ from plane.db.models import (
 from .base import BaseAPIView
 from plane.bgtasks.webhook_task import model_activity
 from plane.utils.host import base_host
+from plane.utils.project_features import module_defaults
 from plane.utils.order_queryset import ISSUE_ORDER_BY_ALLOWLIST, MODULE_ORDER_BY_ALLOWLIST, sanitize_order_by
 from plane.utils.openapi import (
     module_docs,
@@ -198,8 +199,11 @@ class ModuleListCreateAPIEndpoint(BaseAPIView):
         Automatically assigns the creator as module lead and tracks activity.
         """
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
+        defaults = module_defaults(project, request.data)
+        if "lead_id" in defaults:
+            defaults["lead"] = defaults.pop("lead_id")
         serializer = ModuleCreateSerializer(
-            data=request.data,
+            data={**request.data, **defaults},
             context={"project_id": project_id, "workspace_id": project.workspace_id},
         )
         if serializer.is_valid():

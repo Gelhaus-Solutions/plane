@@ -125,4 +125,25 @@ export class EpicService extends APIService {
         throw error?.response?.data;
       });
   }
+
+  async updateWave(
+    workspaceSlug: string,
+    projectId: string,
+    waveId: string,
+    data: Partial<Pick<TEpicWave, "code" | "name" | "sort_order">>
+  ): Promise<TEpicWave> {
+    return this.patch(`${this.base(workspaceSlug, projectId)}/epic-waves/${waveId}/`, data)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  async deleteWave(workspaceSlug: string, projectId: string, waveId: string): Promise<void> {
+    return this.delete(`${this.base(workspaceSlug, projectId)}/epic-waves/${waveId}/`)
+      .then(() => undefined)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
 }

@@ -72,6 +72,8 @@ class Cycle(ProjectBaseModel):
     external_source = models.CharField(max_length=255, null=True, blank=True)
     external_id = models.CharField(max_length=255, blank=True, null=True)
     progress_snapshot = models.JSONField(default=dict)
+    # set when the project's automatic carry-over (D45) has handled the ended cycle
+    carried_over_at = models.DateTimeField(null=True, blank=True)
     archived_at = models.DateTimeField(null=True)
     logo_props = models.JSONField(default=dict)
     # timezone

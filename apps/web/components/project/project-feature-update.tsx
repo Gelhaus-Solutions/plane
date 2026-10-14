@@ -15,7 +15,7 @@ import { Logo } from "@plane/blocks/emoji-icon-picker";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 // plane web imports
-import { ProjectFeaturesList } from "@/components/project/settings/features-list";
+import { ProjectFeaturesSettings } from "@/components/settings/project/features/root";
 
 type Props = {
   workspaceSlug: string;
@@ -37,7 +37,7 @@ export const ProjectFeatureUpdate = observer(function ProjectFeatureUpdate(props
     <>
       <DialogMain>
         <DialogBody tabIndex={0}>
-          <ProjectFeaturesList workspaceSlug={workspaceSlug} projectId={projectId} isAdmin />
+          <ProjectFeaturesSettings workspaceSlug={workspaceSlug} projectId={projectId} switchesOnly />
         </DialogBody>
       </DialogMain>
       <DialogActions>

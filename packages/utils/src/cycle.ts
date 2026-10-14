@@ -21,7 +21,7 @@ import { satisfiesDateFilter } from "./filter";
 export const orderCycles = (cycles: ICycle[], sortByManual: boolean): ICycle[] => {
   if (cycles.length === 0) return [];
 
-  const acceptedStatuses = ["current", "upcoming", "draft"];
+  const acceptedStatuses = new Set(["current", "upcoming", "draft"]);
   const STATUS_ORDER: {
     [key: string]: number;
   } = {
@@ -30,7 +30,7 @@ export const orderCycles = (cycles: ICycle[], sortByManual: boolean): ICycle[] =
     draft: 3,
   };
 
-  let filteredCycles = cycles.filter((c) => acceptedStatuses.includes(c.status?.toLowerCase() ?? ""));
+  let filteredCycles = cycles.filter((c) => acceptedStatuses.has(c.status?.toLowerCase() ?? ""));
   if (sortByManual) filteredCycles = sortBy(filteredCycles, [(c) => c.sort_order]);
   else
     filteredCycles = sortBy(filteredCycles, [
@@ -81,15 +81,15 @@ const scope = (p: any, isTypeIssue: boolean) => (isTypeIssue ? p.total_issues : 
 /**
  * Calculates the ideal progress value
  * @param {string} date - Current date
- * @param {number} scope - Total scope
+ * @param {number} total - Total scope
  * @param {ICycle} cycle - Cycle data
  * @returns {number} Ideal progress value
  */
-const ideal = (date: string, scope: number, cycle: ICycle) =>
+const ideal = (date: string, total: number, cycle: ICycle) =>
   Math.floor(
     ((findTotalDaysInRange(date, cycle.end_date) || 0) /
       (findTotalDaysInRange(cycle.start_date, cycle.end_date) || 0)) *
-      scope
+      total
   );
 
 /**
@@ -242,4 +242,27 @@ export const calculateCycleProgress = (
   // Calculate percentage and round
   const percentage = (completed / adjustedTotal) * 100;
   return Math.round(percentage);
+};
+
+const day = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const addDays = (date: Date, days: number) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+
+/**
+ * The dates a new cycle opens with (D45): the first start weekday on or after the day after the last cycle ends (or
+ * today, when that is later), running for the project's number of weeks. `startDay` counts from Monday as 0.
+ */
+export const suggestCycleDates = (args: {
+  lastEnd?: Date | string | null;
+  today?: Date;
+  startDay: number;
+  lengthWeeks: number;
+}): { start: Date; end: Date } => {
+  const today = day(args.today ?? new Date());
+  const lastEnd = args.lastEnd ? getDate(args.lastEnd) : undefined;
+  const afterLast = lastEnd ? addDays(day(lastEnd), 1) : today;
+  const base = afterLast > today ? afterLast : today;
+  // getDay() counts from Sunday; the project's start day from Monday
+  const offset = (args.startDay - ((base.getDay() + 6) % 7) + 7) % 7;
+  const start = addDays(base, offset);
+  return { start, end: addDays(start, Math.max(1, args.lengthWeeks) * 7 - 1) };
 };

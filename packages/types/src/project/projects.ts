@@ -6,6 +6,7 @@
 
 import type { TLogoProps } from "../common";
 import type { TUserPermissions } from "../enums";
+import type { TModuleStatus } from "../module";
 import type { TStateGroups } from "../state";
 import type { IUser, IUserLite } from "../users";
 import type { IWorkspace } from "../workspace";
@@ -30,6 +31,8 @@ export interface IPartialProject {
   module_view: boolean;
   page_view: boolean;
   inbox_view: boolean;
+  /** Epics (E11); off hides them in the project, the epics stay (D45) */
+  epic_view?: boolean;
   guest_view_all_features?: boolean;
   project_lead?: IUserLite | string | null;
   network?: number;
@@ -42,9 +45,23 @@ export interface IPartialProject {
   intake_count?: number;
 }
 
+export type TModuleDefaultLead = "none" | "project_lead";
+export type TIntakeAssignee = "default_assignee" | "project_lead" | "none";
+
 export interface IProject extends IPartialProject {
   archive_in?: number;
   close_in?: number;
+  // the Features page's per-feature settings (D45)
+  cycle_length_weeks?: number;
+  /** 0 is Monday */
+  cycle_start_day?: number;
+  cycle_auto_carry_over?: boolean;
+  cycle_archive_in?: number;
+  module_default_lead?: TModuleDefaultLead;
+  module_default_status?: TModuleStatus;
+  intake_assignee?: TIntakeAssignee;
+  intake_accepted_state?: string | null;
+  intake_decline_after_days?: number;
   // only for uploading the cover image
   cover_image_asset?: null;
   cover_image?: string;

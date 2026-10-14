@@ -66,6 +66,7 @@ from plane.bgtasks.webhook_task import model_activity
 from .. import BaseAPIView, BaseViewSet
 from plane.bgtasks.recent_visited_task import recent_visited_task
 from plane.utils.host import base_host
+from plane.utils.project_features import module_defaults
 
 
 class ModuleViewSet(BaseViewSet):
@@ -294,7 +295,8 @@ class ModuleViewSet(BaseViewSet):
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def create(self, request, slug, project_id):
         project = Project.objects.get(workspace__slug=slug, pk=project_id)
-        serializer = ModuleWriteSerializer(data=request.data, context={"project": project})
+        data = {**request.data, **module_defaults(project, request.data)}
+        serializer = ModuleWriteSerializer(data=data, context={"project": project})
 
         if serializer.is_valid():
             serializer.save()

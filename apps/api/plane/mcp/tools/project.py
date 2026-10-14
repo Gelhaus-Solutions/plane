@@ -12,7 +12,7 @@ FEATURES = {
     "pages": "page_view",
     "intakes": "intake_view",
     "workitem_types": None,
-    "epics": None,
+    "epics": "epic_view",
     "parallel_cycles": None,
     "project_updates": None,
     "workflows": None,
@@ -113,9 +113,9 @@ Actions:
   delete (project_id);
   archive (project_id); unarchive (project_id);
   worklog_summary -- not available on this Plane yet;
-  get_features (project_id) -- modules, cycles, views, pages and intakes, plus the toggles this Plane does not have
-      (always false);
-  update_features (project_id; any of modules, cycles, views, pages, intakes as booleans).
+  get_features (project_id) -- modules, cycles, views, pages, intakes and epics, plus the toggles this Plane does not
+      have (always false);
+  update_features (project_id; any of modules, cycles, views, pages, intakes, epics as booleans).
 
 identifier is the work item prefix, such as ENG. network is 0 for secret, 2 for public. project_lead and
 default_assignee are member ids from `member list_workspace`."""

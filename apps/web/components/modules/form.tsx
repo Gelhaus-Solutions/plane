@@ -32,6 +32,8 @@ type Props = {
   projectId: string;
   setActiveProject: React.Dispatch<React.SetStateAction<string | null>>;
   data?: IModule;
+  /** values a new module opens with: the project's default lead and status (D45) */
+  prefill?: Partial<IModule>;
   isMobile?: boolean;
 };
 
@@ -44,7 +46,7 @@ const defaultValues: Partial<IModule> = {
 };
 
 export function ModuleForm(props: Props) {
-  const { handleFormSubmit, handleClose, status, projectId, setActiveProject, data, isMobile = false } = props;
+  const { handleFormSubmit, handleClose, status, projectId, setActiveProject, data, prefill, isMobile = false } = props;
   // store hooks
   const { projectsWithCreatePermissions } = useUser();
   const { data: userProfile } = useUserProfile();
@@ -59,8 +61,8 @@ export function ModuleForm(props: Props) {
       project_id: projectId,
       name: data?.name || "",
       description: data?.description || "",
-      status: data?.status || "backlog",
-      lead_id: data?.lead_id || null,
+      status: data?.status || prefill?.status || "backlog",
+      lead_id: data?.lead_id || prefill?.lead_id || null,
       member_ids: data?.member_ids || [],
     },
   });
@@ -74,15 +76,19 @@ export function ModuleForm(props: Props) {
 
     reset({
       ...defaultValues,
+      ...prefill,
     });
   };
 
   useEffect(() => {
     reset({
       ...defaultValues,
+      ...prefill,
       ...data,
     });
-  }, [data, reset]);
+    // the prefill is derived on every render; its values are what matter
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, reset, prefill?.status, prefill?.lead_id]);
 
   return (
     <form onSubmit={handleSubmit(handleCreateUpdateModule)}>
@@ -136,6 +142,7 @@ export function ModuleForm(props: Props) {
                       onChange={onChange}
                       placeholder={t("title")}
                       tabIndex={getIndex("name")}
+                      // oxlint-disable-next-line jsx-a11y/no-autofocus -- the dialog opens on its name field
                       autoFocus
                     />
                   </InputGroup>

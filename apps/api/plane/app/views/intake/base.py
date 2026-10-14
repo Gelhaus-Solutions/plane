@@ -51,6 +51,7 @@ from plane.app.views.base import BaseAPIView
 from plane.utils.timezone_converter import user_timezone_converter
 from plane.utils.global_paginator import paginate
 from plane.utils.host import base_host
+from plane.utils.project_features import intake_assignee_id
 from plane.db.models.intake import SourceType
 
 
@@ -262,7 +263,7 @@ class IntakeIssueViewSet(BaseViewSet):
             context={
                 "project_id": project_id,
                 "workspace_id": project.workspace_id,
-                "default_assignee_id": project.default_assignee_id,
+                "default_assignee_id": intake_assignee_id(project),
                 "allow_triage_state": True,
             },
         )

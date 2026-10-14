@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 import { useTranslation } from "@plane/i18n";
 // components
 import { PageHead } from "@/components/core/page-title";
+import { EpicsOff } from "@/components/epics/epics-off";
 import { ProjectEpicsRoot } from "@/components/epics/project-epics";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
@@ -23,7 +24,11 @@ function ProjectEpicsPage({ params }: Route.ComponentProps) {
   return (
     <>
       <PageHead title={project?.name ? `${project.name} - ${t("epics.title")}` : undefined} />
-      <ProjectEpicsRoot workspaceSlug={workspaceSlug} projectId={projectId} />
+      {project?.epic_view === false ? (
+        <EpicsOff workspaceSlug={workspaceSlug} projectId={projectId} />
+      ) : (
+        <ProjectEpicsRoot workspaceSlug={workspaceSlug} projectId={projectId} />
+      )}
     </>
   );
 }

@@ -29,11 +29,14 @@ import {
   GROUPED_PROJECT_SETTINGS,
   GROUPED_WORKSPACE_SETTINGS,
   PROFILE_SETTINGS_CATEGORIES,
+  PROFILE_SETTINGS_CATEGORY_LABELS,
   PROJECT_SETTINGS_CATEGORIES,
+  PROJECT_SETTINGS_CATEGORY_LABELS,
   WORKSPACE_MEMBER_ME_INFORMATION,
   WORKSPACE_PARTIAL_PROJECTS,
   WORKSPACE_PROJECTS_ROLES_INFORMATION,
   WORKSPACE_SETTINGS_CATEGORIES,
+  WORKSPACE_SETTINGS_CATEGORY_LABELS,
 } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import type { ISvgIcons } from "@plane/blocks/icons";
@@ -59,6 +62,8 @@ type TNavEntry = {
   href: string;
   icon: TIcon;
   isActive: boolean;
+  /** the group the entry sits in, as upstream grouped its settings (D45) */
+  group: string;
 };
 
 const PROFILE_ICONS: Record<TProfileSettingsTabs, TIcon> = {
@@ -90,6 +95,35 @@ function NavRow({ entry, indent = false }: { entry: TNavEntry; indent?: boolean 
         </span>
       </SidebarNavItem>
     </Link>
+  );
+}
+
+/** The entries under their group labels, in order; a group with nothing to show is left out. */
+function NavGroups({ entries, indent = false }: { entries: TNavEntry[]; indent?: boolean }) {
+  const groups: { label: string; entries: TNavEntry[] }[] = [];
+  for (const entry of entries) {
+    const last = groups[groups.length - 1];
+    if (last?.label === entry.group) last.entries.push(entry);
+    else groups.push({ label: entry.group, entries: [entry] });
+  }
+  return (
+    <>
+      {groups.map((group) => (
+        <div key={group.label} role="group" aria-label={group.label} className="flex flex-col gap-px">
+          <div
+            className={cn(
+              "flex h-[22px] items-end px-2 pb-0.5 text-11 font-medium text-tertiary",
+              indent && "pl-[30px]"
+            )}
+          >
+            {group.label}
+          </div>
+          {group.entries.map((entry) => (
+            <NavRow key={entry.key} entry={entry} indent={indent} />
+          ))}
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -177,33 +211,37 @@ export const SettingsNavigation = observer(function SettingsNavigation(props: Pr
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const account: TNavEntry[] = PROFILE_SETTINGS_CATEGORIES.flatMap(
-    (category) => GROUPED_PROFILE_SETTINGS[category]
-  ).map((item) => {
-    const href = `/settings/profile/${item.key}/`;
-    return {
-      key: `account-${item.key}`,
-      label: t(item.i18n_label),
-      href,
-      icon: PROFILE_ICONS[item.key],
-      isActive: pathname === href,
-    };
-  });
+  const account: TNavEntry[] = PROFILE_SETTINGS_CATEGORIES.flatMap((category) =>
+    GROUPED_PROFILE_SETTINGS[category].map((item) => {
+      const href = `/settings/profile/${item.key}/`;
+      return {
+        key: `account-${item.key}`,
+        label: t(item.i18n_label),
+        href,
+        icon: PROFILE_ICONS[item.key],
+        isActive: pathname === href,
+        group: t(PROFILE_SETTINGS_CATEGORY_LABELS[category]),
+      };
+    })
+  );
 
   const workspace: TNavEntry[] = workspaceSlug
-    ? WORKSPACE_SETTINGS_CATEGORIES.flatMap((category) => GROUPED_WORKSPACE_SETTINGS[category])
-        .filter((item) => allowPermissions(item.access, EUserPermissionsLevel.WORKSPACE, workspaceSlug))
-        .map((item) => {
-          const href = withSlash(`/${workspaceSlug}${item.href}`);
-          return {
-            key: `workspace-${item.key}`,
-            label: t(item.i18n_label),
-            href,
-            icon: WORKSPACE_SETTINGS_ICONS[item.key],
-            // General is the section's root, so it is only active on its own page
-            isActive: item.href === "/settings" ? pathname === href : pathname.startsWith(href),
-          };
-        })
+    ? WORKSPACE_SETTINGS_CATEGORIES.flatMap((category) =>
+        GROUPED_WORKSPACE_SETTINGS[category]
+          .filter((item) => allowPermissions(item.access, EUserPermissionsLevel.WORKSPACE, workspaceSlug))
+          .map((item) => {
+            const href = withSlash(`/${workspaceSlug}${item.href}`);
+            return {
+              key: `workspace-${item.key}`,
+              label: t(item.i18n_label),
+              href,
+              icon: WORKSPACE_SETTINGS_ICONS[item.key],
+              // General is the section's root, so it is only active on its own page
+              isActive: item.href === "/settings" ? pathname === href : pathname.startsWith(href),
+              group: t(WORKSPACE_SETTINGS_CATEGORY_LABELS[category]),
+            };
+          })
+      )
     : [];
 
   const projects = workspaceSlug
@@ -211,20 +249,21 @@ export const SettingsNavigation = observer(function SettingsNavigation(props: Pr
         const project = getPartialProjectById(projectId);
         if (!project) return [];
         const base = `/${workspaceSlug}/settings/projects/${projectId}`;
-        const entries: TNavEntry[] = PROJECT_SETTINGS_CATEGORIES.flatMap(
-          (category) => GROUPED_PROJECT_SETTINGS[category]
-        )
-          .filter((item) => allowPermissions(item.access, EUserPermissionsLevel.PROJECT, workspaceSlug, projectId))
-          .map((item) => {
-            const href = withSlash(`${base}${item.href}`);
-            return {
-              key: `project-${projectId}-${item.key}`,
-              label: t(item.i18n_label),
-              href,
-              icon: PROJECT_SETTINGS_ICONS[item.key],
-              isActive: item.href === "" ? pathname === href : pathname.startsWith(href),
-            };
-          });
+        const entries: TNavEntry[] = PROJECT_SETTINGS_CATEGORIES.flatMap((category) =>
+          GROUPED_PROJECT_SETTINGS[category]
+            .filter((item) => allowPermissions(item.access, EUserPermissionsLevel.PROJECT, workspaceSlug, projectId))
+            .map((item) => {
+              const href = withSlash(`${base}${item.href}`);
+              return {
+                key: `project-${projectId}-${item.key}`,
+                label: t(item.i18n_label),
+                href,
+                icon: PROJECT_SETTINGS_ICONS[item.key],
+                isActive: item.href === "" ? pathname === href : pathname.startsWith(href),
+                group: t(PROJECT_SETTINGS_CATEGORY_LABELS[category]),
+              };
+            })
+        );
         return [{ project, entries }];
       })
     : [];
@@ -327,7 +366,7 @@ export const SettingsNavigation = observer(function SettingsNavigation(props: Pr
               count={account.length}
               onToggle={() => toggle("account")}
             />
-            {isOpen("account") && accountShown.map((entry) => <NavRow key={entry.key} entry={entry} />)}
+            {isOpen("account") && <NavGroups entries={accountShown} />}
           </div>
         )}
         {workspaceShown.length > 0 && (
@@ -338,7 +377,7 @@ export const SettingsNavigation = observer(function SettingsNavigation(props: Pr
               count={workspace.length}
               onToggle={() => toggle("workspace")}
             />
-            {isOpen("workspace") && workspaceShown.map((entry) => <NavRow key={entry.key} entry={entry} />)}
+            {isOpen("workspace") && <NavGroups entries={workspaceShown} />}
           </div>
         )}
         {projectsShown.length > 0 && (
@@ -365,7 +404,7 @@ export const SettingsNavigation = observer(function SettingsNavigation(props: Pr
                       )}
                     </SidebarNavItem>
                   </button>
-                  {open && entries.map((entry) => <NavRow key={entry.key} entry={entry} indent />)}
+                  {open && <NavGroups entries={entries} indent />}
                 </div>
               );
             })}

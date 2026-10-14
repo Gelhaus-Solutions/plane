@@ -14,12 +14,10 @@ import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { SettingsPageHeader } from "@/components/settings/page-header";
 import { PROJECT_SETTINGS_ICONS } from "@/components/settings/project/sidebar/item-icon";
 
-export const FeaturesCyclesProjectSettingsHeader = observer(function FeaturesCyclesProjectSettingsHeader() {
-  // translation
+export const FeaturesProjectSettingsHeader = observer(function FeaturesProjectSettingsHeader() {
   const { t } = useTranslation();
-  // derived values
-  const settingsDetails = PROJECT_SETTINGS.features_cycles;
-  const Icon = PROJECT_SETTINGS_ICONS.features_cycles;
+  const settingsDetails = PROJECT_SETTINGS.features;
+  const Icon = PROJECT_SETTINGS_ICONS.features;
 
   return (
     <SettingsPageHeader

@@ -95,7 +95,8 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         href: `/${slug}/projects/${id}/epics`,
         icon: EpicOutline,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
-        shouldRender: true,
+        // the project's Epics switch (D45); a project the list has not loaded yet shows them
+        shouldRender: project?.epic_view ?? true,
         sortOrder: 1.5,
       },
       {

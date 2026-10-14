@@ -331,6 +331,8 @@ class WorkspaceEpicsEndpoint(BaseAPIView):
         memberships = ProjectMember.objects.filter(
             workspace__slug=slug, member=request.user, is_active=True, project__archived_at__isnull=True
         ).select_related("project")
+        # projects with epics switched off (D45) keep their epics but leave them out of the lists
+        memberships = [m for m in memberships if m.project.epic_view]
         visible = [m.project_id for m in memberships if m.role != ROLE.GUEST.value or m.project.guest_view_all_features]
         own_only = [m.project_id for m in memberships if m.project_id not in visible]
 

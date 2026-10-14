@@ -12,7 +12,7 @@ import type { CycleDateCheckData, ICycle, TCycleTabOptions } from "@plane/types"
 // ui
 import { Dialog, DialogContent } from "@makeplane/propel/components/dialog";
 // hooks
-import { renderFormattedPayloadDate } from "@plane/utils";
+import { renderFormattedPayloadDate, suggestCycleDates } from "@plane/utils";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useProject } from "@/hooks/store/use-project";
 import useLocalStorage from "@/hooks/use-local-storage";
@@ -38,8 +38,8 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
   // states
   const [activeProject, setActiveProject] = useState<string | null>(null);
   // store hooks
-  const { workspaceProjectIds } = useProject();
-  const { createCycle, updateCycleDetails } = useCycle();
+  const { workspaceProjectIds, getProjectById } = useProject();
+  const { createCycle, updateCycleDetails, getProjectCycleDetails } = useCycle();
   const { isMobile } = usePlatformOS();
 
   const { setValue: setCycleTab } = useLocalStorage<TCycleTabOptions>("cycle_tab", "active");
@@ -65,6 +65,7 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
           title: "Success!",
           message: "Cycle created successfully.",
         });
+        return undefined;
       })
       .catch((err) => {
         setToast({
@@ -86,6 +87,7 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
           title: "Success!",
           message: "Cycle updated successfully.",
         });
+        return undefined;
       })
       .catch((err) => {
         setToast({
@@ -96,11 +98,12 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
       });
   };
 
-  const dateChecker = async (projectId: string, payload: CycleDateCheckData) => {
+  const dateChecker = async (targetProjectId: string, payload: CycleDateCheckData) => {
     let status = false;
 
-    await cycleService.cycleDateCheck(workspaceSlug, projectId, payload).then((res) => {
+    await cycleService.cycleDateCheck(workspaceSlug, targetProjectId, payload).then((res) => {
       status = res.status;
+      return undefined;
     });
 
     return status;
@@ -145,6 +148,7 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
       else {
         await handleCreateCycle(payload).then(() => {
           setCycleTab("all");
+          return undefined;
         });
       }
       handleClose();
@@ -177,6 +181,30 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
       setActiveProject(projectId ?? workspaceProjectIds?.[0] ?? null);
   }, [activeProject, data, projectId, workspaceProjectIds, isOpen]);
 
+  // a new cycle opens with its dates after the project's last one (D45)
+  const prefillProject = !data && activeProject ? getProjectById(activeProject) : undefined;
+  const lastEnd = activeProject
+    ? (getProjectCycleDetails(activeProject) ?? [])
+        .map((cycle) => cycle.end_date)
+        .filter((end): end is string => !!end)
+        // oxlint-disable-next-line unicorn/no-array-sort
+        .sort()
+        .at(-1)
+    : undefined;
+  const suggested = prefillProject
+    ? suggestCycleDates({
+        lastEnd,
+        startDay: prefillProject.cycle_start_day ?? 0,
+        lengthWeeks: prefillProject.cycle_length_weeks ?? 2,
+      })
+    : undefined;
+  const prefill: Partial<ICycle> | undefined = suggested
+    ? {
+        start_date: renderFormattedPayloadDate(suggested.start) ?? null,
+        end_date: renderFormattedPayloadDate(suggested.end) ?? null,
+      }
+    : undefined;
+
   return (
     <Dialog
       open={isOpen}
@@ -189,6 +217,7 @@ export function CycleCreateUpdateModal(props: CycleModalProps) {
     >
       <DialogContent size="md">
         <CycleForm
+          prefill={prefill}
           handleFormSubmit={handleFormSubmit}
           handleClose={handleClose}
           status={!!data}

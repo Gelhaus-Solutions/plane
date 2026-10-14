@@ -521,6 +521,80 @@
           }
         }
       }
+    },
+    "features_page": {
+      "title": "Funktionen",
+      "description": "Was {project} in der Seitenleiste zeigt und wie jede Funktion arbeitet.",
+      "note": "Schaltest du eine Funktion aus, wird sie nur ausgeblendet; gelöscht wird nichts. Schaltest du sie wieder ein, ist alles wieder da.",
+      "toggle": "{feature} ein- oder ausschalten",
+      "saved": "Gespeichert",
+      "save_failed": "Das wurde nicht gespeichert. Versuch es noch einmal.",
+      "never": "Nie",
+      "after_months": "Nach {count, plural, one {# Monat} other {# Monaten}}",
+      "after_days": "Nach {count, plural, one {# Tag} other {# Tagen}}",
+      "weekdays": {
+        "0": "Montag",
+        "1": "Dienstag",
+        "2": "Mittwoch",
+        "3": "Donnerstag",
+        "4": "Freitag",
+        "5": "Samstag",
+        "6": "Sonntag"
+      },
+      "cycles": {
+        "name": "Zyklen",
+        "description": "Zeitfenster; mehrere können gleichzeitig laufen.",
+        "length": "Standardlänge",
+        "length_hint": "Ein neuer Zyklus startet mit ausgefüllten Daten, direkt nach dem letzten.",
+        "weeks": "{count, plural, one {# Woche} other {# Wochen}}",
+        "start_day": "Beginnt am",
+        "carry_over": "Offene Arbeit übernehmen",
+        "carry_over_hint": "Endet ein Zyklus, wandern seine offenen Arbeitselemente in den nächsten Zyklus.",
+        "archive": "Abgeschlossene Zyklen archivieren",
+        "archive_hint": "Archivierte Zyklen verschwinden aus der Liste und bleiben lesbar."
+      },
+      "modules": {
+        "name": "Module",
+        "description": "Größere Arbeitspakete über Zyklen hinweg.",
+        "lead": "Leitung eines neuen Moduls",
+        "status": "Status eines neuen Moduls",
+        "nobody": "Niemand",
+        "project_lead": "Projektleitung"
+      },
+      "views": {
+        "name": "Ansichten",
+        "description": "Gespeicherte Filter und PQL-Abfragen."
+      },
+      "pages": {
+        "name": "Seiten",
+        "description": "Projektseiten neben dem Wiki."
+      },
+      "intake": {
+        "name": "Eingang",
+        "description": "Anfragen, die du sichtest, bevor daraus Arbeit wird.",
+        "assignee": "Neue Anfragen gehen an",
+        "default_assignee": "Standardzuweisung",
+        "project_lead": "Projektleitung",
+        "nobody": "Niemand",
+        "accepted_state": "Status für angenommene Anfragen",
+        "default_state": "Standardstatus",
+        "decline": "Unbeantwortete Anfragen ablehnen",
+        "decline_hint": "Jede bekommt eine Notiz mit dem Grund."
+      },
+      "epics": {
+        "name": "Epics",
+        "description": "Fasse Arbeitselemente unter einem Epic zusammen, mit Fortschritt.",
+        "waves": "Wellen",
+        "waves_hint": "Epics werden in Wellen geplant, in dieser Reihenfolge. Löschst du eine Welle, bleiben ihre Epics erhalten.",
+        "code": "Kürzel",
+        "theme": "Thema",
+        "add": "Welle hinzufügen",
+        "move_up": "{wave} nach oben",
+        "move_down": "{wave} nach unten",
+        "delete": "{wave} löschen",
+        "empty": "Noch keine Wellen.",
+        "exists": "Dieses Projekt hat diese Welle schon."
+      }
     }
   }
 }

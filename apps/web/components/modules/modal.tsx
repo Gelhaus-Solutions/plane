@@ -42,7 +42,7 @@ export const CreateUpdateModuleModal = observer(function CreateUpdateModuleModal
   // plane hooks
   const { t } = useTranslation();
   // store hooks
-  const { workspaceProjectIds } = useProject();
+  const { workspaceProjectIds, getProjectById } = useProject();
   const { createModule, updateModuleDetails } = useModule();
   const { isMobile } = usePlatformOS();
 
@@ -67,6 +67,7 @@ export const CreateUpdateModuleModal = observer(function CreateUpdateModuleModal
           title: "Success!",
           message: "Module created successfully.",
         });
+        return undefined;
       })
       .catch((err) => {
         setToast({
@@ -90,6 +91,7 @@ export const CreateUpdateModuleModal = observer(function CreateUpdateModuleModal
           title: "Success!",
           message: "Module updated successfully.",
         });
+        return undefined;
       })
       .catch((err) => {
         setToast({
@@ -131,6 +133,21 @@ export const CreateUpdateModuleModal = observer(function CreateUpdateModuleModal
       setActiveProject(projectId ?? workspaceProjectIds?.[0] ?? null);
   }, [activeProject, data, projectId, workspaceProjectIds, isOpen]);
 
+  // a new module starts with the project's default lead and status (D45)
+  const prefillProject = !data && activeProject ? getProjectById(activeProject) : undefined;
+  const projectLead = prefillProject?.project_lead;
+  const prefill: Partial<IModule> | undefined = prefillProject
+    ? {
+        status: prefillProject.module_default_status ?? "backlog",
+        lead_id:
+          prefillProject.module_default_lead === "project_lead" && projectLead
+            ? typeof projectLead === "string"
+              ? projectLead
+              : projectLead.id
+            : null,
+      }
+    : undefined;
+
   return (
     <Dialog
       open={isOpen}
@@ -145,6 +162,7 @@ export const CreateUpdateModuleModal = observer(function CreateUpdateModuleModal
         aria-label={`${data ? t("common.update") : t("common.create")} ${t("common.module").toLowerCase()}`}
       >
         <ModuleForm
+          prefill={prefill}
           handleFormSubmit={handleFormSubmit}
           handleClose={handleClose}
           status={!!data}

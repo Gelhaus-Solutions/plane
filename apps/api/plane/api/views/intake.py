@@ -29,6 +29,7 @@ from plane.app.permissions import ProjectLitePermission
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.db.models import Intake, IntakeIssue, Issue, Project, ProjectMember, State, StateGroup
 from plane.utils.host import base_host
+from plane.utils.project_features import assign_intake_issue
 from plane.utils.content_validator import validate_html_content
 from .base import BaseAPIView
 from plane.db.models.intake import SourceType
@@ -200,6 +201,7 @@ class IntakeIssueListCreateAPIEndpoint(BaseAPIView):
             project_id=project_id,
             state_id=triage_state.id,
         )
+        assign_intake_issue(issue, project)
 
         # create an intake issue
         intake_issue = IntakeIssue.objects.create(

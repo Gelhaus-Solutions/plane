@@ -130,6 +130,11 @@
     "size_select": {
       "placeholder": "Größe"
     },
-    "update_failed": "Die Änderung wurde nicht gespeichert. Versuch es noch einmal."
+    "update_failed": "Die Änderung wurde nicht gespeichert. Versuch es noch einmal.",
+    "off": {
+      "title": "Epics sind in diesem Projekt aus",
+      "description": "Schalte sie in den Funktionen des Projekts ein; die Epics sind noch da.",
+      "action": "Funktionen öffnen"
+    }
   }
 }

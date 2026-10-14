@@ -24,6 +24,7 @@ from plane.app.serializers import (
     IssueStateIntakeSerializer,
 )
 from plane.utils.content_validator import validate_html_content
+from plane.utils.project_features import assign_intake_issue
 from plane.utils.issue_filters import issue_filters
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.db.models.intake import SourceType
@@ -164,6 +165,7 @@ class IntakeIssuePublicViewSet(BaseViewSet):
             project_id=project_deploy_board.project_id,
             state_id=triage_state.id,
         )
+        assign_intake_issue(issue, project_deploy_board.project)
 
         # Create an Issue Activity
         issue_activity.delay(

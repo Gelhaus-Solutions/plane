@@ -307,26 +307,10 @@ export const coreRoutes: RouteConfigEntry[] = [
               ":workspaceSlug/settings/projects/:projectId/members",
               "./(all)/[workspaceSlug]/(settings)/settings/projects/[projectId]/members/page.tsx"
             ),
-            // Project Features
+            // Project Features: every feature's switch and settings (D45)
             route(
-              ":workspaceSlug/settings/projects/:projectId/features/cycles",
-              "./(all)/[workspaceSlug]/(settings)/settings/projects/[projectId]/features/cycles/page.tsx"
-            ),
-            route(
-              ":workspaceSlug/settings/projects/:projectId/features/modules",
-              "./(all)/[workspaceSlug]/(settings)/settings/projects/[projectId]/features/modules/page.tsx"
-            ),
-            route(
-              ":workspaceSlug/settings/projects/:projectId/features/views",
-              "./(all)/[workspaceSlug]/(settings)/settings/projects/[projectId]/features/views/page.tsx"
-            ),
-            route(
-              ":workspaceSlug/settings/projects/:projectId/features/pages",
-              "./(all)/[workspaceSlug]/(settings)/settings/projects/[projectId]/features/pages/page.tsx"
-            ),
-            route(
-              ":workspaceSlug/settings/projects/:projectId/features/intake",
-              "./(all)/[workspaceSlug]/(settings)/settings/projects/[projectId]/features/intake/page.tsx"
+              ":workspaceSlug/settings/projects/:projectId/features",
+              "./(all)/[workspaceSlug]/(settings)/settings/projects/[projectId]/features/page.tsx"
             ),
             // Project States
             route(
@@ -379,6 +363,10 @@ export const coreRoutes: RouteConfigEntry[] = [
   // Project settings redirect: /:workspaceSlug/projects/:projectId/settings/:path*
   // → /:workspaceSlug/settings/projects/:projectId/:path*
   route(":workspaceSlug/projects/:projectId/settings/*", "routes/redirects/core/project-settings.tsx"),
+
+  // Feature pages redirect: /:workspaceSlug/settings/projects/:projectId/features/:feature
+  // → /:workspaceSlug/settings/projects/:projectId/features
+  route(":workspaceSlug/settings/projects/:projectId/features/*", "routes/redirects/core/project-feature-settings.tsx"),
 
   // Analytics redirect: /:workspaceSlug/analytics → /:workspaceSlug/analytics/overview
   route(":workspaceSlug/analytics", "routes/redirects/core/analytics.tsx"),

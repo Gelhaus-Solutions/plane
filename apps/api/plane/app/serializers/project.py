@@ -21,6 +21,7 @@ from plane.db.models import (
     DeployBoard,
     ProjectPublicMember,
     IssueSequence,
+    StateGroup,
 )
 from plane.db.models.user import INTERNAL_BOT_TYPES
 from plane.utils.content_validator import (
@@ -74,6 +75,14 @@ class ProjectSerializer(BaseSerializer):
             )
 
         return identifier
+
+    def validate_intake_accepted_state(self, state):
+        # an accepted request lands in one of this project's states, never back in triage
+        if state is not None and (
+            self.instance is None or state.project_id != self.instance.id or state.group == StateGroup.TRIAGE.value
+        ):
+            raise serializers.ValidationError(detail="Pick one of the project's states.")
+        return state
 
     def validate(self, data):
         # Validate description content for security

@@ -48,6 +48,19 @@ app.conf.beat_schedule = {
         "task": "plane.bgtasks.issue_automation_task.archive_and_close_old_issues",
         "schedule": crontab(hour=1, minute=0),  # UTC 01:00
     },
+    # The Features page's automations (D45)
+    "check-every-hour-to-carry-over-ended-cycles": {
+        "task": "plane.bgtasks.project_feature_task.carry_over_ended_cycles",
+        "schedule": crontab(minute=10),  # Every hour
+    },
+    "check-every-day-to-archive-completed-cycles": {
+        "task": "plane.bgtasks.project_feature_task.archive_completed_cycles",
+        "schedule": crontab(hour=1, minute=10),  # UTC 01:10
+    },
+    "check-every-day-to-decline-stale-intake-requests": {
+        "task": "plane.bgtasks.project_feature_task.decline_stale_intake_requests",
+        "schedule": crontab(hour=1, minute=20),  # UTC 01:20
+    },
     "check-every-day-to-delete_exporter_history": {
         "task": "plane.bgtasks.exporter_expired_task.delete_old_s3_link",
         "schedule": crontab(hour=1, minute=30),  # UTC 01:30

@@ -11,7 +11,7 @@ from rest_framework import serializers
 import re
 
 # Module imports
-from plane.db.models import Project, ProjectIdentifier, WorkspaceMember, State, Estimate
+from plane.db.models import Project, ProjectIdentifier, WorkspaceMember, State, StateGroup, Estimate
 
 from plane.utils.content_validator import (
     validate_html_content,
@@ -92,6 +92,15 @@ class ProjectCreateSerializer(BaseSerializer):
             "external_id",
             "is_issue_type_enabled",
             "is_time_tracking_enabled",
+            "epic_view",
+            "cycle_length_weeks",
+            "cycle_start_day",
+            "cycle_auto_carry_over",
+            "cycle_archive_in",
+            "module_default_lead",
+            "module_default_status",
+            "intake_assignee",
+            "intake_decline_after_days",
         ]
 
         read_only_fields = [
@@ -175,6 +184,7 @@ class ProjectUpdateSerializer(ProjectCreateSerializer):
         fields = ProjectCreateSerializer.Meta.fields + [
             "default_state",
             "estimate",
+            "intake_accepted_state",
         ]
 
         read_only_fields = ProjectCreateSerializer.Meta.read_only_fields
@@ -196,6 +206,10 @@ class ProjectUpdateSerializer(ProjectCreateSerializer):
         ):
             # Check if the default state is a state in the project
             raise serializers.ValidationError("Default state should be a state in the project")
+
+        accepted = validated_data.get("intake_accepted_state", None)
+        if accepted is not None and (accepted.project_id != instance.id or accepted.group == StateGroup.TRIAGE.value):
+            raise serializers.ValidationError("Accepted intake requests should land in a state of the project")
 
         if (
             validated_data.get("estimate", None) is not None

@@ -130,6 +130,11 @@
     "size_select": {
       "placeholder": "Size"
     },
-    "update_failed": "The change was not saved. Try again."
+    "update_failed": "The change was not saved. Try again.",
+    "off": {
+      "title": "Epics are off in this project",
+      "description": "Turn them on in the project's Features; the epics are still there.",
+      "action": "Open Features"
+    }
   }
 }

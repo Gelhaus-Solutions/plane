@@ -31,6 +31,8 @@ type Props = {
   projectId: string;
   setActiveProject: (projectId: string) => void;
   data?: ICycle | null;
+  /** values a new cycle opens with, such as its suggested dates */
+  prefill?: Partial<ICycle>;
   isMobile?: boolean;
 };
 
@@ -42,7 +44,7 @@ const defaultValues: Partial<ICycle> = {
 };
 
 export function CycleForm(props: Props) {
-  const { handleFormSubmit, handleClose, status, projectId, setActiveProject, data, isMobile = false } = props;
+  const { handleFormSubmit, handleClose, status, projectId, setActiveProject, data, prefill, isMobile = false } = props;
   // plane hooks
   const { t } = useTranslation();
   // store hooks
@@ -59,8 +61,8 @@ export function CycleForm(props: Props) {
       project_id: projectId,
       name: data?.name || "",
       description: data?.description || "",
-      start_date: data?.start_date || null,
-      end_date: data?.end_date || null,
+      start_date: data?.start_date || prefill?.start_date || null,
+      end_date: data?.end_date || prefill?.end_date || null,
     },
   });
 
@@ -69,9 +71,12 @@ export function CycleForm(props: Props) {
   useEffect(() => {
     reset({
       ...defaultValues,
+      ...prefill,
       ...data,
     });
-  }, [data, reset]);
+    // the prefill is derived on every render; its dates are what matter
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, reset, prefill?.start_date, prefill?.end_date]);
 
   return (
     <form onSubmit={handleSubmit((formData) => handleFormSubmit(formData))}>
@@ -124,6 +129,7 @@ export function CycleForm(props: Props) {
                       value={value}
                       onChange={onChange}
                       tabIndex={getIndex("description")}
+                      // oxlint-disable-next-line jsx-a11y/no-autofocus -- the dialog opens on its name field
                       autoFocus
                       aria-label={t("title")}
                     />

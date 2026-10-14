@@ -5,7 +5,8 @@
 # Module imports
 from .base import BaseSerializer
 from .issue import IssueExpandSerializer
-from plane.db.models import IntakeIssue, Issue, State, StateGroup
+from plane.db.models import IntakeIssue, Issue, StateGroup
+from plane.utils.project_features import intake_accepted_state
 from rest_framework import serializers
 
 
@@ -124,9 +125,7 @@ class IntakeIssueUpdateSerializer(BaseSerializer):
             # Check if issue is in TRIAGE state
             if issue.state and issue.state.group == StateGroup.TRIAGE.value:
                 # Verify default state exists before allowing the update
-                default_state = State.objects.filter(
-                    workspace=intake_issue.workspace, project=intake_issue.project, default=True
-                ).first()
+                default_state = intake_accepted_state(intake_issue.project)
 
                 if not default_state:
                     raise serializers.ValidationError(
@@ -148,9 +147,7 @@ class IntakeIssueUpdateSerializer(BaseSerializer):
             issue = instance.issue
             if issue.state and issue.state.group == StateGroup.TRIAGE.value:
                 # Get the default project state
-                default_state = State.objects.filter(
-                    workspace=instance.workspace, project=instance.project, default=True
-                ).first()
+                default_state = intake_accepted_state(instance.project)
                 if default_state:
                     issue.state = default_state
                     issue.save()

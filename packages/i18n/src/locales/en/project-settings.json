@@ -521,6 +521,80 @@
           }
         }
       }
+    },
+    "features_page": {
+      "title": "Features",
+      "description": "What {project} shows in the sidebar, and how each feature works.",
+      "note": "Turning a feature off hides it; nothing is deleted. Turning it on again brings everything back.",
+      "toggle": "Turn {feature} on or off",
+      "saved": "Saved",
+      "save_failed": "That did not save. Try again.",
+      "never": "Never",
+      "after_months": "After {count, plural, one {# month} other {# months}}",
+      "after_days": "After {count, plural, one {# day} other {# days}}",
+      "weekdays": {
+        "0": "Monday",
+        "1": "Tuesday",
+        "2": "Wednesday",
+        "3": "Thursday",
+        "4": "Friday",
+        "5": "Saturday",
+        "6": "Sunday"
+      },
+      "cycles": {
+        "name": "Cycles",
+        "description": "Time boxes; several can run at once.",
+        "length": "Default length",
+        "length_hint": "A new cycle opens with its dates filled in, right after the last one.",
+        "weeks": "{count, plural, one {# week} other {# weeks}}",
+        "start_day": "Starts on",
+        "carry_over": "Carry over unfinished work",
+        "carry_over_hint": "When a cycle ends, its open work items move to the next cycle.",
+        "archive": "Archive completed cycles",
+        "archive_hint": "Archived cycles leave the list and stay readable."
+      },
+      "modules": {
+        "name": "Modules",
+        "description": "Bigger chunks of work across cycles.",
+        "lead": "Lead of a new module",
+        "status": "Status of a new module",
+        "nobody": "Nobody",
+        "project_lead": "Project lead"
+      },
+      "views": {
+        "name": "Views",
+        "description": "Saved filters and PQL queries."
+      },
+      "pages": {
+        "name": "Pages",
+        "description": "Project pages next to the wiki."
+      },
+      "intake": {
+        "name": "Intake",
+        "description": "Requests to triage before they become work.",
+        "assignee": "New requests go to",
+        "default_assignee": "Default assignee",
+        "project_lead": "Project lead",
+        "nobody": "Nobody",
+        "accepted_state": "State for accepted requests",
+        "default_state": "Default state",
+        "decline": "Decline unanswered requests",
+        "decline_hint": "Each one gets a note saying why."
+      },
+      "epics": {
+        "name": "Epics",
+        "description": "Group work items under an epic, with progress.",
+        "waves": "Waves",
+        "waves_hint": "Epics are planned in waves, in this order. Deleting a wave keeps its epics.",
+        "code": "Code",
+        "theme": "Theme",
+        "add": "Add wave",
+        "move_up": "Move {wave} up",
+        "move_down": "Move {wave} down",
+        "delete": "Delete {wave}",
+        "empty": "No waves yet.",
+        "exists": "This project already has that wave."
+      }
     }
   }
 }

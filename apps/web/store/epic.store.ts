@@ -38,6 +38,13 @@ export interface IEpicStore {
   fetchEpicDetail: (workspaceSlug: string, projectId: string, epicId: string) => Promise<TEpicDetail>;
   fetchWaves: (workspaceSlug: string, projectId: string) => Promise<TEpicWave[]>;
   createWave: (workspaceSlug: string, projectId: string, data: Pick<TEpicWave, "code" | "name">) => Promise<TEpicWave>;
+  updateWave: (
+    workspaceSlug: string,
+    projectId: string,
+    waveId: string,
+    data: Partial<Pick<TEpicWave, "code" | "name" | "sort_order">>
+  ) => Promise<TEpicWave>;
+  deleteWave: (workspaceSlug: string, projectId: string, waveId: string) => Promise<void>;
   createEpic: (workspaceSlug: string, projectId: string, data: Partial<TIssue> & TEpicDetailFields) => Promise<TEpic>;
   convert: (workspaceSlug: string, projectId: string, issueId: string, isEpic: boolean) => Promise<TEpic | null>;
   updateEpicFields: (
@@ -54,6 +61,9 @@ export interface IEpicStore {
     data: { health: TEpicHealth; body: string }
   ) => Promise<TEpicUpdate>;
 }
+
+// oxlint-disable-next-line unicorn/no-array-sort
+const sorted = (waves: TEpicWave[]) => [...waves].sort((a, b) => a.sort_order - b.sort_order);
 
 /** Epics (E11): the rows of both lists, one epic's page, its updates and the project's waves. */
 export class EpicStore implements IEpicStore {
@@ -81,6 +91,8 @@ export class EpicStore implements IEpicStore {
       fetchEpicDetail: action,
       fetchWaves: action,
       createWave: action,
+      updateWave: action,
+      deleteWave: action,
       createEpic: action,
       convert: action,
       updateEpicFields: action,
@@ -161,6 +173,49 @@ export class EpicStore implements IEpicStore {
       );
     });
     return wave;
+  };
+
+  /** Renames or reorders a wave at once and puts it back if the server refuses. */
+  updateWave = async (
+    workspaceSlug: string,
+    projectId: string,
+    waveId: string,
+    data: Partial<Pick<TEpicWave, "code" | "name" | "sort_order">>
+  ) => {
+    const before = this.wavesByProject[projectId] ?? [];
+    runInAction(() => {
+      this.wavesByProject[projectId] = sorted(before.map((wave) => (wave.id === waveId ? { ...wave, ...data } : wave)));
+    });
+    try {
+      const wave = await this.service.updateWave(workspaceSlug, projectId, waveId, data);
+      runInAction(() => {
+        this.wavesByProject[projectId] = sorted(
+          (this.wavesByProject[projectId] ?? []).map((item) => (item.id === waveId ? wave : item))
+        );
+      });
+      return wave;
+    } catch (error) {
+      runInAction(() => {
+        this.wavesByProject[projectId] = before;
+      });
+      throw error;
+    }
+  };
+
+  /** Deletes a wave; its epics keep no wave. */
+  deleteWave = async (workspaceSlug: string, projectId: string, waveId: string) => {
+    const before = this.wavesByProject[projectId] ?? [];
+    runInAction(() => {
+      this.wavesByProject[projectId] = before.filter((wave) => wave.id !== waveId);
+    });
+    try {
+      await this.service.deleteWave(workspaceSlug, projectId, waveId);
+    } catch (error) {
+      runInAction(() => {
+        this.wavesByProject[projectId] = before;
+      });
+      throw error;
+    }
   };
 
   createEpic = async (workspaceSlug: string, projectId: string, data: Partial<TIssue> & TEpicDetailFields) => {

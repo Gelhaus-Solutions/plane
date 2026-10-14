@@ -98,6 +98,39 @@ class Project(BaseModel):
     is_time_tracking_enabled = models.BooleanField(default=False)
     is_issue_type_enabled = models.BooleanField(default=False)
     guest_view_all_features = models.BooleanField(default=False)
+    epic_view = models.BooleanField(default=True)
+    # Per-feature settings, set on the project's Features page (D45)
+    cycle_length_weeks = models.PositiveSmallIntegerField(
+        default=2, validators=[MinValueValidator(1), MaxValueValidator(4)]
+    )
+    # 0 is Monday, as in Python's weekday()
+    cycle_start_day = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(6)])
+    cycle_auto_carry_over = models.BooleanField(default=False)
+    cycle_archive_in = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(12)])
+    module_default_lead = models.CharField(
+        max_length=20, choices=(("none", "Nobody"), ("project_lead", "Project lead")), default="none"
+    )
+    module_default_status = models.CharField(
+        max_length=20,
+        choices=(
+            ("backlog", "Backlog"),
+            ("planned", "Planned"),
+            ("in-progress", "In Progress"),
+            ("paused", "Paused"),
+            ("completed", "Completed"),
+            ("cancelled", "Cancelled"),
+        ),
+        default="backlog",
+    )
+    intake_assignee = models.CharField(
+        max_length=20,
+        choices=(("default_assignee", "Default assignee"), ("project_lead", "Project lead"), ("none", "Nobody")),
+        default="default_assignee",
+    )
+    intake_accepted_state = models.ForeignKey(
+        "db.State", on_delete=models.SET_NULL, null=True, blank=True, related_name="intake_accepting_projects"
+    )
+    intake_decline_after_days = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(365)])
     cover_image = models.TextField(blank=True, null=True)
     cover_image_asset = models.ForeignKey(
         "db.FileAsset",
