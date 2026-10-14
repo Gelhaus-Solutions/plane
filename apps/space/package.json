@@ -18,8 +18,8 @@
   },
   "dependencies": {
     "@bprogress/core": "catalog:",
-    "@fontsource-variable/inter": "catalog:",
-    "@fontsource/ibm-plex-mono": "catalog:",
+    "@fontsource-variable/geist": "catalog:",
+    "@fontsource-variable/geist-mono": "catalog:",
     "@fontsource/material-symbols-rounded": "catalog:",
     "@makeplane/propel": "catalog:",
     "@plane/blocks": "workspace:*",

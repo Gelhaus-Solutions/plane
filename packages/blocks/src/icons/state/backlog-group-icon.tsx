@@ -5,25 +5,18 @@
  */
 
 import * as React from "react";
+import { cn } from "@plane/utils";
 
-import { DashedCircle } from "./dashed-circle";
+import type { PulseStateSvgProps } from "./pulse-state-svg";
+import { PulseStateSvg } from "./pulse-state-svg";
 
-export type BacklogGroupIconProps = React.ComponentPropsWithoutRef<"svg">;
+export type BacklogGroupIconProps = PulseStateSvgProps;
 
-export function BacklogGroupIcon({ width = "20", height = "20", className, color = "#60646C" }: BacklogGroupIconProps) {
-  // SVG parameters
-  const viewBoxSize = 16;
-  const center = viewBoxSize / 2;
-  const radius = 6;
+/** Backlog: a dashed ring. */
+export function BacklogGroupIcon({ className, ...rest }: BacklogGroupIconProps) {
   return (
-    <svg
-      height={height}
-      width={width}
-      viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <DashedCircle center={center} radius={radius} color={color} percentage={0} />
-    </svg>
+    <PulseStateSvg className={cn("text-icon-states-backlog", className)} {...rest}>
+      <circle cx="7" cy="7" r="5.5" strokeDasharray="1.7 1.8" />
+    </PulseStateSvg>
   );
 }

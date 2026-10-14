@@ -10,6 +10,7 @@
   "main": "tailwind.config.js",
   "exports": {
     "./index.css": "./index.css",
+    "./pulse.css": "./pulse.css",
     "./postcss.config.js": "./postcss.config.js"
   },
   "dependencies": {

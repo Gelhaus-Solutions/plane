@@ -5,70 +5,29 @@
  */
 
 import * as React from "react";
+import { cn } from "@plane/utils";
 
-import { DashedCircle } from "./dashed-circle";
-import { ProgressCircle } from "./progress-circle";
+import type { PulseStateSvgProps } from "./pulse-state-svg";
+import { piePath, PulseStateSvg } from "./pulse-state-svg";
 
-export type StartedGroupIconProps = React.ComponentPropsWithoutRef<"svg"> & {
+export type StartedGroupIconProps = PulseStateSvgProps & {
+  /** How much of the pie is filled, 0 to 100 (or a fraction of 1 or less). Half by default; a second started state fills three quarters. */
   percentage?: number;
+  /** The review state: three quarters filled, in the second started colour. */
+  review?: boolean;
 };
 
-// StateIcon component implementation
-export function StartedGroupIcon({
-  width = "20",
-  height = "20",
-  className,
-  color = "#F59E0B",
-  percentage = 100,
-}: StartedGroupIconProps) {
-  // Ensure percentage is between 0 and 100
-  const normalized =
-    typeof percentage === "number"
-      ? percentage <= 1
-        ? percentage * 100 // treat 0-1 as fraction
-        : percentage // already 0-100
-      : 100; // fallback
-  const validPercentage = Math.max(0, Math.min(100, normalized));
+export const STARTED_DEFAULT_PERCENTAGE = 50;
+export const REVIEW_PERCENTAGE = 75;
 
-  // SVG parameters
-  const viewBoxSize = 16;
-  const center = viewBoxSize / 2;
-  const radius = 6;
-  const strokeWidth = 1.5;
-
-  // Calculate the circumference of the circle
-  const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference * (1 - validPercentage / 100);
-  const dashOffsetSmall = circumference * (1 - 100 / 100);
-
+/** Started: a ring with a pie inside that fills as work progresses. */
+export function StartedGroupIcon({ className, percentage, review = false, ...rest }: StartedGroupIconProps) {
+  const raw = review ? REVIEW_PERCENTAGE : (percentage ?? STARTED_DEFAULT_PERCENTAGE);
+  const fraction = raw <= 1 ? raw : raw / 100;
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} className={className}>
-      {/* Dashed background circle with segments that disappear with progress */}
-      <DashedCircle center={center} radius={radius} color={color} percentage={validPercentage} />
-
-      {/* render smaller circle in the middle */}
-      <circle
-        cx={6}
-        cy={6}
-        r={3}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        fill="none"
-        transform="rotate(-90 8 6)"
-        strokeDasharray={circumference}
-        strokeDashoffset={dashOffsetSmall}
-        stroke={color}
-      />
-
-      {/* Solid progress circle */}
-      <ProgressCircle
-        center={center}
-        radius={radius}
-        color={color}
-        strokeWidth={strokeWidth}
-        circumference={circumference}
-        dashOffset={dashOffset}
-      />
-    </svg>
+    <PulseStateSvg className={cn(review ? "text-state-started-2" : "text-icon-states-started", className)} {...rest}>
+      <circle cx="7" cy="7" r="5.5" />
+      <path d={piePath(fraction)} fill="currentColor" stroke="none" />
+    </PulseStateSvg>
   );
 }

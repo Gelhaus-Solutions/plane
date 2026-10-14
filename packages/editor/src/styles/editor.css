@@ -235,7 +235,7 @@ ul[data-type="taskList"] li[data-checked="true"] {
 
 /* code block, inline code */
 .ProseMirror pre {
-  font-family: JetBrainsMono, monospace;
+  font-family: "Geist Mono Variable", JetBrainsMono, monospace;
   tab-size: 2;
 }
 

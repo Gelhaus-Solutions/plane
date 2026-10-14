@@ -14,6 +14,7 @@
  * utilities emit. propel's CSS does not import tailwindcss itself.
  */
 @import "@makeplane/propel/styles";
+@import "./pulse.css";
 @source "../**/*.{ts,tsx}";
 
 * {

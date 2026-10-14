@@ -20,6 +20,12 @@ import { mergeRoutes } from "./routes/helper";
 const mergedRoutes: RouteConfigEntry[] = mergeRoutes(coreRoutes, extendedRoutes);
 
 // Add catch-all route at the end (404 handler)
-const routes: RouteConfigEntry[] = [layout("./layout.tsx", [...mergedRoutes, route("*", "./not-found.tsx")])];
+// The Pulse design system sheet sits outside the app shell (no stores, no sign-in) and is development-only
+const designRoutes: RouteConfigEntry[] = import.meta.env.PROD ? [] : [route("design", "./design/page.tsx")];
+
+const routes: RouteConfigEntry[] = [
+  layout("./layout.tsx", [...mergedRoutes, route("*", "./not-found.tsx")]),
+  ...designRoutes,
+];
 
 export default routes;

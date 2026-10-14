@@ -10,14 +10,18 @@ import { BacklogGroupIcon } from "./backlog-group-icon";
 import { CancelledGroupIcon } from "./cancelled-group-icon";
 import { CompletedGroupIcon } from "./completed-group-icon";
 import type { StateGroup, StateIconSize } from "./helper";
-import { getStateIconSize, STATE_GROUP_COLORS } from "./helper";
+import { getStateIconSize } from "./helper";
 import { StartedGroupIcon } from "./started-group-icon";
 import { UnstartedGroupIcon } from "./unstarted-group-icon";
 
 export type StateGroupIconProps = {
   className?: string;
+  /** @deprecated State icons take their colour from the state group (Pulse); a state's own colour is ignored. */
   color?: string;
+  /** How much of a started state's pie is filled, 0 to 100. */
   percentage?: number;
+  /** The review state: a started state drawn three quarters filled in the second started colour. */
+  review?: boolean;
   stateGroup: StateGroup;
   size?: StateIconSize;
 };
@@ -25,25 +29,19 @@ export type StateGroupIconProps = {
 /** @deprecated Use StateGroupIconProps instead. */
 export type IStateGroupIcon = StateGroupIconProps;
 
-const iconComponents = {
-  backlog: BacklogGroupIcon,
-  cancelled: CancelledGroupIcon,
-  completed: CompletedGroupIcon,
-  started: StartedGroupIcon,
-  unstarted: UnstartedGroupIcon,
-};
-
-export function StateGroupIcon({ className = "", color, percentage, stateGroup, size = "sm" }: StateGroupIconProps) {
-  const StateIconComponent = iconComponents[stateGroup] || UnstartedGroupIcon;
+export function StateGroupIcon({ className, percentage, review, stateGroup, size = "sm" }: StateGroupIconProps) {
   const iconSize = getStateIconSize(size);
-
-  return (
-    <StateIconComponent
-      height={iconSize}
-      width={iconSize}
-      color={color ?? STATE_GROUP_COLORS[stateGroup]}
-      className={`shrink-0 ${className}`}
-      percentage={percentage}
-    />
-  );
+  const sized = { width: iconSize, height: iconSize, className };
+  switch (stateGroup) {
+    case "backlog":
+      return <BacklogGroupIcon {...sized} />;
+    case "started":
+      return <StartedGroupIcon {...sized} percentage={percentage} review={review} />;
+    case "completed":
+      return <CompletedGroupIcon {...sized} />;
+    case "cancelled":
+      return <CancelledGroupIcon {...sized} />;
+    default:
+      return <UnstartedGroupIcon {...sized} />;
+  }
 }

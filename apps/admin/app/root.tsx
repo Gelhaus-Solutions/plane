@@ -15,11 +15,13 @@ import { LogoSpinner } from "@/components/common/logo-spinner";
 import globalStyles from "@/styles/globals.css?url";
 import { AppProviders } from "@/providers";
 import type { Route } from "./+types/root";
-// fonts
-import "@fontsource-variable/inter";
-import interVariableWoff2 from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
+// fonts: the stylesheets are imported for their side effect
+/* oxlint-disable import/no-unassigned-import */
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
+import geistVariableWoff2 from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url";
 import "@fontsource/material-symbols-rounded";
-import "@fontsource/ibm-plex-mono";
+/* oxlint-enable import/no-unassigned-import */
 
 const APP_TITLE = "Plane | Simple, extensible, open-source project management tool.";
 const APP_DESCRIPTION =
@@ -34,7 +36,7 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: globalStyles },
   {
     rel: "preload",
-    href: interVariableWoff2,
+    href: geistVariableWoff2,
     as: "font",
     type: "font/woff2",
     crossOrigin: "anonymous",

@@ -1,0 +1,524 @@
+/*
+ * Pulse: the redesign's look (E09, D12). Imported after @makeplane/propel/styles, it overrides the *values* of
+ * propel's semantic tokens (names stay, so every propel component and every existing utility follows) and adds
+ * the tokens propel lacks.
+ *
+ * Values come from the design system (tokens.json of the redesign bundle): dark first with a full light theme,
+ * one violet accent, Geist and Geist Mono. Light lives on :root and dark under the dark variant, the same
+ * canvas as propel, so high-contrast and custom themes keep working: propel's own variants are not touched.
+ *
+ * Tokens derived rather than given by the design (hover, active and selected ramps, solid danger, success and
+ * warning fills) sit next to the given ones and say so.
+ */
+
+@layer base {
+  :root,
+  :host {
+    /* ---------- Surfaces ---------- */
+    --bg-canvas: #eeeef2;
+    --bg-surface-1: #ffffff;
+    --bg-surface-2: #f8f8fa;
+    --bg-layer-1: #ffffff;
+    --bg-layer-1-hover: #f2f2f6;
+    --bg-layer-1-active: #ebebf0; /* derived */
+    --bg-layer-1-selected: #e9e8f3;
+    --bg-layer-2: #f1f1f5;
+    --bg-layer-2-hover: #ebebf0; /* derived */
+    --bg-layer-2-active: #e4e4ea; /* derived */
+    --bg-layer-2-selected: #e9e8f3;
+    --bg-layer-3: #ebebf0;
+    --bg-layer-3-hover: #e4e4ea; /* derived */
+    --bg-layer-3-active: #dcdce3; /* derived */
+    --bg-layer-3-selected: #e9e8f3;
+    --bg-layer-transparent-hover: var(--bg-layer-1-hover);
+    --bg-layer-transparent-active: var(--bg-layer-1-active);
+    --bg-layer-transparent-selected: var(--bg-layer-1-selected);
+    --bg-layer-disabled: #ebebf0;
+    --bg-backdrop: rgba(20, 20, 35, 0.32);
+    --bg-inverse: #131317;
+    --bg-inverse-hover: #26262c; /* derived */
+    --bg-inverse-active: #34343b; /* derived */
+    --bg-inverse-selected: #34343b; /* derived */
+    --bg-popover: rgba(255, 255, 255, 0.96);
+    --bg-accent-row: rgba(91, 75, 224, 0.07);
+
+    /* ---------- Text ---------- */
+    --txt-primary: #131317;
+    --txt-secondary: #5b5b67;
+    --txt-tertiary: #6f6f7b;
+    --txt-placeholder: #8e8e9a;
+    --txt-disabled: #b4b4be;
+    --txt-on-color: #ffffff;
+    --txt-on-color-disabled: rgba(255, 255, 255, 0.6);
+    --txt-inverse: #ffffff;
+    --txt-icon-primary: #131317;
+    --txt-icon-secondary: #5b5b67;
+    --txt-icon-tertiary: #6f6f7b;
+    --txt-icon-placeholder: #8e8e9a;
+    --txt-icon-disabled: #b4b4be;
+    --txt-icon-on-color: #ffffff;
+    --txt-icon-on-color-disabled: rgba(255, 255, 255, 0.6);
+    --txt-icon-inverse: #ffffff;
+
+    /* ---------- Borders ---------- */
+    --border-subtle: #eeeef2;
+    --border-subtle-1: #e1e1e8; /* derived: one step stronger than subtle */
+    --border-strong: #e1e1e8;
+    --border-strong-1: #a2a2ad;
+    --border-inverse: #ffffff;
+    --border-disabled: #eeeef2;
+    --border-accent-strong: #5b4be0;
+    --border-accent-subtle: rgba(91, 75, 224, 0.3); /* derived */
+
+    /* ---------- Accent ---------- */
+    --bg-accent-primary: #5b4be0;
+    --bg-accent-primary-hover: #4a3bcc;
+    --bg-accent-primary-active: #4535c2; /* derived */
+    --bg-accent-subtle: rgba(91, 75, 224, 0.1);
+    --bg-accent-subtle-hover: rgba(91, 75, 224, 0.16); /* derived */
+    --bg-accent-subtle-active: rgba(91, 75, 224, 0.22); /* derived */
+    --txt-accent-primary: #5b4be0;
+    --txt-accent-secondary: #4a3bcc;
+    --txt-icon-accent-primary: #5b4be0;
+    --txt-icon-accent-secondary: #4a3bcc;
+    --txt-icon-accent-subtle: #8a7ee8; /* derived */
+    --txt-link-primary: #5b4be0;
+    --txt-link-primary-hover: #4a3bcc;
+    --txt-link-secondary: #5b5b67;
+
+    /* ---------- Feedback ---------- */
+    --txt-danger-primary: #c2303a;
+    --txt-danger-secondary: #a92530; /* derived */
+    --txt-icon-danger-primary: #c2303a;
+    --txt-icon-danger-secondary: #a92530; /* derived */
+    --txt-icon-danger: #c2303a;
+    --bg-danger-primary: #c2303a; /* derived */
+    --bg-danger-primary-hover: #a92530; /* derived */
+    --bg-danger-primary-active: #921f29; /* derived */
+    --bg-danger-primary-selected: #921f29; /* derived */
+    --bg-danger-subtle: #fde8e9;
+    --bg-danger-subtle-hover: #fbd8da; /* derived */
+    --bg-danger-subtle-active: #f8c6c9; /* derived */
+    --bg-danger-subtle-selected: #f8c6c9; /* derived */
+    --bg-danger-transparent: #fde8e9;
+    --bg-danger-transparent-hover: #fbd8da; /* derived */
+    --bg-danger-transparent-active: #f8c6c9; /* derived */
+    --bg-danger-transparent-selected: #f8c6c9; /* derived */
+    --border-danger-strong: #c2303a;
+    --border-danger-subtle: #f3b9bd; /* derived */
+    --txt-success-primary: #0f7a4e;
+    --txt-success-secondary: #126a48; /* derived */
+    --txt-icon-success-primary: #0f7a4e;
+    --txt-icon-success-secondary: #126a48; /* derived */
+    --bg-success-primary: #0f7a4e; /* derived */
+    --bg-success-subtle: #dcf5ea;
+    --bg-success-subtle-1: #c9efdd; /* derived */
+    --border-success-strong: #0f7a4e;
+    --border-success-subtle: #a9e2c8; /* derived */
+    --txt-warning-primary: #9a6100;
+    --txt-warning-secondary: #8a5500; /* derived */
+    --txt-icon-warning-primary: #9a6100;
+    --txt-icon-warning-secondary: #8a5500; /* derived */
+    --txt-icon-warning-subtle: #c27c0a; /* derived */
+    --bg-warning-primary: #c27c0a; /* derived */
+    --bg-warning-secondary: #f6d9a1; /* derived */
+    --bg-warning-subtle: #fdf0d8;
+    --border-warning-strong: #c27c0a; /* derived */
+    --border-warning-subtle: #f1cf8d; /* derived */
+
+    /* ---------- State groups (Review is the second started state) ---------- */
+    --txt-icon-states-backlog: #8a8a96;
+    --txt-icon-states-unstarted: #6e6e7a;
+    --txt-icon-states-started: #c27c0a;
+    --txt-icon-states-completed: #5b4be0;
+    --txt-icon-states-cancelled: #c2303a;
+    --state-started-2: #14935f;
+    /* State lozenges (uppercase pills on group headers): background and text */
+    --loz-backlog-bg: #eeeef2;
+    --loz-backlog-fg: #565663;
+    --loz-unstarted-bg: #ebebf2;
+    --loz-unstarted-fg: #3d3d4a;
+    --loz-started-bg: #fdf0d8;
+    --loz-started-fg: #8a5500;
+    --loz-review-bg: #dcf5ea;
+    --loz-review-fg: #126a48;
+    --loz-completed-bg: #ebe8fd;
+    --loz-completed-fg: #4535c2;
+    --loz-cancelled-bg: #fde8e9;
+    --loz-cancelled-fg: #a92530;
+
+    /* ---------- Priority: bars in one neutral, urgent in orange ---------- */
+    --priority-urgent: #c43d08;
+    --priority-high: #5b5b67;
+    --priority-medium: #5b5b67;
+    --priority-low: #5b5b67;
+    --priority-none: #5b5b67;
+    --priority-unlit: rgba(91, 91, 103, 0.28);
+
+    /* ---------- Agents ---------- */
+    --activity-primary: #0b7d73;
+    --activity-subtle: rgba(11, 125, 115, 0.1);
+    --bot-build: #6a4fd6;
+    --bot-review: #0b7a70;
+
+    /* ---------- Labels: the palette the label colour picker offers ---------- */
+    --label-blue: #3d6fd6;
+    --label-teal: #17897c;
+    --label-pink: #c04a80;
+    --label-violet: #7a55cc;
+    --label-amber: #b07812;
+    --label-green: #2f8a4c;
+    --label-red: #c23d3d;
+    --label-cyan: #1f86ad;
+    --label-orange: #c0601c;
+    --label-slate: #666b80;
+
+    /* ---------- PQL syntax ---------- */
+    --syntax-field: #1f5fd6;
+    --syntax-operator: #5b4be0;
+    --syntax-value: #9a5a06;
+    --syntax-function: #0b7d73;
+    --syntax-error: #c2303a;
+
+    /* ---------- Charts ---------- */
+    --chart-1: #5b4be0;
+    --chart-2: #008a78;
+    --chart-3: #c27c0a;
+    --chart-ref: #a2a2ad;
+    --chart-grid: #eeeef2;
+
+    /* ---------- Scrollbars: thin, shown while the pointer is over the area ---------- */
+    --scrollbar-thumb: var(--border-strong-1);
+    --scrollbar-thumb-hover: #8a8a96;
+    --scrollbar-thumb-active: #8a8a96;
+    --scrollbar-thumb-surface-hover: var(--border-strong-1);
+
+    /* ---------- Elevation: e1 panels and cards, e2 card hover, e3 menus and popovers ---------- */
+    --elev-e1: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    --elev-e2: 0 8px 22px rgba(20, 20, 35, 0.12);
+    --elev-e3: 0 18px 44px rgba(20, 20, 35, 0.18), 0 0 0 1px rgba(20, 20, 35, 0.07);
+
+    @variant dark {
+      /* ---------- Surfaces ---------- */
+      --bg-canvas: #08080a;
+      --bg-surface-1: #101014;
+      --bg-surface-2: #15151a;
+      --bg-layer-1: #18181f;
+      --bg-layer-1-hover: #1c1c23;
+      --bg-layer-1-active: #25252d; /* derived */
+      --bg-layer-1-selected: #24232e;
+      --bg-layer-2: #1c1c23;
+      --bg-layer-2-hover: #25252d; /* derived */
+      --bg-layer-2-active: #2c2c35; /* derived */
+      --bg-layer-2-selected: #24232e;
+      --bg-layer-3: #25252d;
+      --bg-layer-3-hover: #2c2c35; /* derived */
+      --bg-layer-3-active: #34343e; /* derived */
+      --bg-layer-3-selected: #24232e;
+      --bg-layer-disabled: #1c1c23;
+      --bg-backdrop: rgba(4, 4, 6, 0.62);
+      --bg-inverse: #ededf2;
+      --bg-inverse-hover: #dcdce3; /* derived */
+      --bg-inverse-active: #cbcbd4; /* derived */
+      --bg-inverse-selected: #cbcbd4; /* derived */
+      --bg-popover: rgba(24, 24, 31, 0.95);
+      --bg-accent-row: rgba(139, 125, 255, 0.1);
+
+      /* ---------- Text ---------- */
+      --txt-primary: #ededf2;
+      --txt-secondary: #a1a1ae;
+      --txt-tertiary: #878794;
+      --txt-placeholder: #6e6e7b;
+      --txt-disabled: #4d4d58;
+      --txt-on-color: #0c0a18;
+      --txt-on-color-disabled: rgba(12, 10, 24, 0.5);
+      --txt-inverse: #08080a;
+      --txt-icon-primary: #ededf2;
+      --txt-icon-secondary: #a1a1ae;
+      --txt-icon-tertiary: #878794;
+      --txt-icon-placeholder: #6e6e7b;
+      --txt-icon-disabled: #4d4d58;
+      --txt-icon-on-color: #0c0a18;
+      --txt-icon-on-color-disabled: rgba(12, 10, 24, 0.5);
+      --txt-icon-inverse: #08080a;
+
+      /* ---------- Borders ---------- */
+      --border-subtle: #1b1b21;
+      --border-subtle-1: #25252e; /* derived */
+      --border-strong: #25252e;
+      --border-strong-1: #5f5f6b;
+      --border-inverse: #101014;
+      --border-disabled: #1b1b21;
+      --border-accent-strong: #8b7dff;
+      --border-accent-subtle: rgba(139, 125, 255, 0.35); /* derived */
+
+      /* ---------- Accent ---------- */
+      --bg-accent-primary: #8b7dff;
+      --bg-accent-primary-hover: #a69bff;
+      --bg-accent-primary-active: #b8afff; /* derived */
+      --bg-accent-subtle: rgba(139, 125, 255, 0.16);
+      --bg-accent-subtle-hover: rgba(139, 125, 255, 0.22); /* derived */
+      --bg-accent-subtle-active: rgba(139, 125, 255, 0.28); /* derived */
+      --txt-accent-primary: #8b7dff;
+      --txt-accent-secondary: #a69bff;
+      --txt-icon-accent-primary: #8b7dff;
+      --txt-icon-accent-secondary: #a69bff;
+      --txt-icon-accent-subtle: #6a5fd0; /* derived */
+      --txt-link-primary: #8b7dff;
+      --txt-link-primary-hover: #a69bff;
+      --txt-link-secondary: #a1a1ae;
+
+      /* ---------- Feedback ---------- */
+      --txt-danger-primary: #ff7a7a;
+      --txt-danger-secondary: #ff9b9b; /* derived */
+      --txt-icon-danger-primary: #ff7a7a;
+      --txt-icon-danger-secondary: #ff9b9b; /* derived */
+      --txt-icon-danger: #ff7a7a;
+      --bg-danger-primary: #e5484d; /* derived */
+      --bg-danger-primary-hover: #ef5b60; /* derived */
+      --bg-danger-primary-active: #f27479; /* derived */
+      --bg-danger-primary-selected: #f27479; /* derived */
+      --bg-danger-subtle: rgba(255, 122, 122, 0.13);
+      --bg-danger-subtle-hover: rgba(255, 122, 122, 0.19); /* derived */
+      --bg-danger-subtle-active: rgba(255, 122, 122, 0.25); /* derived */
+      --bg-danger-subtle-selected: rgba(255, 122, 122, 0.25); /* derived */
+      --bg-danger-transparent: rgba(255, 122, 122, 0.13);
+      --bg-danger-transparent-hover: rgba(255, 122, 122, 0.19); /* derived */
+      --bg-danger-transparent-active: rgba(255, 122, 122, 0.25); /* derived */
+      --bg-danger-transparent-selected: rgba(255, 122, 122, 0.25); /* derived */
+      --border-danger-strong: #ff7a7a;
+      --border-danger-subtle: rgba(255, 122, 122, 0.35); /* derived */
+      --txt-success-primary: #34d399;
+      --txt-success-secondary: #63e2b1; /* derived */
+      --txt-icon-success-primary: #34d399;
+      --txt-icon-success-secondary: #63e2b1; /* derived */
+      --bg-success-primary: #1fae7b; /* derived */
+      --bg-success-subtle: rgba(52, 211, 153, 0.13);
+      --bg-success-subtle-1: rgba(52, 211, 153, 0.2); /* derived */
+      --border-success-strong: #34d399;
+      --border-success-subtle: rgba(52, 211, 153, 0.35); /* derived */
+      --txt-warning-primary: #f5a524;
+      --txt-warning-secondary: #f8bd5a; /* derived */
+      --txt-icon-warning-primary: #f5a524;
+      --txt-icon-warning-secondary: #f8bd5a; /* derived */
+      --txt-icon-warning-subtle: #c98500; /* derived */
+      --bg-warning-primary: #d98e14; /* derived */
+      --bg-warning-secondary: rgba(245, 165, 36, 0.28); /* derived */
+      --bg-warning-subtle: rgba(245, 165, 36, 0.14);
+      --border-warning-strong: #f5a524;
+      --border-warning-subtle: rgba(245, 165, 36, 0.35); /* derived */
+
+      /* ---------- State groups ---------- */
+      --txt-icon-states-backlog: #7c7c88;
+      --txt-icon-states-unstarted: #b4b4c0;
+      --txt-icon-states-started: #f5a524;
+      --txt-icon-states-completed: #8b7dff;
+      --txt-icon-states-cancelled: #ef6b6b;
+      --state-started-2: #34d399;
+      --loz-backlog-bg: rgba(124, 124, 136, 0.16);
+      --loz-backlog-fg: #bdbdc8;
+      --loz-unstarted-bg: rgba(180, 180, 192, 0.12);
+      --loz-unstarted-fg: #d7d7df;
+      --loz-started-bg: rgba(245, 165, 36, 0.14);
+      --loz-started-fg: #f8bd5a;
+      --loz-review-bg: rgba(52, 211, 153, 0.14);
+      --loz-review-fg: #63e2b1;
+      --loz-completed-bg: rgba(139, 125, 255, 0.17);
+      --loz-completed-fg: #b8afff;
+      --loz-cancelled-bg: rgba(239, 107, 107, 0.14);
+      --loz-cancelled-fg: #ff9b9b;
+
+      /* ---------- Priority ---------- */
+      --priority-urgent: #ff7a45;
+      --priority-high: #a1a1ae;
+      --priority-medium: #a1a1ae;
+      --priority-low: #a1a1ae;
+      --priority-none: #a1a1ae;
+      --priority-unlit: rgba(161, 161, 174, 0.28);
+
+      /* ---------- Agents ---------- */
+      --activity-primary: #2dd4bf;
+      --activity-subtle: rgba(45, 212, 191, 0.13);
+
+      /* ---------- Labels ---------- */
+      --label-blue: #5b8def;
+      --label-teal: #2bb3a3;
+      --label-pink: #d9659a;
+      --label-violet: #9b7ae0;
+      --label-amber: #e0a43c;
+      --label-green: #49b36b;
+      --label-red: #e06464;
+      --label-cyan: #3fb3d9;
+      --label-orange: #e07f3c;
+      --label-slate: #8a8fa3;
+
+      /* ---------- PQL syntax ---------- */
+      --syntax-field: #7cb7ff;
+      --syntax-operator: #b3a9ff;
+      --syntax-value: #f2c46d;
+      --syntax-function: #2dd4bf;
+      --syntax-error: #ff8080;
+
+      /* ---------- Charts ---------- */
+      --chart-1: #8b7dff;
+      --chart-2: #1aa38c;
+      --chart-3: #c98500;
+      --chart-ref: #5f5f6b;
+      --chart-grid: #1b1b21;
+
+      /* ---------- Scrollbars ---------- */
+      --scrollbar-thumb-hover: #7c7c88;
+      --scrollbar-thumb-active: #7c7c88;
+
+      /* ---------- Elevation ---------- */
+      --elev-e1: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+      --elev-e2: 0 8px 22px rgba(0, 0, 0, 0.28);
+      --elev-e3: 0 18px 44px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+  }
+}
+
+/* The Tailwind names for what propel lacks */
+@theme inline {
+  --color-popover: var(--bg-popover);
+  --color-accent-row: var(--bg-accent-row);
+  --color-activity: var(--activity-primary);
+  --color-activity-subtle: var(--activity-subtle);
+  --color-bot-build: var(--bot-build);
+  --color-bot-review: var(--bot-review);
+  --color-state-started-2: var(--state-started-2);
+
+  --color-label-blue: var(--label-blue);
+  --color-label-teal: var(--label-teal);
+  --color-label-pink: var(--label-pink);
+  --color-label-violet: var(--label-violet);
+  --color-label-amber: var(--label-amber);
+  --color-label-green: var(--label-green);
+  --color-label-red: var(--label-red);
+  --color-label-cyan: var(--label-cyan);
+  --color-label-orange: var(--label-orange);
+  --color-label-slate: var(--label-slate);
+
+  --color-loz-backlog-bg: var(--loz-backlog-bg);
+  --color-loz-backlog-fg: var(--loz-backlog-fg);
+  --color-loz-unstarted-bg: var(--loz-unstarted-bg);
+  --color-loz-unstarted-fg: var(--loz-unstarted-fg);
+  --color-loz-started-bg: var(--loz-started-bg);
+  --color-loz-started-fg: var(--loz-started-fg);
+  --color-loz-review-bg: var(--loz-review-bg);
+  --color-loz-review-fg: var(--loz-review-fg);
+  --color-loz-completed-bg: var(--loz-completed-bg);
+  --color-loz-completed-fg: var(--loz-completed-fg);
+  --color-loz-cancelled-bg: var(--loz-cancelled-bg);
+  --color-loz-cancelled-fg: var(--loz-cancelled-fg);
+
+  --color-syntax-field: var(--syntax-field);
+  --color-syntax-operator: var(--syntax-operator);
+  --color-syntax-value: var(--syntax-value);
+  --color-syntax-function: var(--syntax-function);
+  --color-syntax-error: var(--syntax-error);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-ref: var(--chart-ref);
+  --color-chart-grid: var(--chart-grid);
+
+  --shadow-e1: var(--elev-e1);
+  --shadow-e2: var(--elev-e2);
+  --shadow-e3: var(--elev-e3);
+}
+
+@theme {
+  /* Geist and Geist Mono, self-hosted by the apps (@fontsource-variable) */
+  --font-heading:
+    "Geist Variable", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
+  --font-body:
+    "Geist Variable", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
+  --font-code:
+    "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+
+  /* The sizes the Pulse type scale uses that propel's ladder skips */
+  --text-10-5: 0.65625rem;
+  --text-22: 1.375rem;
+  --text-26: 1.625rem;
+
+  /* propel's elevation names mapped onto Pulse's: raised is e1 (panels, cards, buttons), overlay is e3 (menus,
+   * popovers, toasts) */
+  --shadow-raised-100: var(--elev-e1);
+  --shadow-raised-200: var(--elev-e1);
+  --shadow-raised-300: var(--elev-e2);
+  --shadow-overlay-100: var(--elev-e3);
+  --shadow-overlay-200: var(--elev-e3);
+
+  /* Motion: instant 0 (navigation and data), fast 120, base 180, move 320, settle 2400, ambient 1600 */
+  --ease-pulse-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-pulse-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-pulse-ring: pulse-ring 1.6s linear infinite;
+  --animate-pulse-dots: pulse-dots 1.2s ease-in-out infinite;
+  --animate-pulse-caret: pulse-caret 1.1s steps(1) infinite;
+  --animate-pulse-arrive: pulse-arrive 2.4s var(--ease-pulse-out) forwards;
+  --animate-pulse-slide-in: pulse-slide-in 0.32s var(--ease-pulse-out) both;
+}
+
+@keyframes pulse-ring {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-dots {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes pulse-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* A row that arrived: a tint that fades out; reduced motion shows the tint and holds it */
+@keyframes pulse-arrive {
+  from {
+    background-color: var(--bg-accent-subtle);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes pulse-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-ring,
+  .animate-pulse-dots,
+  .animate-pulse-caret,
+  .animate-pulse-slide-in {
+    animation: none;
+  }
+  .animate-pulse-arrive {
+    animation: none;
+    background-color: var(--bg-accent-row);
+  }
+}
