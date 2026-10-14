@@ -16,7 +16,7 @@ from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
 
 # Module imports
-from plane.utils.otlp_endpoints import get_otlp_grpc_endpoint, get_otlp_http_metrics_url
+from plane.utils.otlp_endpoints import get_otlp_endpoint, get_otlp_grpc_endpoint, get_otlp_http_metrics_url
 from plane.license.models import Instance
 from plane.db.models import (
     User,
@@ -79,6 +79,10 @@ def _collect_and_push_metrics() -> None:
 
     if not instance.is_telemetry_enabled:
         logger.debug("Telemetry disabled, skipping metrics push")
+        return
+
+    if get_otlp_endpoint() is None:
+        logger.debug("OTLP_ENDPOINT not set, skipping metrics push")
         return
 
     # Configure OTEL metrics (gRPC default, or HTTP if OTLP_METRICS_PROTOCOL=http)

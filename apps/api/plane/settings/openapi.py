@@ -19,14 +19,13 @@ SPECTACULAR_SETTINGS = {
         "[developers.plane.so](https://developers.plane.so/api-reference/introduction)."
     ),
     "CONTACT": {
-        "name": "Plane",
-        "url": "https://plane.so",
-        "email": "support@plane.so",
+        "name": "Gelhaus-Solutions/plane",
+        "url": "https://github.com/Gelhaus-Solutions/plane",
     },
     "VERSION": "0.0.1",
     "LICENSE": {
         "name": "GNU AGPLv3",
-        "url": "https://github.com/makeplane/plane/blob/preview/LICENSE.txt",
+        "url": "https://github.com/Gelhaus-Solutions/plane/blob/main/LICENSE.txt",
     },
     # ========================================================================
     # Schema Generation Settings
