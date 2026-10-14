@@ -8,77 +8,45 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 // plane internal packages
-import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { cn } from "@plane/utils";
 // hooks
 import { useTheme } from "@/hooks/store";
 import { useSidebarMenu } from "@/hooks/use-sidebar-menu";
 
+/** The God mode sections, as 28 px rows with the selected tint and an accent icon. */
 export const AdminSidebarMenu = observer(function AdminSidebarMenu() {
   // router
   const pathName = usePathname();
   // store hooks
-  const { isSidebarCollapsed, toggleSidebar } = useTheme();
+  const { toggleSidebar } = useTheme();
   // derived values
   const sidebarMenu = useSidebarMenu();
 
+  // Below md the sidebar covers the panel, so picking a section closes it
   const handleItemClick = () => {
-    if (window.innerWidth < 768) {
-      toggleSidebar(!isSidebarCollapsed);
-    }
+    if (window.innerWidth < 768) toggleSidebar(true);
   };
 
   return (
-    <div className="vertical-scrollbar scrollbar-sm flex h-full w-full flex-col gap-2.5 overflow-y-scroll px-4 py-4">
+    <div className="vertical-scrollbar scrollbar-sm flex min-h-0 flex-1 flex-col gap-px overflow-y-auto">
       {sidebarMenu.map((item) => {
-        const isActive = item.href === pathName || pathName?.startsWith(item.href);
+        const isActive = item.href === pathName || !!pathName?.startsWith(item.href);
         return (
-          <Link key={item.href} href={item.href} onClick={handleItemClick}>
-            <div>
-              {!isSidebarCollapsed ? (
-                <>
-                  <div
-                    className={cn(
-                      "group flex w-full items-center gap-3 rounded-md px-3 py-2 transition-colors outline-none",
-                      {
-                        "!bg-layer-transparent-active text-primary": isActive,
-                        "text-secondary hover:bg-layer-transparent-hover active:bg-layer-transparent-active": !isActive,
-                      },
-                      isSidebarCollapsed ? "justify-center" : "w-[260px]"
-                    )}
-                  >
-                    {<item.Icon className="h-4 w-4 flex-shrink-0" />}
-                    {!isSidebarCollapsed && (
-                      <div className="w-full">
-                        <div className={cn(`text-body-xs-medium transition-colors`)}>{item.name}</div>
-                        <div className={cn(`text-caption-sm-regular transition-colors`)}>{item.description}</div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <Tooltip label={item.name} side="right">
-                  <div
-                    className={cn(
-                      "group flex w-full items-center gap-3 rounded-md px-3 py-2 transition-colors outline-none",
-                      {
-                        "!bg-layer-transparent-active text-primary": isActive,
-                        "text-secondary hover:bg-layer-transparent-hover active:bg-layer-transparent-active": !isActive,
-                      },
-                      isSidebarCollapsed ? "justify-center" : "w-[260px]"
-                    )}
-                  >
-                    {<item.Icon className="h-4 w-4 flex-shrink-0" />}
-                    {!isSidebarCollapsed && (
-                      <div className="w-full">
-                        <div className={cn(`text-body-xs-medium transition-colors`)}>{item.name}</div>
-                        <div className={cn(`text-caption-sm-regular transition-colors`)}>{item.description}</div>
-                      </div>
-                    )}
-                  </div>
-                </Tooltip>
-              )}
-            </div>
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={handleItemClick}
+            aria-current={isActive ? "page" : undefined}
+            className={cn(
+              "flex h-7 w-full min-w-0 items-center gap-[9px] rounded-[7px] px-2 text-13 text-primary transition-colors duration-[120ms] outline-none",
+              {
+                "bg-layer-1-selected [&_svg]:text-accent-primary": isActive,
+                "hover:bg-layer-1-hover [&_svg]:text-secondary": !isActive,
+              }
+            )}
+          >
+            <item.Icon className="size-4 shrink-0" />
+            <span className="truncate">{item.name}</span>
           </Link>
         );
       })}

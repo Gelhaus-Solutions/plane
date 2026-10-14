@@ -10,7 +10,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 // icons
 import { Menu } from "lucide-react";
-import { SettingsOutline } from "@makeplane/propel/icons";
 // plane internal packages
 import {
   Breadcrumb,
@@ -20,7 +19,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@makeplane/propel/components/breadcrumb";
-import { Icon } from "@makeplane/propel/components/icon";
 // hooks
 import { useTheme } from "@/hooks/store";
 // local imports
@@ -68,18 +66,14 @@ export const AdminHeader = observer(function AdminHeader() {
   const breadcrumbItems = generateBreadcrumbItems(pathName || "").filter((item) => item.title);
 
   return (
-    <div className="relative z-10 flex h-header w-full flex-shrink-0 flex-row items-center justify-between gap-x-2 gap-y-4 border-b border-subtle bg-surface-1 p-4">
+    <div className="relative z-10 flex min-h-11 w-full flex-shrink-0 flex-row items-center justify-between gap-x-2 border-b border-subtle bg-surface-1 px-[18px] py-2">
       <div className="flex w-full flex-grow items-center gap-2 overflow-ellipsis whitespace-nowrap">
         <HamburgerToggle />
         <div>
           <Breadcrumb aria-label="Breadcrumb">
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink
-                  label="Settings"
-                  icon={<Icon icon={SettingsOutline} tint="tertiary" />}
-                  render={<Link href="/general/" />}
-                />
+                <BreadcrumbLink label="God mode" render={<Link href="/general/" />} />
               </BreadcrumbItem>
               {breadcrumbItems.map((item, index) => (
                 <Fragment key={item.href}>
