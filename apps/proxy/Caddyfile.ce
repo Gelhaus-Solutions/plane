@@ -33,6 +33,10 @@
 		import upstream_retry
 	}
 
+	reverse_proxy /mcp* api:8000 {
+		import upstream_retry
+	}
+
 	reverse_proxy /static/* api:8000 {
 		import upstream_retry
 	}

@@ -1,0 +1,63 @@
+{
+  "_source": "Tool names, actions and argument shapes of the MCP server agents used on 2026-10-14 (uvx plane-mcp-server), recorded from its tool listing (D6): groups 1 to 3. The native /mcp must keep them.",
+  "workitem": {
+    "actions": ["list", "list_archived", "retrieve", "retrieve_by_identifier", "search", "count", "create", "update", "delete", "archive", "manage_assignee", "manage_label"],
+    "properties": {"add_label_id": "string", "add_user_id": "string", "archive": "boolean|null", "assignees": "array|null", "cursor": "string", "description_html": "string", "description_stripped": "string", "estimate_point": "string", "expand": "string", "external_id": "string", "external_source": "string", "fields": "string", "group_by": "string", "is_draft": "boolean|null", "labels": "array|null", "name": "string", "order_by": "string", "parent": "string", "per_page": "integer", "point": "integer", "pql": "string", "priority": "string", "project_id": "string", "query": "string", "remove_label_id": "string", "remove_user_id": "string", "sort_order": "number", "start_date": "null|string", "state": "string", "sub_group_by": "string", "target_date": "null|string", "type_id": "string", "workitem_id": "string", "workitem_identifier": "string"}
+  },
+  "project": {
+    "actions": ["list", "retrieve", "create", "update", "delete", "archive", "unarchive", "worklog_summary", "get_features", "update_features"],
+    "properties": {"archive_in": "integer", "close_in": "integer", "cover_image": "string", "cursor": "string", "cycles": "boolean|null", "default_assignee": "string", "default_state": "string", "description": "string", "description_html": "string", "emoji": "string", "epics": "boolean|null", "estimate": "string", "external_id": "string", "external_source": "string", "identifier": "string", "intakes": "boolean|null", "is_time_tracking_enabled": "boolean|null", "modules": "boolean|null", "name": "string", "network": "integer|null", "order_by": "string", "pages": "boolean|null", "parallel_cycles": "boolean|null", "per_page": "integer", "project_id": "string", "project_lead": "string", "project_updates": "boolean|null", "timezone": "string", "views": "boolean|null", "workflows": "boolean|null", "workitem_types": "boolean|null"}
+  },
+  "state": {
+    "actions": ["list", "retrieve", "create", "update", "delete"],
+    "properties": {"color": "string", "cursor": "string", "default": "boolean|null", "description": "string", "external_id": "string", "external_source": "string", "group": "string", "name": "string", "per_page": "integer", "project_id": "string", "sequence": "null|number", "state_id": "string"}
+  },
+  "label": {
+    "actions": ["list", "retrieve", "create", "update", "delete"],
+    "properties": {"color": "string", "cursor": "string", "description": "string", "external_id": "string", "external_source": "string", "label_id": "string", "name": "string", "parent": "string", "per_page": "integer", "project_id": "string", "sort_order": "null|number"}
+  },
+  "member": {
+    "actions": ["me", "list_workspace", "list_project", "list_roles", "retrieve_role"],
+    "properties": {"cursor": "string", "display_name": "string", "email": "string", "first_name": "string", "is_active": "boolean|null", "is_bot": "boolean|null", "last_name": "string", "namespace": "string", "order_by": "string", "per_page": "integer", "project_id": "string", "role_id": "string", "role_slug": "string"}
+  },
+  "workspace": {
+    "actions": ["retrieve", "get_features", "update_features"],
+    "properties": {"customers": "boolean|null", "initiatives": "boolean|null", "pi": "boolean|null", "project_grouping": "boolean|null", "teams": "boolean|null", "wiki": "boolean|null"}
+  },
+  "get_pql_reference": {
+    "actions": null,
+    "properties": {"detail": "string"}
+  },
+  "workitem_comment": {
+    "actions": ["list", "retrieve", "create", "update", "delete"],
+    "properties": {"access": "string", "comment_html": "string", "comment_id": "string", "cursor": "string", "external_id": "string", "external_source": "string", "per_page": "integer", "project_id": "string", "workitem_id": "string"}
+  },
+  "workitem_relation": {
+    "actions": ["list", "create", "delete", "list_definitions", "create_definition", "update_definition", "delete_definition"],
+    "properties": {"color": "string", "definition_id": "string", "inward": "string", "is_active": "boolean|null", "is_default": "boolean|null", "is_dependency": "boolean", "name": "string", "outward": "string", "project_id": "string", "related_workitem_id": "string", "relation_definition_id": "string", "relation_definition_label": "string", "relation_type": "string", "workitem_id": "string", "workitem_ids": "array|null"}
+  },
+  "workitem_link": {
+    "actions": ["list", "retrieve", "create", "update", "delete"],
+    "properties": {"cursor": "string", "link_id": "string", "per_page": "integer", "project_id": "string", "title": "string", "url": "string", "workitem_id": "string"}
+  },
+  "workitem_activity": {
+    "actions": ["list", "retrieve"],
+    "properties": {"activity_id": "string", "cursor": "string", "per_page": "integer", "project_id": "string", "workitem_id": "string"}
+  },
+  "workitem_attachment": {
+    "actions": ["list", "read", "download_url", "upload_from_url", "delete"],
+    "properties": {"attachment_id": "string", "name": "string", "project_id": "string", "url": "string", "workitem_id": "string"}
+  },
+  "cycle": {
+    "actions": ["list", "retrieve", "create", "update", "delete", "list_workitems", "manage_workitems", "transfer_workitems", "complete", "archive", "unarchive"],
+    "properties": {"add_ids": "string", "archived": "boolean", "cursor": "string", "cycle_id": "string", "description": "string", "end_date": "string", "expand": "string", "external_id": "string", "external_source": "string", "fields": "string", "name": "string", "new_cycle_id": "string", "order_by": "string", "owned_by": "string", "per_page": "integer", "pql": "string", "project_id": "string", "remove_ids": "string", "start_date": "string", "status": "string", "timezone": "string"}
+  },
+  "module": {
+    "actions": ["list", "retrieve", "create", "update", "delete", "list_workitems", "manage_workitems", "archive", "unarchive"],
+    "properties": {"add_ids": "string", "archived": "boolean", "cursor": "string", "description": "string", "expand": "string", "external_id": "string", "external_source": "string", "fields": "string", "lead": "string", "members": "string", "module_id": "string", "name": "string", "order_by": "string", "per_page": "integer", "pql": "string", "project_id": "string", "remove_ids": "string", "start_date": "string", "status": "string", "target_date": "string"}
+  },
+  "intake": {
+    "actions": ["list", "retrieve", "create", "update", "delete"],
+    "properties": {"cursor": "string", "description_html": "string", "duplicate_to": "string", "name": "string", "per_page": "integer", "priority": "string", "project_id": "string", "snoozed_till": "string", "source": "string", "source_email": "string", "status": "integer|null", "workitem_id": "string"}
+  }
+}

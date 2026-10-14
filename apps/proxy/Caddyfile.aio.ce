@@ -18,6 +18,10 @@
         reverse_proxy localhost:3004
     }
 
+	handle /mcp* {
+        reverse_proxy localhost:3004
+    }
+
 	handle_path /god-mode* {
         root * /app/admin
         try_files {path} {path}/ /index.html

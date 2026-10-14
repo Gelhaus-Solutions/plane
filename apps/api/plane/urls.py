@@ -7,6 +7,8 @@
 from django.apps import apps
 from django.conf import settings
 from django.urls import include, path, re_path
+
+from plane.mcp.views import MCPEndpoint
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -21,6 +23,9 @@ urlpatterns = [
     path("api/instances/", include("plane.license.urls")),
     path("api/v1/", include("plane.api.urls")),
     path("auth/", include("plane.authentication.urls")),
+    # MCP over Streamable HTTP; both spellings, since a POST cannot follow a slash redirect
+    path("mcp", MCPEndpoint.as_view(), name="mcp"),
+    path("mcp/", MCPEndpoint.as_view(), name="mcp-slash"),
     path("", include("plane.web.urls")),
 ]
 
