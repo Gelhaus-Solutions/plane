@@ -13,10 +13,10 @@ import os
 import re
 from datetime import timedelta
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
-from plane.db.models import AgentSession, APIToken, WorkspaceBot
+from plane.db.models import AgentSession, APIToken, WorkItemClaim, WorkspaceBot
 
 SESSION_TOKEN_DAYS = 30
 AWAY_AFTER = timedelta(minutes=30)
@@ -164,15 +164,18 @@ def end(session, reason="ended"):
     session.end_reason = (reason or "ended")[:64]
     session.save(update_fields=["status", "ended_at", "end_reason", "updated_at"])
     APIToken.objects.filter(agent_session=session, is_active=True).update(is_active=False)
+    _end_claims(WorkItemClaim.objects.filter(session=session), WorkItemClaim.EndReason.SESSION_ENDED)
     return session
 
 
 def sweep(now=None):
     """Live sessions not seen for ``AWAY_AFTER`` go away; away ones not seen for ``END_AFTER_AWAY`` more end."""
     now = now or timezone.now()
-    away = AgentSession.objects.filter(status=AgentSession.Status.LIVE, last_seen_at__lt=now - AWAY_AFTER).update(
-        status=AgentSession.Status.AWAY
-    )
+    going = AgentSession.objects.filter(status=AgentSession.Status.LIVE, last_seen_at__lt=now - AWAY_AFTER)
+    going_ids = list(going.values_list("id", flat=True))
+    away = AgentSession.objects.filter(pk__in=going_ids).update(status=AgentSession.Status.AWAY)
+    # A claim lapses when its session goes away (D23)
+    _end_claims(WorkItemClaim.objects.filter(session_id__in=going_ids), WorkItemClaim.EndReason.SESSION_AWAY)
     ended = 0
     for session in AgentSession.objects.filter(
         status=AgentSession.Status.AWAY, last_seen_at__lt=now - AWAY_AFTER - END_AFTER_AWAY
@@ -180,3 +183,70 @@ def sweep(now=None):
         end(session, reason="silent")
         ended += 1
     return away, ended
+
+
+# ------------------------------------------------------------------ claims
+
+
+class ClaimConflict(SessionError):
+    """Another live session holds the claim."""
+
+    def __init__(self, claim):
+        super().__init__(f"Claimed by {claim_label(claim)} since {claim.claimed_at:%Y-%m-%d %H:%M} UTC")
+        self.claim = claim
+
+
+def claim_label(claim):
+    return f"{claim.session.bot.user.display_name} \u00b7 {claim.session.name}"
+
+
+def _end_claims(claims, reason, now=None):
+    return claims.filter(ended_at__isnull=True).update(ended_at=now or timezone.now(), end_reason=reason)
+
+
+def open_claim(issue):
+    return WorkItemClaim.objects.filter(issue=issue, ended_at__isnull=True).select_related("session__bot__user").first()
+
+
+def claim(issue, session):
+    """Claim the work item for the session; returns ``(claim, created)``. A claim held by a session that is no
+    longer live is taken over; one held by a live session is refused with ``ClaimConflict``."""
+    if session.status == AgentSession.Status.ENDED:
+        raise SessionError("This agent session has ended", forbidden=True)
+    try:
+        with transaction.atomic():
+            current = (
+                WorkItemClaim.objects.select_for_update()
+                .filter(issue=issue, ended_at__isnull=True)
+                .select_related("session__bot__user")
+                .first()
+            )
+            if current is not None:
+                if current.session_id == session.id:
+                    return current, False
+                if current.session.status == AgentSession.Status.LIVE:
+                    raise ClaimConflict(current)
+                _end_claims(WorkItemClaim.objects.filter(pk=current.pk), WorkItemClaim.EndReason.LAPSED)
+            made = WorkItemClaim.objects.create(
+                workspace_id=issue.workspace_id, issue=issue, session=session, claimed_at=timezone.now()
+            )
+            return WorkItemClaim.objects.select_related("session__bot__user").get(pk=made.pk), True
+    except IntegrityError:
+        # Another session claimed it in the same moment
+        current = open_claim(issue)
+        if current is not None and current.session_id != session.id:
+            raise ClaimConflict(current)
+        raise
+
+
+def release(issue, session=None):
+    """End the open claim: the holding session releases its own, a person (no session) releases any."""
+    current = open_claim(issue)
+    if current is None:
+        return None
+    if session is not None and current.session_id != session.id:
+        raise SessionError(f"Claimed by {claim_label(current)}, not by this session", forbidden=True)
+    reason = WorkItemClaim.EndReason.RELEASED if session is not None else WorkItemClaim.EndReason.RELEASED_BY_PERSON
+    _end_claims(WorkItemClaim.objects.filter(pk=current.pk), reason)
+    current.refresh_from_db()
+    return current

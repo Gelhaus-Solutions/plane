@@ -24,6 +24,9 @@ from django.db.models.functions import Cast, Concat
 from django.utils import timezone
 
 from plane.db.models import (
+    AgentSession,
+    IssueActivity,
+    WorkItemClaim,
     Cycle,
     CycleIssue,
     IntakeIssue,
@@ -95,9 +98,11 @@ class PQLContext:
     from the user's profile, so ``today()`` means the user's today.
     """
 
-    def __init__(self, workspace_id, user_id, week_start=0, now=None):
+    def __init__(self, workspace_id, user_id, week_start=0, now=None, session_id=None):
         self.workspace_id = workspace_id
         self.user_id = user_id
+        # The caller's agent session when it uses a session token (E28), for currentSession()
+        self.session_id = session_id
         # Profile.start_of_the_week: 0 is Sunday, 1 Monday, ... 6 Saturday
         self.week_start = week_start or 0
         self.now = now or timezone.now()
@@ -107,7 +112,13 @@ class PQLContext:
     def for_request(cls, request, workspace_slug):
         workspace_id = Workspace.objects.filter(slug=workspace_slug).values_list("id", flat=True).first()
         week_start = Profile.objects.filter(user_id=request.user.id).values_list("start_of_the_week", flat=True).first()
-        return cls(workspace_id=workspace_id, user_id=request.user.id, week_start=week_start)
+        session = getattr(request, "agent_session", None)
+        return cls(
+            workspace_id=workspace_id,
+            user_id=request.user.id,
+            week_start=week_start,
+            session_id=session.id if session is not None else None,
+        )
 
     def member_project_ids(self):
         return ProjectMember.objects.filter(
@@ -225,6 +236,7 @@ VALUE_FUNCTIONS = {
     "monthsago": (None, lambda call, args, c: Evaluated(DATE, _add_months(c.today, -_offset(call, args)), None)),
     "monthsfromnow": (None, lambda call, args, c: Evaluated(DATE, _add_months(c.today, _offset(call, args)), None)),
     "currentuser": (0, lambda call, args, c: Evaluated(IDS, [str(c.user_id)], "user")),
+    "currentsession": (0, lambda call, args, c: _current_session(call, c)),
     "workspacemembers": (
         0,
         lambda call, args, c: Evaluated(
@@ -263,6 +275,12 @@ def _evaluate(node, context):
         args = [_evaluate(arg, context) for arg in node.args]
         return evaluator(node, args, context)
     raise PQLError("Expected a value", getattr(node, "position", None), "invalid_value")
+
+
+def _current_session(call, context):
+    if context.session_id is None:
+        raise PQLError("currentSession() needs an agent session's token", call.position, "no_session")
+    return Evaluated(IDS, [str(context.session_id)], "session")
 
 
 def _uuid(value, position, description):
@@ -708,6 +726,56 @@ class _CustomPropertyField(_Field):
         return self.rows(prop, _in_q("value_issue_id", literal_ids, subqueries))
 
 
+class _SessionField(_Field):
+    """claimedBy and session (E28): an agent session named by its id or bus name, a bot by its name (any of its
+    sessions), or currentSession(). claimedBy is the open claim of a live session; session is any change it made."""
+
+    operators = EQUALITY + SETS + EMPTINESS
+
+    def __init__(self, name, issue_ids):
+        super().__init__(name)
+        self.issue_ids = issue_ids
+
+    def sessions(self, comparison, context):
+        literal, subqueries = [], []
+        sessions = AgentSession.objects.filter(workspace_id=context.workspace_id)
+        for node in _values(comparison.value):
+            value = _evaluate(node, context)
+            if value.kind == IDS and value.entity == "session":
+                literal.extend(value.value)
+                continue
+            if value.kind != STRING:
+                raise PQLError(
+                    f"{self.name} takes a session id or name, a bot name, or currentSession()",
+                    node.position,
+                    "invalid_value",
+                )
+            try:
+                literal.append(str(uuid.UUID(value.value)))
+                continue
+            except ValueError:
+                pass
+            by_name = sessions.filter(Q(name__iexact=value.value) | Q(bot__user__display_name__iexact=value.value))
+            if not by_name.exists():
+                raise PQLError(f'No agent session or bot named "{value.value}"', node.position, "invalid_id")
+            subqueries.append(by_name.values("id"))
+        return _in_q("session_id", literal, subqueries), _in_q("agent_session_id", literal, subqueries)
+
+    def build(self, comparison, context):
+        if comparison.operator in EMPTINESS:
+            return ~Q(pk__in=self.issue_ids(Q()))
+        claim_q, activity_q = self.sessions(comparison, context)
+        return Q(pk__in=self.issue_ids(claim_q if self.name == "claimedBy" else activity_q))
+
+
+def _claimed_issues(condition):
+    return WorkItemClaim.objects.filter(condition, ended_at__isnull=True, session__status="live").values("issue_id")
+
+
+def _session_issues(condition):
+    return IssueActivity.objects.filter(condition, agent_session__isnull=False).values("issue_id")
+
+
 class _UnavailableField(_Field):
     def __init__(self, name, reason):
         super().__init__(name)
@@ -743,6 +811,8 @@ FIELDS = {
         _ThroughField("mention", IssueMention, "mention_id", "user"),
         _ThroughField("subscriber", IssueSubscriber, "subscriber_id", "user"),
         _CustomPropertyField("cf"),
+        _SessionField("claimedBy", _claimed_issues),
+        _SessionField("session", _session_issues),
         _UnavailableField("milestone", "is not available in this Plane"),
         _UnavailableField("teamspaceProject", "is not available yet"),
     )

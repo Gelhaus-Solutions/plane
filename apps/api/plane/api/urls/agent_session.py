@@ -9,6 +9,7 @@ from plane.api.views.agent_session import (
     AgentSessionEndAPIEndpoint,
     AgentSessionHeartbeatAPIEndpoint,
     AgentSessionListCreateAPIEndpoint,
+    WorkItemClaimAPIEndpoint,
 )
 
 urlpatterns = [
@@ -31,5 +32,10 @@ urlpatterns = [
         "workspaces/<str:slug>/agent-sessions/<uuid:pk>/end/",
         AgentSessionEndAPIEndpoint.as_view(http_method_names=["post"]),
         name="agent-session-end",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/claim/",
+        WorkItemClaimAPIEndpoint.as_view(http_method_names=["get", "post", "delete"]),
+        name="work-item-claim",
     ),
 ]

@@ -581,3 +581,20 @@ class TestPlanning:
         assert not error and [r["id"] for r in found["results"]] == [item["id"]]
         error, message = tool(bot_client, "workitem_property", action="manage_type_properties", workitem_type_id="x")
         assert error and "not available" in message
+
+    @pytest.mark.django_db
+    def test_claims(self, bot, workspace, project):
+        key = bots.issue_token(bot, label="claude")
+        _, token, _ = agent_sessions.register(key, workspace, {"harness": "claude-code", "external_id": "s-claim"})
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + token.token)
+        error, item = tool(client, "workitem", action="create", project_id=str(project.id), name="Mine")
+        where = {"project_id": str(project.id), "workitem_id": item["id"]}
+        error, held = tool(client, "workitem_claim", action="claim", **where)
+        assert not error and held["claim"]["session"]["name"] == "session@s-claim", held
+        error, mine = tool(
+            client, "workitem", action="list", project_id=str(project.id), pql="claimedBy = currentSession()"
+        )
+        assert not error and [r["id"] for r in mine["results"]] == [item["id"]]
+        error, gone = tool(client, "workitem_claim", action="release", **where)
+        assert not error and gone["claim"]["end_reason"] == "released"

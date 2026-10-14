@@ -7,10 +7,10 @@
 from rest_framework import status
 from rest_framework.response import Response
 
-from plane.app.permissions import WorkspaceUserPermission
-from plane.db.models import AgentSession, Workspace, WorkspaceMember
+from plane.app.permissions import ProjectEntityPermission, WorkspaceUserPermission
+from plane.db.models import AgentSession, Issue, Workspace, WorkspaceMember
 from plane.utils import agent_sessions
-from plane.utils.agent_sessions import SessionError
+from plane.utils.agent_sessions import ClaimConflict, SessionError
 
 from .base import BaseAPIView
 
@@ -121,3 +121,62 @@ class AgentSessionEndAPIEndpoint(BaseAPIView):
         reason = request.data.get("reason") if isinstance(request.data, dict) else None
         agent_sessions.end(session, reason=str(reason) if reason else "ended")
         return Response(session_data(session), status=status.HTTP_200_OK)
+
+
+def claim_data(claim):
+    if claim is None:
+        return None
+    session = claim.session
+    return {
+        "id": str(claim.id),
+        "work_item_id": str(claim.issue_id),
+        "label": agent_sessions.claim_label(claim),
+        "session": {
+            "id": str(session.id),
+            "name": session.name,
+            "status": session.status,
+            "bot": session.bot.user.display_name,
+        },
+        "claimed_at": claim.claimed_at,
+        "ended_at": claim.ended_at,
+        "end_reason": claim.end_reason,
+    }
+
+
+class WorkItemClaimAPIEndpoint(BaseAPIView):
+    """A session's claim on a work item (D17, D23): POST claims, DELETE releases, GET shows the open one."""
+
+    permission_classes = [ProjectEntityPermission]
+
+    def _issue(self, slug, project_id, issue_id):
+        return Issue.issue_objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
+
+    def get(self, request, slug, project_id, issue_id):
+        issue = self._issue(slug, project_id, issue_id)
+        return Response({"claim": claim_data(agent_sessions.open_claim(issue))}, status=status.HTTP_200_OK)
+
+    def post(self, request, slug, project_id, issue_id):
+        session = getattr(request, "agent_session", None)
+        if session is None:
+            return Response(
+                {"error": "Only an agent session claims work: register one with the bot key and use its token"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        issue = self._issue(slug, project_id, issue_id)
+        try:
+            claim, created = agent_sessions.claim(issue, session)
+        except ClaimConflict as conflict:
+            return Response(
+                {"error": str(conflict), "claim": claim_data(conflict.claim)}, status=status.HTTP_409_CONFLICT
+            )
+        except SessionError as error:
+            return Response({"error": str(error)}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"claim": claim_data(claim)}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+    def delete(self, request, slug, project_id, issue_id):
+        issue = self._issue(slug, project_id, issue_id)
+        try:
+            claim = agent_sessions.release(issue, session=getattr(request, "agent_session", None))
+        except SessionError as error:
+            return Response({"error": str(error)}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"claim": claim_data(claim)}, status=status.HTTP_200_OK)

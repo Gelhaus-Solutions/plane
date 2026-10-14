@@ -64,3 +64,42 @@ class AgentSession(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.status})"
+
+
+class WorkItemClaim(BaseModel):
+    """A live agent session saying it works on a work item (E28, D17, D23).
+
+    At most one claim per work item is open. It is exclusive while its session is live, and lapses when the session
+    ends or goes away; the holder or a person can release it. Ended claims stay, as the item's claim history.
+    """
+
+    class EndReason(models.TextChoices):
+        RELEASED = "released", "Released by the session"
+        RELEASED_BY_PERSON = "released_by_person", "Released by a person"
+        SESSION_ENDED = "session_ended", "The session ended"
+        SESSION_AWAY = "session_away", "The session went away"
+        LAPSED = "lapsed", "Taken over after the session stopped"
+
+    workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="work_item_claims")
+    issue = models.ForeignKey("db.Issue", on_delete=models.CASCADE, related_name="claims")
+    session = models.ForeignKey(AgentSession, on_delete=models.CASCADE, related_name="claims")
+    claimed_at = models.DateTimeField()
+    ended_at = models.DateTimeField(null=True, blank=True)
+    end_reason = models.CharField(max_length=32, choices=EndReason.choices, blank=True)
+
+    class Meta:
+        verbose_name = "Work Item Claim"
+        verbose_name_plural = "Work Item Claims"
+        db_table = "work_item_claims"
+        ordering = ("-claimed_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["issue"],
+                condition=Q(ended_at__isnull=True, deleted_at__isnull=True),
+                name="work_item_claim_one_open_per_item",
+            )
+        ]
+        indexes = [models.Index(fields=["session", "ended_at"], name="work_item_claim_session_idx")]
+
+    def __str__(self):
+        return f"{self.session_id} on {self.issue_id}"

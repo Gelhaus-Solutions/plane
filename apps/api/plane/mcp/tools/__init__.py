@@ -100,4 +100,4 @@ def api(ctx, method, path, query=None, body=None):
 
 
 # The tool modules register themselves on import
-from plane.mcp.tools import catalog, custom_properties, cycle, intake, project, workitem, workitem_parts  # noqa: E402,F401
+from plane.mcp.tools import catalog, claim, custom_properties, cycle, intake, project, workitem, workitem_parts  # noqa: E402,F401
