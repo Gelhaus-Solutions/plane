@@ -1,0 +1,377 @@
+name: Build Images
+
+# Builds the Plane images and pushes them to GHCR as ghcr.io/<owner>/plane-<image>.
+#
+#   push to any branch   -> :<branch>   (a slash becomes "-", other characters a tag
+#                                        cannot hold are dropped: feat/web-1-x -> feat-web-1-x)
+#   release published    -> :<tag>, plus :stable unless it is a prerelease; also builds
+#                           the AIO image and attaches the self-host assets to the release
+#   manual run           -> :<branch>, optionally with arm64 and the AIO image
+#
+# Releases are cut by publishing a GitHub release with a semver tag (v1.2.3 or
+# v1.2.3-rc-1), e.g. `gh release create v1.5.0 --target main --generate-notes`.
+
+on:
+  push:
+    branches: ["**"]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      arm64:
+        description: "Also build linux/arm64"
+        type: boolean
+        default: false
+      aio_build:
+        description: "Also build the AIO image"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'release' }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  setup:
+    name: Build Setup
+    runs-on: ubuntu-24.04
+    outputs:
+      registry: ${{ steps.vars.outputs.REGISTRY }}
+      version: ${{ steps.vars.outputs.VERSION }}
+      tags: ${{ steps.vars.outputs.TAGS }}
+      arch_matrix: ${{ steps.vars.outputs.ARCH_MATRIX }}
+      expected_platforms: ${{ steps.vars.outputs.EXPECTED_PLATFORMS }}
+      is_release: ${{ steps.vars.outputs.IS_RELEASE }}
+      aio_build: ${{ steps.vars.outputs.AIO_BUILD }}
+    steps:
+      - id: vars
+        name: Compute registry, tags and platforms
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          OWNER: ${{ github.repository_owner }}
+          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+          INPUT_ARM64: ${{ inputs.arm64 }}
+          INPUT_AIO: ${{ inputs.aio_build }}
+        run: |
+          set -euo pipefail
+
+          # GHCR repository paths must be lowercase.
+          echo "REGISTRY=ghcr.io/${OWNER,,}" >> "$GITHUB_OUTPUT"
+
+          # One runner per architecture: arm64 builds natively instead of under QEMU.
+          AMD64='{"arch":"amd64","platform":"linux/amd64","runner":"ubuntu-24.04"}'
+          ARM64='{"arch":"arm64","platform":"linux/arm64","runner":"ubuntu-24.04-arm"}'
+          WITH_ARM64=false
+          AIO_BUILD=false
+
+          if [ "$EVENT_NAME" == "release" ]; then
+            semver_regex="^v([0-9]+)\.([0-9]+)\.([0-9]+)(-[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)?$"
+            if [[ ! "$REF_NAME" =~ $semver_regex ]]; then
+              echo "Release tag '$REF_NAME' is not a semver tag such as v1.2.3 or v1.2.3-rc-1" >&2
+              exit 1
+            fi
+            VERSION="$REF_NAME"
+            TAGS="$REF_NAME"
+            if [ "$IS_PRERELEASE" != "true" ]; then
+              TAGS="${TAGS},stable"
+              WITH_ARM64=true
+            fi
+            IS_RELEASE=true
+            AIO_BUILD=true
+          else
+            VERSION=$(printf '%s' "$REF_NAME" | sed 's#/#-#g; s/[^a-zA-Z0-9_.-]//g; s/^[.-]*//' | cut -c1-128)
+            if [ -z "$VERSION" ]; then
+              echo "Branch '$REF_NAME' leaves no usable docker tag" >&2
+              exit 1
+            fi
+            TAGS="$VERSION"
+            IS_RELEASE=false
+            [ "$INPUT_ARM64" == "true" ] && WITH_ARM64=true
+            [ "$INPUT_AIO" == "true" ] && AIO_BUILD=true
+          fi
+
+          if [ "$WITH_ARM64" == "true" ]; then
+            echo "ARCH_MATRIX=[${AMD64},${ARM64}]" >> "$GITHUB_OUTPUT"
+            echo "EXPECTED_PLATFORMS=linux/amd64,linux/arm64" >> "$GITHUB_OUTPUT"
+          else
+            echo "ARCH_MATRIX=[${AMD64}]" >> "$GITHUB_OUTPUT"
+            echo "EXPECTED_PLATFORMS=linux/amd64" >> "$GITHUB_OUTPUT"
+          fi
+
+          {
+            echo "VERSION=${VERSION}"
+            echo "TAGS=${TAGS}"
+            echo "IS_RELEASE=${IS_RELEASE}"
+            echo "AIO_BUILD=${AIO_BUILD}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Version ${VERSION}, tags ${TAGS}, arm64 ${WITH_ARM64}, aio ${AIO_BUILD}"
+
+  # Each leg builds ONE image for ONE platform on a native runner and pushes an
+  # untagged manifest addressed only by its digest. The merge job stitches the
+  # digests into the multi-arch manifest and applies the tags, so anything that
+  # consumes an image by tag must depend on the merge job, not this one.
+  build:
+    name: Build ${{ matrix.image.name }} (${{ matrix.arch.arch }})
+    runs-on: ${{ matrix.arch.runner }}
+    timeout-minutes: 90
+    needs: [setup]
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJSON(needs.setup.outputs.arch_matrix) }}
+        image:
+          - { name: plane-admin, context: ., dockerfile: ./apps/admin/Dockerfile.admin }
+          - { name: plane-frontend, context: ., dockerfile: ./apps/web/Dockerfile.web }
+          - { name: plane-space, context: ., dockerfile: ./apps/space/Dockerfile.space }
+          - { name: plane-live, context: ., dockerfile: ./apps/live/Dockerfile.live }
+          - { name: plane-backend, context: ./apps/api, dockerfile: ./apps/api/Dockerfile.api }
+          - { name: plane-proxy, context: ./apps/proxy, dockerfile: ./apps/proxy/Dockerfile.ce }
+    env:
+      IMAGE: ${{ needs.setup.outputs.registry }}/${{ matrix.image.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.0.0
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # provenance is off so each leg pushes a plain manifest rather than an index.
+      # The cache ref carries the architecture, otherwise the legs overwrite each
+      # other's cache.
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v7.0.0
+        with:
+          context: ${{ matrix.image.context }}
+          file: ${{ matrix.image.dockerfile }}
+          platforms: ${{ matrix.arch.platform }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache-${{ matrix.arch.arch }}
+          cache-to: type=registry,ref=${{ env.IMAGE }}:buildcache-${{ matrix.arch.arch }},mode=max
+          provenance: false
+
+      - name: Export digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          if [ -z "$DIGEST" ]; then
+            echo "Build produced no digest" >&2
+            exit 1
+          fi
+          mkdir -p "${RUNNER_TEMP}/digests"
+          touch "${RUNNER_TEMP}/digests/${DIGEST#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v7
+        with:
+          name: digest-${{ matrix.image.name }}-${{ matrix.arch.arch }}
+          path: ${{ runner.temp }}/digests/*
+          retention-days: 1
+          if-no-files-found: error
+
+  # Runs for every image even when another image's leg failed, so one broken
+  # Dockerfile does not withhold the tags of the others. An image whose own leg
+  # failed has no digest (or misses a platform) and fails here instead.
+  merge:
+    name: Tag ${{ matrix.image }}
+    if: ${{ !cancelled() && needs.setup.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: [setup, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [plane-admin, plane-frontend, plane-space, plane-live, plane-backend, plane-proxy]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download digests
+        uses: actions/download-artifact@v8
+        with:
+          pattern: digest-${{ matrix.image }}-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/digests
+
+      - name: Create and verify the multi-arch manifest
+        env:
+          IMAGE: ${{ needs.setup.outputs.registry }}/${{ matrix.image }}
+          TAGS: ${{ needs.setup.outputs.tags }}
+          EXPECTED_PLATFORMS: ${{ needs.setup.outputs.expected_platforms }}
+          SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: bash .github/merge-manifest.sh
+
+  prepare_aio_assets:
+    if: ${{ needs.setup.outputs.aio_build == 'true' }}
+    name: Prepare AIO Assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: [setup]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Generate dist
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+        run: bash ./deployments/aio/community/build.sh --release "$VERSION"
+
+      - name: Upload AIO assets
+        uses: actions/upload-artifact@v7
+        with:
+          path: ./deployments/aio/community/dist
+          name: aio-assets-dist
+
+  # AIO copies the other images in by tag, so it waits for every merge.
+  build_aio:
+    if: ${{ needs.setup.outputs.aio_build == 'true' }}
+    name: Build plane-aio-community (${{ matrix.arch.arch }})
+    runs-on: ${{ matrix.arch.runner }}
+    timeout-minutes: 90
+    needs: [setup, prepare_aio_assets, merge]
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJSON(needs.setup.outputs.arch_matrix) }}
+    env:
+      IMAGE: ${{ needs.setup.outputs.registry }}/plane-aio-community
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download AIO assets
+        uses: actions/download-artifact@v8
+        with:
+          name: aio-assets-dist
+          path: ./deployments/aio/community/dist
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.0.0
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v7.0.0
+        with:
+          context: ./deployments/aio/community
+          file: ./deployments/aio/community/Dockerfile
+          platforms: ${{ matrix.arch.platform }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache-${{ matrix.arch.arch }}
+          cache-to: type=registry,ref=${{ env.IMAGE }}:buildcache-${{ matrix.arch.arch }},mode=max
+          provenance: false
+          build-args: |
+            IMAGE_OWNER=${{ needs.setup.outputs.registry }}
+            PLANE_VERSION=${{ needs.setup.outputs.version }}
+
+      - name: Export digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          if [ -z "$DIGEST" ]; then
+            echo "Build produced no digest" >&2
+            exit 1
+          fi
+          mkdir -p "${RUNNER_TEMP}/digests"
+          touch "${RUNNER_TEMP}/digests/${DIGEST#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v7
+        with:
+          name: digest-plane-aio-community-${{ matrix.arch.arch }}
+          path: ${{ runner.temp }}/digests/*
+          retention-days: 1
+          if-no-files-found: error
+
+  merge_aio:
+    name: Tag plane-aio-community
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: [setup, build_aio]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download digests
+        uses: actions/download-artifact@v8
+        with:
+          pattern: digest-plane-aio-community-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/digests
+
+      - name: Create and verify the multi-arch manifest
+        env:
+          IMAGE: ${{ needs.setup.outputs.registry }}/plane-aio-community
+          TAGS: ${{ needs.setup.outputs.tags }}
+          EXPECTED_PLATFORMS: ${{ needs.setup.outputs.expected_platforms }}
+          SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: bash .github/merge-manifest.sh
+
+  # Attaches what deployments/cli/community/install.sh and swarm.sh download from
+  # the release. No status function on purpose: the default success() gate keeps
+  # a release whose images failed from getting assets that point at missing tags.
+  # AIO is not a need: the release ships no AIO asset, and a flaky AIO leg should
+  # not hold back a finished release.
+  release_assets:
+    if: ${{ needs.setup.outputs.is_release == 'true' }}
+    name: Attach Release Assets
+    runs-on: ubuntu-24.04
+    needs: [setup, merge]
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.setup.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Pin the compose file to this release
+        run: |
+          cp ./deployments/cli/community/install.sh ./deployments/cli/community/setup.sh
+          sed -i 's/${APP_RELEASE:-stable}/${APP_RELEASE:-'"${VERSION}"'}/g' ./deployments/cli/community/docker-compose.yml
+
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$VERSION" --clobber \
+            ./deployments/cli/community/setup.sh \
+            ./deployments/cli/community/restore.sh \
+            ./deployments/cli/community/restore-airgapped.sh \
+            ./deployments/cli/community/docker-compose.yml \
+            ./deployments/cli/community/variables.env \
+            ./deployments/swarm/community/swarm.sh
