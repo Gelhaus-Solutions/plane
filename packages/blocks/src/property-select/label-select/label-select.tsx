@@ -7,6 +7,7 @@
 import { useTranslation } from "@plane/i18n";
 import { LabelPropertyIcon } from "../../icons/properties/label-icon";
 import type { TPaginatedResponse } from "@plane/types";
+import { cn } from "@plane/utils";
 import { Select } from "../../select/select";
 import type { SelectPaginationParams, SelectTooltip, SelectVariant } from "../../select/types";
 import { splitSelectVariant } from "../../select/utils";
@@ -49,6 +50,8 @@ export type LabelSelectProps = {
   tooltip?: SelectTooltip;
   /** Tab order of the trigger, for forms that sequence focus explicitly (e.g. the work item create modal). */
   tabIndex?: number;
+  /** Chip triggers show at most this many labels on one line, then a "+n" count (the list's Labels column, 2A). */
+  maxChips?: number;
 };
 
 function LabelDot({ color }: { color: string }) {
@@ -75,6 +78,7 @@ export function LabelSelect(props: LabelSelectProps) {
     tooltip,
     testId,
     tabIndex,
+    maxChips,
   } = props;
 
   const { variant } = props;
@@ -142,11 +146,16 @@ export function LabelSelect(props: LabelSelectProps) {
           // select / select-ghost variants show individual label pills matching the legacy chip style
           if (isSelectKind) {
             return (
-              <div className="flex min-w-0 grow flex-wrap items-center gap-1">
-                {labels.map((label) => (
+              <div
+                className={cn(
+                  "flex min-w-0 grow items-center gap-1",
+                  maxChips ? "flex-nowrap overflow-hidden" : "flex-wrap"
+                )}
+              >
+                {(maxChips ? labels.slice(0, maxChips) : labels).map((label) => (
                   <span
                     key={label.id}
-                    className="flex h-5 shrink-0 items-center gap-[5px] rounded-[10px] border border-strong px-[7px] text-[11.5px] text-secondary"
+                    className="flex h-5 min-w-0 shrink-0 items-center gap-[5px] rounded-[10px] border border-strong px-[7px] text-[11.5px] text-secondary"
                   >
                     <span
                       className="size-1.5 shrink-0 rounded-full"
@@ -155,6 +164,11 @@ export function LabelSelect(props: LabelSelectProps) {
                     <span className="truncate">{label.name}</span>
                   </span>
                 ))}
+                {!!maxChips && labels.length > maxChips && (
+                  <span className="shrink-0 rounded-[5px] bg-layer-2 px-[5px] text-11 leading-4 text-secondary">
+                    +{labels.length - maxChips}
+                  </span>
+                )}
               </div>
             );
           }

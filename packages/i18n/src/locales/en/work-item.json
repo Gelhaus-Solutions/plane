@@ -457,5 +457,15 @@
     "all_activity": "All activity",
     "mention": "Mention",
     "show_sub_items": "Show sub-items"
+  },
+  "work_items_list": {
+    "id": "ID",
+    "title": "Title",
+    "labels": "Labels",
+    "assignee": "Assignee",
+    "due": "Due",
+    "unassigned": "Unassigned",
+    "collapse": "Collapse or expand {group}",
+    "sub_items": "{count, plural, one {# sub-item} other {# sub-items}}"
   }
 }

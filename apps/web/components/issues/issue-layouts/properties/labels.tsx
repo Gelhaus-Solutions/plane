@@ -8,6 +8,7 @@ import type React from "react";
 import { observer } from "mobx-react";
 // plane imports
 import type { TPopoverMenuPlacement } from "@plane/blocks/common";
+import type { SelectVariant } from "@plane/blocks/select";
 import { cn } from "@plane/utils";
 // components
 import { LabelSelect } from "@/components/dropdowns/label/label-select";
@@ -37,6 +38,10 @@ export interface IIssuePropertyLabels {
   renderByDefault?: boolean;
   fullWidth?: boolean;
   fullHeight?: boolean;
+  /** Overrides the trigger, e.g. the list's chips (2A) */
+  variant?: SelectVariant;
+  /** With a chip trigger: labels shown before a "+n" count */
+  maxChips?: number;
 }
 
 /**
@@ -65,6 +70,8 @@ export const IssuePropertyLabels = observer(function IssuePropertyLabels(props: 
     placeholderText,
     fullWidth = false,
     fullHeight = false,
+    variant,
+    maxChips,
   } = props;
 
   const isTableCell = fullWidth && noLabelBorder;
@@ -82,7 +89,8 @@ export const IssuePropertyLabels = observer(function IssuePropertyLabels(props: 
         disabled={disabled}
         placeholder={placeholderText}
         onClose={onClose}
-        variant={isTableCell ? "table-cell" : "pill-sm"}
+        variant={variant ?? (isTableCell ? "table-cell" : "pill-sm")}
+        maxChips={maxChips}
         // `.clickable` is what the spreadsheet's keyboard navigation clicks on Enter / Space in a focused cell.
         className={isTableCell ? "clickable" : undefined}
         tooltip

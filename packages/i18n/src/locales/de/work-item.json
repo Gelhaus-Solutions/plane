@@ -457,5 +457,15 @@
     "all_activity": "Alle Aktivitäten",
     "mention": "Erwähnen",
     "show_sub_items": "Unterelemente anzeigen"
+  },
+  "work_items_list": {
+    "id": "ID",
+    "title": "Titel",
+    "labels": "Labels",
+    "assignee": "Zuständig",
+    "due": "Fällig",
+    "unassigned": "Nicht zugewiesen",
+    "collapse": "{group} ein- oder ausklappen",
+    "sub_items": "{count, plural, one {# Unterelement} other {# Unterelemente}}"
   }
 }

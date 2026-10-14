@@ -264,8 +264,8 @@ export const ListGroup = observer(function ListGroup(props: Props) {
       })}
     >
       <Row
-        className={cn("w-full flex-shrink-0 border-b border-subtle bg-layer-1 py-1 pr-3 hover:bg-layer-1-hover", {
-          "sticky top-0 z-[2]": isExpanded && groupIssueCount > 0,
+        className={cn("h-[34px] w-full flex-shrink-0 border-b border-subtle bg-surface-2 pr-[18px] pl-3", {
+          "sticky top-[30px] z-[2]": isExpanded && groupIssueCount > 0,
         })}
       >
         <HeaderGroupByCard
@@ -282,6 +282,7 @@ export const ListGroup = observer(function ListGroup(props: Props) {
           addIssuesToView={addIssuesToView}
           selectionHelpers={selectionHelpers}
           handleCollapsedGroups={handleCollapsedGroups}
+          isExpanded={shouldExpand}
           isEpic={isEpic}
         />
       </Row>

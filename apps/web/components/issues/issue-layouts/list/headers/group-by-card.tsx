@@ -7,8 +7,7 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { CircleDashed } from "lucide-react";
-import { AddOutline } from "@makeplane/propel/icons";
+import { AddOutline, ChevronDownOutline, ChevronRightOutline } from "@makeplane/propel/icons";
 // types
 import { setToast } from "@plane/blocks/toast";
 import type { TIssue, ISearchIssueResponse, TIssueGroupByOptions } from "@plane/types";
@@ -23,6 +22,8 @@ import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 import { CreateUpdateEpicModal } from "@/components/epic-modal";
 // constants
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
+// local imports
+import { GroupLozenge } from "../../group-lozenge";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 
 interface IHeaderGroupByCard {
@@ -37,6 +38,7 @@ interface IHeaderGroupByCard {
   addIssuesToView?: (issueIds: string[]) => Promise<TIssue>;
   selectionHelpers: TSelectionHelper;
   handleCollapsedGroups: (value: string) => void;
+  isExpanded?: boolean;
   isEpic?: boolean;
 }
 
@@ -52,6 +54,8 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
     addIssuesToView,
     selectionHelpers,
     handleCollapsedGroups,
+    isExpanded = true,
+    groupBy,
     isEpic = false,
   } = props;
   // plane hooks
@@ -93,9 +97,9 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
 
   return (
     <>
-      <div className="group/list-header flex w-full flex-shrink-0 items-center gap-2 py-1.5">
-        {canSelectIssues && (
-          <div className="absolute left-1 flex w-3.5 flex-shrink-0 items-center">
+      <div className="group/list-header flex h-full w-full flex-shrink-0 items-center gap-2">
+        <span className="grid w-[18px] shrink-0 place-items-center">
+          {canSelectIssues && (
             <MultipleSelectGroupAction
               className={cn(
                 "pointer-events-none size-3.5 opacity-0 !outline-none group-hover/list-header:pointer-events-auto group-hover/list-header:opacity-100",
@@ -107,21 +111,22 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
               selectionHelpers={selectionHelpers}
               disabled={count === 0}
             />
-          </div>
-        )}
-        <div className="grid flex-shrink-0 place-items-center overflow-hidden">
-          {icon ?? <CircleDashed className="size-3.5" strokeWidth={2} />}
-        </div>
-
-        {/* eslint-disable-next-line jsx_a11y/click-events-have-key-events eslint-disable-next-line jsx_a11y/no-static-element-interactions */}
-        <div
-          className="relative flex w-full cursor-pointer flex-row items-center gap-1 overflow-hidden"
+          )}
+        </span>
+        <button
+          type="button"
+          aria-label={t("work_items_list.collapse", { group: title })}
+          aria-expanded={isExpanded}
           onClick={() => handleCollapsedGroups(groupID)}
+          className="grid size-[22px] shrink-0 place-items-center rounded-[7px] text-secondary transition-colors hover:bg-layer-transparent-hover hover:text-primary"
         >
-          <div className="line-clamp-1 inline-block truncate font-medium text-primary">{title}</div>
-          <div className="pl-2 text-13 font-medium text-tertiary">{count || 0}</div>
-          <div className="px-2.5"></div>
-        </div>
+          {isExpanded ? <ChevronDownOutline className="size-3" /> : <ChevronRightOutline className="size-3" />}
+        </button>
+        <button type="button" onClick={() => handleCollapsedGroups(groupID)} className="flex min-w-0">
+          <GroupLozenge groupBy={groupBy} groupId={groupID} icon={icon} title={title} />
+        </button>
+        <span className="text-13 text-secondary tabular-nums">{count || 0}</span>
+        <span className="flex-1" />
 
         {!disableIssueCreation &&
           (renderExistingIssueModal ? (
@@ -131,9 +136,9 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
                   <button
                     type="button"
                     aria-label={t("common.add")}
-                    className="flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xs transition-all hover:bg-layer-1"
+                    className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-[7px] text-secondary transition-colors hover:bg-layer-transparent-hover hover:text-primary"
                   >
-                    <AddOutline className="h-3.5 w-3.5" />
+                    <AddOutline className="size-4" />
                   </button>
                 }
               />
@@ -156,12 +161,12 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
             <button
               type="button"
               aria-label={t("common.add")}
-              className="flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xs transition-all hover:bg-layer-1"
+              className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-[7px] text-secondary transition-colors hover:bg-layer-transparent-hover hover:text-primary"
               onClick={() => {
                 setIsOpen(true);
               }}
             >
-              <AddOutline width={14} />
+              <AddOutline className="size-4" />
             </button>
           ))}
 

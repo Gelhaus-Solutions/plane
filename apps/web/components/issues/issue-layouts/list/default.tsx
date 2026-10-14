@@ -33,6 +33,7 @@ import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
 // utils
 import type { GroupDropLocation } from "../utils";
 import { getGroupByColumns, isWorkspaceLevel, isSubGrouped } from "../utils";
+import { ListColumnHeader } from "./column-header";
 import { ListGroup } from "./list-group";
 import type { TRenderQuickActions } from "./list-view-types";
 
@@ -111,7 +112,7 @@ export const List = observer(function List(props: IList) {
 
   const getGroupIndex = (groupId: string | undefined) => groups.findIndex(({ id }) => id === groupId);
 
-  const is_list = group_by === null ? true : false;
+  const is_list = group_by === null;
 
   // create groupIds array and entities object for bulk ops
   const groupIds = groups.map((g) => g.id);
@@ -142,34 +143,37 @@ export const List = observer(function List(props: IList) {
                 ref={containerRef}
                 className="vertical-scrollbar relative scrollbar-lg size-full overflow-auto bg-surface-1"
               >
-                {groups.map((group: IGroupByColumn) => (
-                  <ListGroup
-                    key={group.id}
-                    groupIssueIds={groupedIssueIds?.[group.id]}
-                    issuesMap={issuesMap}
-                    group_by={group_by}
-                    group={group}
-                    updateIssue={updateIssue}
-                    quickActions={quickActions}
-                    orderBy={orderBy}
-                    getGroupIndex={getGroupIndex}
-                    handleOnDrop={handleOnDrop}
-                    displayProperties={displayProperties}
-                    enableIssueQuickAdd={enableIssueQuickAdd}
-                    showEmptyGroup={showEmptyGroup}
-                    canEditProperties={canEditProperties}
-                    quickAddCallback={quickAddCallback}
-                    disableIssueCreation={disableIssueCreation}
-                    addIssuesToView={addIssuesToView}
-                    isCompletedCycle={isCompletedCycle}
-                    loadMoreIssues={loadMoreIssues}
-                    containerRef={containerRef}
-                    selectionHelpers={helpers}
-                    handleCollapsedGroups={handleCollapsedGroups}
-                    collapsedGroups={collapsedGroups}
-                    isEpic={isEpic}
-                  />
-                ))}
+                <div className="min-w-[760px]">
+                  <ListColumnHeader displayProperties={displayProperties} />
+                  {groups.map((group: IGroupByColumn) => (
+                    <ListGroup
+                      key={group.id}
+                      groupIssueIds={groupedIssueIds?.[group.id]}
+                      issuesMap={issuesMap}
+                      group_by={group_by}
+                      group={group}
+                      updateIssue={updateIssue}
+                      quickActions={quickActions}
+                      orderBy={orderBy}
+                      getGroupIndex={getGroupIndex}
+                      handleOnDrop={handleOnDrop}
+                      displayProperties={displayProperties}
+                      enableIssueQuickAdd={enableIssueQuickAdd}
+                      showEmptyGroup={showEmptyGroup}
+                      canEditProperties={canEditProperties}
+                      quickAddCallback={quickAddCallback}
+                      disableIssueCreation={disableIssueCreation}
+                      addIssuesToView={addIssuesToView}
+                      isCompletedCycle={isCompletedCycle}
+                      loadMoreIssues={loadMoreIssues}
+                      containerRef={containerRef}
+                      selectionHelpers={helpers}
+                      handleCollapsedGroups={handleCollapsedGroups}
+                      collapsedGroups={collapsedGroups}
+                      isEpic={isEpic}
+                    />
+                  ))}
+                </div>
               </div>
 
               <IssueBulkOperationsRoot selectionHelpers={helpers} />
