@@ -22,6 +22,7 @@ from plane.db.mixins import SoftDeletionManager, ChangeTrackerMixin
 from plane.utils.exception_logger import log_exception
 from .project import ProjectBaseModel
 from plane.utils.uuid import convert_uuid_to_integer
+from plane.utils.agent_session_context import active_session_id
 from .description import Description
 from .state import StateGroup
 
@@ -436,12 +437,21 @@ class IssueActivity(ProjectBaseModel):
     old_identifier = models.UUIDField(null=True)
     new_identifier = models.UUIDField(null=True)
     epoch = models.FloatField(null=True)
+    # The agent session that made the change, when it came through a session token
+    agent_session = models.ForeignKey(
+        "db.AgentSession", on_delete=models.SET_NULL, null=True, blank=True, related_name="issue_activities"
+    )
 
     class Meta:
         verbose_name = "Issue Activity"
         verbose_name_plural = "Issue Activities"
         db_table = "issue_activities"
         ordering = ("-created_at",)
+
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.agent_session_id is None:
+            self.agent_session_id = active_session_id()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         """Return issue of the comment"""
@@ -475,6 +485,10 @@ class IssueComment(ChangeTrackerMixin, ProjectBaseModel):
     parent = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True, related_name="parent_issue_comment"
     )
+    # The agent session that wrote the comment, when it came through a session token
+    agent_session = models.ForeignKey(
+        "db.AgentSession", on_delete=models.SET_NULL, null=True, blank=True, related_name="comments"
+    )
 
     TRACKED_FIELDS = ["comment_stripped", "comment_json", "comment_html"]
 
@@ -488,6 +502,8 @@ class IssueComment(ChangeTrackerMixin, ProjectBaseModel):
 
         self.comment_stripped = strip_tags(self.comment_html) if self.comment_html != "" else ""
         is_creating = self._state.adding
+        if is_creating and self.agent_session_id is None:
+            self.agent_session_id = active_session_id()
 
         # Prepare description defaults
         description_defaults = {

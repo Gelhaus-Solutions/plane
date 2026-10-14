@@ -154,6 +154,10 @@ class APITokenLogMiddleware:
                 "ip_address": get_client_ip(request=request),
                 "user_agent": request.META.get("HTTP_USER_AGENT", None),
             }
+            # Only when there is one, so logs queued for a worker of the previous release keep their shape
+            session = getattr(request, "agent_session", None)
+            if session is not None:
+                log_data["agent_session_id"] = str(session.id)
 
             process_logs.delay(log_data=log_data)
 

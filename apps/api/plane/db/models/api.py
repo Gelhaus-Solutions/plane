@@ -39,6 +39,10 @@ class APIToken(BaseModel):
     # A read token is refused on anything but GET, HEAD and OPTIONS
     access = models.CharField(max_length=10, choices=(("read", "Read"), ("write", "Write")), default="write")
     allowed_rate_limit = models.CharField(max_length=255, default="60/min")
+    # Set on a token derived for one agent session; the session's writes are attributed to it
+    agent_session = models.ForeignKey(
+        "db.AgentSession", on_delete=models.CASCADE, null=True, blank=True, related_name="tokens"
+    )
 
     class Meta:
         verbose_name = "API Token"
@@ -67,6 +71,10 @@ class APIActivityLog(BaseModel):
     # Meta information
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.CharField(max_length=512, null=True, blank=True)
+    # The agent session the request came from, when it used a session token
+    agent_session = models.ForeignKey(
+        "db.AgentSession", on_delete=models.SET_NULL, null=True, blank=True, related_name="api_logs"
+    )
 
     class Meta:
         verbose_name = "API Activity Log"

@@ -12,7 +12,8 @@ from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.permissions import SAFE_METHODS
 
 # Module imports
-from plane.db.models import APIToken
+from plane.db.models import AgentSession, APIToken
+from plane.utils.agent_sessions import touch
 
 
 class APIKeyAuthentication(authentication.BaseAuthentication):
@@ -33,7 +34,7 @@ class APIKeyAuthentication(authentication.BaseAuthentication):
 
     def get_valid_token(self, token):
         try:
-            api_token = APIToken.objects.get(
+            api_token = APIToken.objects.select_related("agent_session").get(
                 Q(Q(expired_at__gt=timezone.now()) | Q(expired_at__isnull=True)),
                 token=token,
                 is_active=True,
@@ -58,4 +59,13 @@ class APIKeyAuthentication(authentication.BaseAuthentication):
             raise PermissionDenied("This API token is read-only")
         # The rate limiter reads a bot token's own limit from here
         request.api_token = api_token
+        # A session token attributes the request to its agent session; models and the activity task read it
+        # from the Django request through crum
+        session = api_token.agent_session
+        if session is not None:
+            if session.status == AgentSession.Status.ENDED:
+                raise AuthenticationFailed("This agent session has ended")
+            touch(session)
+        request.agent_session = session
+        getattr(request, "_request", request).agent_session = session
         return api_token.user, api_token.token

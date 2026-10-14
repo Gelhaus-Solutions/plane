@@ -35,6 +35,7 @@ from plane.db.models import (
 from plane.utils.exception_logger import log_exception
 from plane.utils.issue_relation_mapper import get_inverse_relation
 from plane.utils.uuid import is_valid_uuid
+from plane.utils.agent_session_context import acting_as
 
 
 def extract_ids(data: dict | None, primary_key: str, fallback_key: str) -> set[str]:
@@ -1512,6 +1513,7 @@ def issue_activity(
     notification=False,
     origin=None,
     intake=None,
+    agent_session_id=None,
 ):
     try:
         issue_activities = []
@@ -1564,16 +1566,23 @@ def issue_activity(
 
         func = ACTIVITY_MAPPER.get(type)
         if func is not None:
-            func(
-                requested_data=requested_data,
-                current_instance=current_instance,
-                issue_id=issue_id,
-                project_id=project_id,
-                workspace_id=workspace_id,
-                actor_id=actor_id,
-                issue_activities=issue_activities,
-                epoch=epoch,
-            )
+            # Activities saved one by one read the session from here (plane.utils.agent_session_context)
+            with acting_as(agent_session_id):
+                func(
+                    requested_data=requested_data,
+                    current_instance=current_instance,
+                    issue_id=issue_id,
+                    project_id=project_id,
+                    workspace_id=workspace_id,
+                    actor_id=actor_id,
+                    issue_activities=issue_activities,
+                    epoch=epoch,
+                )
+
+        # bulk_create skips save(), so the session of the request that queued this is set here
+        if agent_session_id:
+            for activity in issue_activities:
+                activity.agent_session_id = agent_session_id
 
         # Save all the values to database
         issue_activities_created = IssueActivity.objects.bulk_create(issue_activities)

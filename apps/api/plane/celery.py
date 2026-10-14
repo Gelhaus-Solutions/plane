@@ -19,6 +19,9 @@ from plane.settings.redis import redis_instance
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "plane.settings.production")
 
+# Stamps a request's agent session into the tasks it queues (registers a publish signal)
+import plane.utils.agent_session_context  # noqa: F401,E402
+
 ri = redis_instance()
 
 # Configurable metrics push interval (in minutes)
@@ -45,6 +48,10 @@ app.conf.beat_schedule = {
     # Intra day recurring jobs
     "check-every-five-minutes-to-send-email-notifications": {
         "task": "plane.bgtasks.email_notification_task.stack_email_notification",
+        "schedule": crontab(minute="*/5"),  # Every 5 minutes
+    },
+    "check-every-five-minutes-to-sweep-agent-sessions": {
+        "task": "plane.bgtasks.agent_session_task.sweep_agent_sessions",
         "schedule": crontab(minute="*/5"),  # Every 5 minutes
     },
     "push-instance-metrics": {
