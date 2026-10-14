@@ -12,38 +12,11 @@ from rest_framework.response import Response
 from plane.app.permissions import ProjectEntityPermission, WorkspaceUserPermission
 from plane.db.models import AgentSession, Issue, Workspace, WorkspaceMember
 from plane.utils import agent_assignments, agent_inbox, agent_sessions
-from plane.utils.agent_sessions import ClaimConflict, SessionError
+from plane.utils.agent_sessions import ClaimConflict, SessionError, session_data, sessions_in
 
 from .base import BaseAPIView
 
 PAGE_SIZE = 100
-
-
-def session_data(session):
-    bot_user = session.bot.user
-    return {
-        "id": str(session.id),
-        "bot": {"id": str(session.bot_id), "user_id": str(bot_user.id), "display_name": bot_user.display_name},
-        "harness": session.harness,
-        "external_id": session.external_id,
-        "generation": session.generation,
-        "name": session.name,
-        "primary_dir": session.primary_dir,
-        "host": session.host,
-        "git_branch": session.git_branch,
-        "model": session.model,
-        "harness_version": session.harness_version,
-        "parent": str(session.parent_id) if session.parent_id else None,
-        "status": session.status,
-        "started_at": session.started_at,
-        "last_seen_at": session.last_seen_at,
-        "ended_at": session.ended_at,
-        "end_reason": session.end_reason,
-    }
-
-
-def sessions_in(slug):
-    return AgentSession.objects.filter(workspace__slug=slug).select_related("bot__user")
 
 
 def may_act_on(request, session):
@@ -274,17 +247,6 @@ class AgentSessionInboxAckAPIEndpoint(BaseAPIView):
         )
 
 
-def _agent_row_data(row, state):
-    bot_user = row.assignee
-    session = row.agent_session
-    return {
-        "bot": {"id": str(bot_user.id), "display_name": bot_user.display_name},
-        "session": {"id": str(session.id), "name": session.name, "status": session.status} if session else None,
-        "state": state,
-        "delegated": row.delegated,
-    }
-
-
 class WorkItemAgentsAPIEndpoint(BaseAPIView):
     """The agents on a work item (D17, D21, D26): POST names a bot (its queue), a session, or a delegate; DELETE takes
     a bot off; GET lists them with where each stands: queue, session, or waiting for a session after its own ended."""
@@ -295,7 +257,7 @@ class WorkItemAgentsAPIEndpoint(BaseAPIView):
         return Issue.issue_objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
 
     def _listing(self, issue):
-        return {"agents": [_agent_row_data(row, state) for row, state in agent_assignments.rows_for(issue)]}
+        return {"agents": [agent_assignments.row_data(row, state) for row, state in agent_assignments.rows_for(issue)]}
 
     def get(self, request, slug, project_id, issue_id):
         return Response(self._listing(self._issue(slug, project_id, issue_id)), status=status.HTTP_200_OK)

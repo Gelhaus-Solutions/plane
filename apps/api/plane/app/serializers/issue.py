@@ -43,6 +43,7 @@ from plane.db.models import (
     ProjectMember,
     EstimatePoint,
 )
+from plane.utils import agent_assignments
 from plane.utils.content_validator import (
     validate_html_content,
     validate_binary_data,
@@ -229,6 +230,11 @@ class IssueCreateSerializer(BaseSerializer):
                 )
             except IntegrityError:
                 pass
+            else:
+                # a bot among the first assignees hears it in its queue (D46)
+                agent_assignments.tell_new_bot_assignees(
+                    issue, list(IssueAssignee.objects.filter(issue=issue, assignee__is_bot=True))
+                )
         else:
             # Then assign it to default assignee, if it is a valid assignee
             if (
@@ -284,25 +290,8 @@ class IssueCreateSerializer(BaseSerializer):
         updated_by_id = instance.updated_by_id
 
         if assignees is not None:
-            IssueAssignee.objects.filter(issue=instance).delete()
-            try:
-                IssueAssignee.objects.bulk_create(
-                    [
-                        IssueAssignee(
-                            assignee_id=assignee_id,
-                            issue=instance,
-                            project_id=project_id,
-                            workspace_id=workspace_id,
-                            created_by_id=created_by_id,
-                            updated_by_id=updated_by_id,
-                        )
-                        for assignee_id in assignees
-                    ],
-                    batch_size=10,
-                    ignore_conflicts=True,
-                )
-            except IntegrityError:
-                pass
+            # rows that stay keep the session or delegation they name; new bots hear it (D46)
+            agent_assignments.set_assignees(instance, assignees)
 
         if labels is not None:
             IssueLabel.objects.filter(issue=instance).delete()

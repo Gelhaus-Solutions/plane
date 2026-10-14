@@ -303,3 +303,31 @@ def release(issue, session=None):
     _end_claims(WorkItemClaim.objects.filter(pk=current.pk), reason)
     current.refresh_from_db()
     return current
+
+
+# Payloads shared by the public API and the app
+def session_data(session):
+    bot_user = session.bot.user
+    return {
+        "id": str(session.id),
+        "bot": {"id": str(session.bot_id), "user_id": str(bot_user.id), "display_name": bot_user.display_name},
+        "harness": session.harness,
+        "external_id": session.external_id,
+        "generation": session.generation,
+        "name": session.name,
+        "primary_dir": session.primary_dir,
+        "host": session.host,
+        "git_branch": session.git_branch,
+        "model": session.model,
+        "harness_version": session.harness_version,
+        "parent": str(session.parent_id) if session.parent_id else None,
+        "status": session.status,
+        "started_at": session.started_at,
+        "last_seen_at": session.last_seen_at,
+        "ended_at": session.ended_at,
+        "end_reason": session.end_reason,
+    }
+
+
+def sessions_in(slug):
+    return AgentSession.objects.filter(workspace__slug=slug).select_related("bot__user")

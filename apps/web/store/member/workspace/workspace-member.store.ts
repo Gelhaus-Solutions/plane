@@ -132,9 +132,8 @@ export class WorkspaceMemberStore implements IWorkspaceMemberStore {
       (m) => m.member !== this.userStore?.data?.id,
       (m) => this.memberRoot?.memberMap?.[m.member]?.display_name?.toLowerCase(),
     ]);
-    //filter out bots
-    const memberIds = members.filter((m) => !this.memberRoot?.memberMap?.[m.member]?.is_bot).map((m) => m.member);
-    return memberIds;
+    // agent bots (Claude, Codex) are members like people; the API already leaves out the internal ones
+    return members.map((m) => m.member);
   });
 
   /**
@@ -142,9 +141,7 @@ export class WorkspaceMemberStore implements IWorkspaceMemberStore {
    * @param workspaceSlug
    */
   getFilteredWorkspaceMemberIds = computedFn((workspaceSlug: string) => {
-    let members = Object.values(this.workspaceMemberMap?.[workspaceSlug] ?? {});
-    //filter out bots and inactive members
-    members = members.filter((m) => !this.memberRoot?.memberMap?.[m.member]?.is_bot);
+    const members = Object.values(this.workspaceMemberMap?.[workspaceSlug] ?? {});
 
     // Use filters store to get filtered member ids
     const memberIds = this.filtersStore.getFilteredMemberIds(
