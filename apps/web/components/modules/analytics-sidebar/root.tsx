@@ -158,7 +158,7 @@ export const ModuleAnalyticsSidebar = observer(function ModuleAnalyticsSidebar(p
   const moduleDetails = getModuleById(moduleId);
   const areEstimateEnabled = projectId && areEstimateEnabledByProjectId(projectId.toString());
   const estimateType = areEstimateEnabled && currentActiveEstimateId && estimateById(currentActiveEstimateId);
-  const isEstimatePointValid = estimateType && estimateType?.type == EEstimateSystem.POINTS ? true : false;
+  const isEstimatePointValid = Boolean(estimateType && estimateType?.type == EEstimateSystem.POINTS);
 
   const { reset, control } = useForm({
     defaultValues,
@@ -279,7 +279,7 @@ export const ModuleAnalyticsSidebar = observer(function ModuleAnalyticsSidebar(p
               className="flex h-5 w-5 items-center justify-center rounded-full bg-layer-3"
               onClick={() => handleClose()}
             >
-              <ChevronRightOutline className="h-3 w-3 text-on-color" />
+              <ChevronRightOutline className="h-3 w-3 text-icon-secondary" />
             </button>
           </div>
         </div>

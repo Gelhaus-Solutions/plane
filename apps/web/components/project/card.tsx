@@ -244,10 +244,10 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
               </div>
 
               <div className="flex w-full flex-col justify-between gap-0.5 truncate">
-                <h3 className="truncate font-semibold text-on-color">{project.name}</h3>
+                <h3 className="truncate font-semibold text-on-image">{project.name}</h3>
                 <span className="flex items-center gap-1.5">
-                  <p className="text-11 font-medium text-on-color">{project.identifier} </p>
-                  {project.network === 0 && <LockOutline className="h-2.5 w-2.5 text-on-color" />}
+                  <p className="text-11 font-medium text-on-image">{project.identifier} </p>
+                  {project.network === 0 && <LockOutline className="h-2.5 w-2.5 text-on-image" />}
                 </span>
               </div>
             </div>
@@ -264,13 +264,13 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                     void handleCopyText();
                   }}
                 >
-                  <LinkOutline className="h-3 w-3 text-on-color" />
+                  <LinkOutline className="h-3 w-3 text-on-image" />
                 </button>
                 {shouldRenderFavorite && (
                   <FavoriteStar
                     buttonClassName="h-6 w-6 bg-white/10 rounded-sm"
                     iconClassName={cn("h-3 w-3", {
-                      "text-on-color": !project.is_favorite,
+                      "text-on-image": !project.is_favorite,
                     })}
                     onClick={(e) => {
                       e.preventDefault();

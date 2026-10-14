@@ -94,13 +94,13 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
   const handleUpdateChange = async (payload: Partial<IProject>) => {
     if (!workspaceSlug || !project) return;
     return updateProject(workspaceSlug.toString(), project.id, payload)
-      .then(() => {
+      .then(() =>
         setToast({
           type: "success",
           title: t("toast.success"),
           message: t("project_settings.general.toast.success"),
-        });
-      })
+        })
+      )
       .catch((err) => {
         try {
           // Handle the new error format where codes are nested in arrays under field names
@@ -189,14 +189,11 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
       return;
     }
 
-    if (project.identifier !== formData.identifier)
-      await projectService
-        .checkProjectIdentifierAvailability(workspaceSlug, payload.identifier ?? "")
-        .then(async (res) => {
-          if (res.exists) setError("identifier", { message: t("common.identifier_already_exists") });
-          else await handleUpdateChange(payload);
-        });
-    else await handleUpdateChange(payload);
+    if (project.identifier !== formData.identifier) {
+      const res = await projectService.checkProjectIdentifierAvailability(workspaceSlug, payload.identifier ?? "");
+      if (res.exists) setError("identifier", { message: t("common.identifier_already_exists") });
+      else await handleUpdateChange(payload);
+    } else await handleUpdateChange(payload);
     setTimeout(() => {
       setIsLoading(false);
     }, 300);
@@ -243,12 +240,12 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
                 />
               )}
             />
-            <div className="flex flex-col gap-1 truncate text-on-color">
+            <div className="flex flex-col gap-1 truncate text-on-image">
               <span className="truncate text-16 font-semibold">{watch("name")}</span>
               <span className="flex items-center gap-2 text-13">
                 <span>{watch("identifier")} .</span>
                 <span className="flex items-center gap-1.5">
-                  {project.network === 0 && <LockOutline className="h-2.5 w-2.5 text-on-color" />}
+                  {project.network === 0 && <LockOutline className="h-2.5 w-2.5 text-on-image" />}
                   {currentNetwork && t(currentNetwork?.i18n_label)}
                 </span>
               </span>
@@ -438,8 +435,8 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
                 <>
                   <TimezoneSelect
                     value={value}
-                    onChange={(value: string) => {
-                      onChange(value);
+                    onChange={(timezone: string) => {
+                      onChange(timezone);
                     }}
                     error={Boolean(errors.timezone)}
                     buttonClassName="!border-subtle !shadow-none font-medium rounded-md"

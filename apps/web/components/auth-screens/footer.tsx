@@ -17,15 +17,15 @@ const BRAND_LOGOS: {
   },
   {
     id: "sony",
-    icon: <SonyLogo className="h-7 w-16 dark:text-on-color" />,
+    icon: <SonyLogo className="h-7 w-16 dark:text-primary" />,
   },
   {
     id: "dolby",
-    icon: <DolbyLogo className="h-7 w-16 dark:text-on-color" />,
+    icon: <DolbyLogo className="h-7 w-16 dark:text-primary" />,
   },
   {
     id: "accenture",
-    icon: <AccentureLogo className="h-7 w-24 dark:text-on-color" />,
+    icon: <AccentureLogo className="h-7 w-24 dark:text-primary" />,
   },
 ];
 

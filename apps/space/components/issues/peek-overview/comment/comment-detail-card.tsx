@@ -83,7 +83,7 @@ export const CommentCard = observer(function CommentCard(props: Props) {
           />
         ) : (
           <div
-            className={`bg-gray-500 grid size-7 place-items-center rounded-full border-2 border-strong-1 text-on-color`}
+            className={`grid size-7 place-items-center rounded-full border-2 border-strong-1 bg-layer-3 text-primary`}
           >
             {comment.actor_detail.is_bot
               ? comment?.actor_detail?.first_name?.charAt(0)

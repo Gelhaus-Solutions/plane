@@ -53,7 +53,7 @@ export function ImageFullScreenActionRoot(props: Props) {
             e.stopPropagation();
             setIsFullScreenEnabled(true);
           }}
-          className="grid h-full flex-shrink-0 place-items-center text-on-color/60 transition-colors hover:text-on-color"
+          className="grid h-full flex-shrink-0 place-items-center text-on-image/60 transition-colors hover:text-on-image"
           aria-label="View image in full screen"
         >
           <FullScreenOutline className="size-3" />

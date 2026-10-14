@@ -49,7 +49,10 @@
     --txt-placeholder: #8e8e9a;
     --txt-disabled: #b4b4be;
     --txt-on-color: #ffffff;
-    --txt-on-color-disabled: rgba(255, 255, 255, 0.6);
+    /* propel paints disabled filled controls on bg-layer-disabled, so the disabled text is muted ink, not white */
+    --txt-on-color-disabled: rgba(19, 19, 23, 0.4);
+    /* Text on photos, gradients and fixed dark fills: white in both themes (on-color is ink in dark, for accent fills) */
+    --txt-on-image: #ffffff;
     --txt-inverse: #ffffff;
     --txt-icon-primary: #131317;
     --txt-icon-secondary: #5b5b67;
@@ -57,7 +60,7 @@
     --txt-icon-placeholder: #8e8e9a;
     --txt-icon-disabled: #b4b4be;
     --txt-icon-on-color: #ffffff;
-    --txt-icon-on-color-disabled: rgba(255, 255, 255, 0.6);
+    --txt-icon-on-color-disabled: rgba(19, 19, 23, 0.4);
     --txt-icon-inverse: #ffffff;
 
     /* ---------- Borders ---------- */
@@ -225,7 +228,7 @@
       --txt-placeholder: #6e6e7b;
       --txt-disabled: #4d4d58;
       --txt-on-color: #0c0a18;
-      --txt-on-color-disabled: rgba(12, 10, 24, 0.5);
+      --txt-on-color-disabled: rgba(237, 237, 242, 0.4);
       --txt-inverse: #08080a;
       --txt-icon-primary: #ededf2;
       --txt-icon-secondary: #a1a1ae;
@@ -233,7 +236,7 @@
       --txt-icon-placeholder: #6e6e7b;
       --txt-icon-disabled: #4d4d58;
       --txt-icon-on-color: #0c0a18;
-      --txt-icon-on-color-disabled: rgba(12, 10, 24, 0.5);
+      --txt-icon-on-color-disabled: rgba(237, 237, 242, 0.4);
       --txt-icon-inverse: #08080a;
 
       /* ---------- Borders ---------- */
@@ -326,6 +329,14 @@
       --activity-primary: #2dd4bf;
       --activity-subtle: rgba(45, 212, 191, 0.13);
 
+      /* propel's avatar fallbacks put on-color text (ink in dark) on these fills: light enough to read it */
+      --label-orange-bg-strong: #e07f3c;
+      --label-indigo-bg-strong: #7d8cf0;
+      --label-emerald-bg-strong: #2fb585;
+      --label-crimson-bg-strong: #e06464;
+      --label-pink-bg-strong: #d9659a;
+      --label-purple-bg-strong: #9b7ae0;
+
       /* ---------- Labels ---------- */
       --label-blue: #5b8def;
       --label-teal: #2bb3a3;
@@ -367,6 +378,7 @@
 /* The Tailwind names for what propel lacks */
 @theme inline {
   --color-popover: var(--bg-popover);
+  --color-on-image: var(--txt-on-image);
   --color-accent-row: var(--bg-accent-row);
   --color-activity: var(--activity-primary);
   --color-activity-subtle: var(--activity-subtle);
