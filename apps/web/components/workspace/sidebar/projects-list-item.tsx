@@ -96,7 +96,7 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
   const [instruction, setInstruction] = useState<"DRAG_OVER" | "DRAG_BELOW" | undefined>(undefined);
   // refs
   const projectRef = useRef<HTMLDivElement | null>(null);
-  const dragHandleRef = useRef<HTMLButtonElement | null>(null);
+  const dragHandleRef = useRef<HTMLSpanElement | null>(null);
   // router
   const { workspaceSlug, projectId: URLProjectId } = useParams();
   const router = useRouter();
@@ -311,8 +311,8 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
                 align="end"
                 disabled={isDragging || isMobile}
               >
-                <button
-                  type="button"
+                {/* a span, not a button: the handle inside is the button, and buttons cannot nest */}
+                <span
                   className={cn(
                     "absolute top-1/2 -left-3 hidden -translate-y-1/2 cursor-grab items-center justify-center rounded-sm text-placeholder group-hover/project-item:flex",
                     {
@@ -324,7 +324,7 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
                   ref={dragHandleRef}
                 >
                   <DragHandle className="bg-transparent" />
-                </button>
+                </span>
               </Tooltip>
             )}
             <>
