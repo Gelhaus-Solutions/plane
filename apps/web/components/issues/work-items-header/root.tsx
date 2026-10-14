@@ -18,7 +18,6 @@ import {
   LinkOutline,
   MoreHorizontalOutline,
   NewTabOutline,
-  PreferencesOutline,
 } from "@makeplane/propel/icons";
 // plane imports
 import { EIssueFilterType, ISSUE_STORE_TO_FILTERS_MAP, SPACE_BASE_PATH, SPACE_BASE_URL } from "@plane/constants";
@@ -30,7 +29,6 @@ import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
 import { copyTextToClipboard } from "@plane/utils";
 // components
 import { WorkItemsModal } from "@/components/analytics/work-items/modal";
-import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 import { AppSidebarToggleButton } from "@/components/sidebar/sidebar-toggle-button";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
@@ -40,6 +38,7 @@ import { useProject } from "@/hooks/store/use-project";
 import { useProjectNavigationPreferences } from "@/hooks/use-navigation-preferences";
 // local imports
 import { BoardSwimlanes } from "./board-swimlanes";
+import { WorkItemsDisplayMenu } from "./display-menu";
 import { WorkItemsLayoutTabs } from "./layout-tabs";
 import { WorkItemsPQLToolbar } from "./pql-toolbar";
 
@@ -197,21 +196,17 @@ export const WorkItemsHeader = observer(function WorkItemsHeader() {
                   onChange={(subGroupBy) => handleDisplayFilters({ sub_group_by: subGroupBy })}
                 />
               )}
-              <FiltersDropdown
-                miniIcon={<PreferencesOutline className="size-3.5" />}
-                title={t("common.display")}
-                placement="bottom-end"
-              >
-                <DisplayFiltersSelection
-                  layoutDisplayFiltersOptions={layoutDisplayFiltersOptions}
-                  displayFilters={issueFilters?.displayFilters ?? {}}
-                  handleDisplayFiltersUpdate={handleDisplayFilters}
-                  displayProperties={issueFilters?.displayProperties ?? {}}
-                  handleDisplayPropertiesUpdate={handleDisplayProperties}
-                  cycleViewDisabled={!currentProjectDetails?.cycle_view}
-                  moduleViewDisabled={!currentProjectDetails?.module_view}
-                />
-              </FiltersDropdown>
+              <WorkItemsDisplayMenu
+                layout={activeLayout}
+                onLayoutChange={handleLayoutChange}
+                layoutOptions={layoutDisplayFiltersOptions}
+                displayFilters={issueFilters?.displayFilters ?? {}}
+                displayProperties={issueFilters?.displayProperties ?? {}}
+                onDisplayFilters={handleDisplayFilters}
+                onDisplayProperties={handleDisplayProperties}
+                cycleViewDisabled={!currentProjectDetails?.cycle_view}
+                moduleViewDisabled={!currentProjectDetails?.module_view}
+              />
             </>
           }
         />
