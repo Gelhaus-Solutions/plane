@@ -13,7 +13,7 @@ from rest_framework import status
 from plane.db.models import Issue, Project, ProjectMember, State, WorkspaceStateGroup
 from plane.utils.state_groups import builtin_state_groups, default_states
 
-MIGRATION = importlib.import_module("plane.db.migrations.0126_state_groups")
+MIGRATION = importlib.import_module("plane.db.migrations.0127_state_groups_data")
 
 
 @pytest.fixture
