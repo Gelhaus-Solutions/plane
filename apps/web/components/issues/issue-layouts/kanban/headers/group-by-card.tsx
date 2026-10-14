@@ -7,9 +7,7 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// lucide icons
-import { Circle } from "lucide-react";
-import { AddOutline, ArrowCollapseOutline, FullScreenOutline } from "@makeplane/propel/icons";
+import { AddOutline, ChevronRightOutline, MoreHorizontalOutline } from "@makeplane/propel/icons";
 import { setToast } from "@plane/blocks/toast";
 import type { TIssue, ISearchIssueResponse, TIssueKanbanFilters, TIssueGroupByOptions } from "@plane/types";
 import { useTranslation } from "@plane/i18n";
@@ -21,6 +19,8 @@ import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 // constants
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { CreateUpdateEpicModal } from "@/components/epic-modal";
+// local imports
+import { GroupLozenge } from "../../group-lozenge";
 
 interface IHeaderGroupByCard {
   sub_group_by: TIssueGroupByOptions | undefined;
@@ -40,6 +40,7 @@ interface IHeaderGroupByCard {
 export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHeaderGroupByCard) {
   const {
     sub_group_by,
+    group_by,
     column_id,
     icon,
     title,
@@ -110,85 +111,91 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
           handleOnSubmit={handleAddIssuesToView}
         />
       )}
-      <div
-        className={`relative flex flex-shrink-0 gap-1 py-1.5 ${
-          verticalAlignPosition ? `w-[44px] flex-col items-center` : `w-full flex-row items-center`
-        }`}
-      >
-        <div className="flex size-5 flex-shrink-0 items-center justify-center overflow-hidden rounded-xs">
-          {icon ? icon : <Circle width={14} strokeWidth={2} />}
-        </div>
-
-        <div
-          className={`relative flex gap-1 ${
-            verticalAlignPosition ? `flex-col items-center` : `w-full flex-row items-baseline overflow-hidden`
-          }`}
+      {verticalAlignPosition ? (
+        // a collapsed column is a narrow strip with its name running down (3A's Backlog strip)
+        <button
+          type="button"
+          aria-label={t("work_items_list.collapse", { group: title })}
+          aria-expanded={false}
+          onClick={() => handleCollapsedGroups("group_by", column_id)}
+          className="flex w-11 flex-shrink-0 flex-col items-center gap-2 rounded-lg py-2.5 text-secondary transition-colors hover:bg-layer-transparent-hover hover:text-primary"
         >
-          <div
-            className={`line-clamp-1 inline-block truncate overflow-hidden font-medium text-primary ${
-              verticalAlignPosition ? `max-h-[400px] vertical-lr` : ``
-            }`}
-          >
-            {title}
-          </div>
-          <div
-            className={`flex-shrink-0 text-13 font-medium text-tertiary ${verticalAlignPosition ? `pr-0.5` : `pl-2`}`}
-          >
-            {count || 0}
-          </div>
-        </div>
+          <ChevronRightOutline className="size-3" />
+          <span className="grid size-3 place-items-center overflow-hidden [&_svg]:size-3">{icon}</span>
+          <span className="text-11 font-semibold tracking-[0.08em] whitespace-nowrap uppercase [writing-mode:vertical-lr]">
+            {title} · {count || 0}
+          </span>
+        </button>
+      ) : (
+        <div className="relative flex w-full flex-shrink-0 flex-row items-center gap-2 px-2 pt-2 pb-1.5">
+          <GroupLozenge groupBy={group_by} groupId={column_id} icon={icon} title={title} />
+          <span className="text-13 text-secondary tabular-nums">{count || 0}</span>
+          <span className="flex-1" />
 
-        {sub_group_by === null && (
-          <button
-            className="flex h-[20px] w-[20px] flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-sm bg-layer-transparent transition-all hover:bg-layer-transparent-hover"
-            onClick={() => handleCollapsedGroups("group_by", column_id)}
-          >
-            {verticalAlignPosition ? <FullScreenOutline width={14} /> : <ArrowCollapseOutline width={14} />}
-          </button>
-        )}
-
-        {!disableIssueCreation &&
-          (renderExistingIssueModal ? (
+          {!disableIssueCreation &&
+            (renderExistingIssueModal ? (
+              <Menu>
+                <MenuTrigger
+                  render={
+                    <button
+                      type="button"
+                      aria-label={t("common.add")}
+                      className="grid size-6 flex-shrink-0 cursor-pointer place-items-center rounded-[7px] text-secondary transition-colors hover:bg-layer-transparent-hover hover:text-primary"
+                    >
+                      <AddOutline className="size-3.5" />
+                    </button>
+                  }
+                />
+                <MenuContent side="bottom" align="end">
+                  <MenuItem
+                    label="Create work item"
+                    onClick={() => {
+                      setIsOpen(true);
+                    }}
+                  />
+                  <MenuItem
+                    label="Add an existing work item"
+                    onClick={() => {
+                      setOpenExistingIssueListModal(true);
+                    }}
+                  />
+                </MenuContent>
+              </Menu>
+            ) : (
+              <button
+                type="button"
+                aria-label={t("common.add")}
+                className="grid size-6 flex-shrink-0 cursor-pointer place-items-center rounded-[7px] text-secondary transition-colors hover:bg-layer-transparent-hover hover:text-primary"
+                onClick={() => {
+                  setIsOpen(true);
+                }}
+              >
+                <AddOutline className="size-3.5" />
+              </button>
+            ))}
+          {sub_group_by === null && (
             <Menu>
               <MenuTrigger
                 render={
                   <button
                     type="button"
-                    aria-label={t("common.add")}
-                    className="flex h-[20px] w-[20px] flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-sm bg-layer-transparent transition-all hover:bg-layer-transparent-hover"
+                    aria-label={t("work_items_list.column_options", { group: title })}
+                    className="grid size-6 flex-shrink-0 cursor-pointer place-items-center rounded-[7px] text-secondary transition-colors hover:bg-layer-transparent-hover hover:text-primary"
                   >
-                    <AddOutline height={14} width={14} />
+                    <MoreHorizontalOutline className="size-3.5" />
                   </button>
                 }
               />
               <MenuContent side="bottom" align="end">
                 <MenuItem
-                  label="Create work item"
-                  onClick={() => {
-                    setIsOpen(true);
-                  }}
-                />
-                <MenuItem
-                  label="Add an existing work item"
-                  onClick={() => {
-                    setOpenExistingIssueListModal(true);
-                  }}
+                  label={t("work_items_list.collapse_column")}
+                  onClick={() => handleCollapsedGroups("group_by", column_id)}
                 />
               </MenuContent>
             </Menu>
-          ) : (
-            <button
-              type="button"
-              aria-label={t("common.add")}
-              className="flex h-[20px] w-[20px] flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-sm bg-layer-transparent transition-all hover:bg-layer-transparent-hover"
-              onClick={() => {
-                setIsOpen(true);
-              }}
-            >
-              <AddOutline width={14} />
-            </button>
-          ))}
-      </div>
+          )}
+        </div>
+      )}
     </>
   );
 });

@@ -428,7 +428,11 @@
     "query_error_at": "{message} (bei Zeichen {position})",
     "layouts": "Layouts",
     "more_actions": "Weitere Aktionen",
-    "editor": "Abfrage-Editor"
+    "editor": "Abfrage-Editor",
+    "swimlanes": "Swimlanes",
+    "swimlane_assignee": "Zuständig",
+    "swimlane_priority": "Priorität",
+    "swimlane_none": "Keine"
   },
   "work_item_peek": {
     "previous": "Vorheriges Arbeitselement",
@@ -466,6 +470,8 @@
     "due": "Fällig",
     "unassigned": "Nicht zugewiesen",
     "collapse": "{group} ein- oder ausklappen",
+    "collapse_column": "Spalte einklappen",
+    "column_options": "Optionen für {group}",
     "sub_items": "{count, plural, one {# Unterelement} other {# Unterelemente}}"
   }
 }

@@ -20,6 +20,7 @@ import type {
 } from "@plane/types";
 // constants
 import { ContentWrapper } from "@plane/blocks/layout";
+import { cn } from "@plane/utils";
 // components
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { KanbanColumnLoader } from "@/components/ui/loader/layouts/kanban-layout-loader";
@@ -35,6 +36,9 @@ import { getGroupByColumns, isWorkspaceLevel, getApproximateCardHeight } from ".
 // components
 import { HeaderGroupByCard } from "./headers/group-by-card";
 import { KanbanGroup } from "./kanban-group";
+
+/** A column's width: 3A's cards sit about 240px wide, with the board scrolling sideways past that */
+export const KANBAN_COLUMN_WIDTH = "w-[248px]";
 
 export interface IKanBan {
   issuesMap: IIssueMap;
@@ -161,12 +165,19 @@ export const KanBan = observer(function KanBan(props: IKanBan) {
           return (
             <div
               key={subList.id}
-              className={`group relative flex flex-shrink-0 flex-col ${
-                groupByVisibilityToggle.showIssues ? `w-[350px]` : ``
-              } `}
+              className={cn(
+                "relative flex flex-shrink-0 flex-col",
+                // a collapsed column is a full-height strip (3A's Backlog strip)
+                groupByVisibilityToggle.showIssues ? KANBAN_COLUMN_WIDTH : "rounded-lg bg-surface-2"
+              )}
             >
               {sub_group_by === null && (
-                <div className="sticky top-0 z-[2] w-full flex-shrink-0 bg-surface-2 py-1">
+                <div
+                  className={cn(
+                    "sticky top-0 z-[2] w-full flex-shrink-0",
+                    groupByVisibilityToggle.showIssues ? "bg-surface-1" : "rounded-lg bg-surface-2"
+                  )}
+                >
                   <HeaderGroupByCard
                     sub_group_by={sub_group_by}
                     group_by={group_by}

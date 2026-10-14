@@ -11,30 +11,40 @@ import { draggable, dropTargetForElements } from "@atlaskit/pragmatic-drag-and-d
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane helpers
-import { MoreHorizontalOutline } from "@makeplane/propel/icons";
+import {
+  CalendarOutline,
+  EpicOutline,
+  MoreHorizontalOutline,
+  ParentOutline,
+  SubWorkItemsOutline,
+} from "@makeplane/propel/icons";
+import { useTranslation } from "@plane/i18n";
 import { useOutsideClickDetector } from "@plane/hooks";
 // types
 import { setToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
-import type { TIssue, IIssueDisplayProperties, IIssueMap } from "@plane/types";
+import type { TIssue, IIssueDisplayProperties, IIssueMap, TIssueGroupByOptions } from "@plane/types";
 import { EIssueServiceType } from "@plane/types";
 // ui
 import { ControlLink } from "@plane/blocks/layout";
 import { DropIndicator } from "@plane/blocks/common";
-import { cn, generateWorkItemLink } from "@plane/utils";
+import { cn, generateWorkItemLink, getDate, renderFormattedDate, shouldHighlightIssueDueDate } from "@plane/utils";
 // components
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { HIGHLIGHT_CLASS, getIssueBlockId } from "@/components/issues/issue-layouts/utils";
-import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
+import { MemberSelect } from "@/components/dropdowns/member/member-select";
+import { PrioritySelect } from "@/components/dropdowns/priority/priority-select";
+import { StateSelect } from "@/components/dropdowns/state/state-select";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useKanbanView } from "@/hooks/store/use-kanban-view";
 import { useProject } from "@/hooks/store/use-project";
+import { useProjectState } from "@/hooks/store/use-project-state";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // local components
 import type { TRenderQuickActions } from "../list/list-view-types";
-import { IssueProperties } from "../properties/all-properties";
+import { IssuePropertyLabels } from "../properties/labels";
 
 interface IssueBlockProps {
   issueId: string;
@@ -50,6 +60,7 @@ interface IssueBlockProps {
   canEditProperties: (projectId: string | undefined) => boolean;
   scrollableContainerRef?: MutableRefObject<HTMLDivElement | null>;
   shouldRenderByDefault?: boolean;
+  groupBy?: TIssueGroupByOptions;
   isEpic?: boolean;
 }
 
@@ -60,17 +71,25 @@ interface IssueDetailsBlockProps {
   updateIssue: ((projectId: string | null, issueId: string, data: Partial<TIssue>) => Promise<void>) | undefined;
   quickActions: TRenderQuickActions;
   isReadOnly: boolean;
+  groupBy?: TIssueGroupByOptions;
   isEpic?: boolean;
 }
 
 const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props: IssueDetailsBlockProps) {
-  const { cardRef, issue, updateIssue, quickActions, isReadOnly, displayProperties, isEpic = false } = props;
+  const { cardRef, issue, updateIssue, quickActions, isReadOnly, displayProperties, groupBy, isEpic = false } = props;
   // refs
   const menuActionRef = useRef<HTMLButtonElement | null>(null);
   // states
   const [isMenuActive, setIsMenuActive] = useState(false);
   // hooks
   const { isMobile } = usePlatformOS();
+  const { t } = useTranslation();
+  const { getStateById } = useProjectState();
+  const { getProjectIdentifierById } = useProject();
+  const {
+    issue: { getIssueById },
+  } = useIssueDetail(isEpic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES);
+  const projectIdentifier = getProjectIdentifierById(issue.project_id);
 
   const customActionButton = (
     // The quick-action menu grafts its trigger behaviour (and accessible name) onto this element via
@@ -78,8 +97,8 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
     <button
       type="button"
       ref={menuActionRef}
-      className={`flex h-full w-full cursor-pointer items-center rounded-sm p-1 text-placeholder hover:bg-layer-1 ${
-        isMenuActive ? "bg-layer-1 text-primary" : "text-secondary"
+      className={`grid size-5 cursor-pointer place-items-center rounded-[5px] hover:bg-layer-transparent-hover ${
+        isMenuActive ? "bg-layer-transparent-hover text-primary" : "text-secondary"
       }`}
       onClick={() => setIsMenuActive(!isMenuActive)}
     >
@@ -95,21 +114,28 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
 
   useOutsideClickDetector(menuActionRef, () => setIsMenuActive(false));
 
+  const on = (key: keyof IIssueDisplayProperties) => displayProperties?.[key] ?? true;
+  const stateDetails = issue.state_id ? getStateById(issue.state_id) : undefined;
+  const parent = issue.parent_id ? getIssueById(issue.parent_id) : undefined;
+  const dueDate = getDate(issue.target_date);
+  const subIssuesCount = issue.sub_issues_count ?? 0;
+  // a column already says which state its cards are in
+  const showState = on("state") && groupBy !== "state" && groupBy !== "state_detail.group";
+  const showFoot = !!parent || (subIssuesCount > 0 && on("sub_issue_count")) || (!!dueDate && on("due_date"));
+
+  // The 3A card: ID and assignee, the title, priority and labels, then the parent, sub-items and due date
   return (
-    <>
-      <div className="relative">
-        {issue.project_id && (
-          <IssueIdentifier
-            issueId={issue.id}
-            projectId={issue.project_id}
-            size="xs"
-            variant="tertiary"
-            displayProperties={displayProperties}
-          />
+    <div className="flex flex-col gap-2">
+      <div className="flex min-h-5 items-center gap-1.5">
+        {on("key") && (
+          <span className="font-code text-[11.5px] text-secondary">
+            {projectIdentifier}-{issue.sequence_id}
+          </span>
         )}
+        <span className="flex-1" />
         {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
         <div
-          className={cn("absolute -top-1 right-0", {
+          className={cn({
             "hidden group-hover/kanban-block:block": !isMobile,
             "!block": isMenuActive,
           })}
@@ -121,24 +147,101 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
             customActionButton,
           })}
         </div>
+        {on("assignee") && (
+          // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
+          <div className="flex" onClick={handleEventPropagation}>
+            <MemberSelect
+              value={issue.assignee_ids ?? []}
+              projectId={issue.project_id ?? undefined}
+              onChange={(ids) => void updateIssue?.(issue.project_id, issue.id, { assignee_ids: ids })}
+              disabled={isReadOnly}
+              multiple
+              variant={issue.assignee_ids?.length ? "avatar-group-sm" : "icon-sm"}
+              tooltip={{ heading: t("work_items_list.assignee") }}
+            />
+          </div>
+        )}
       </div>
 
       <Tooltip label={issue.name} layout="stacked" disabled={isMobile}>
-        <div className="line-clamp-1 w-full text-body-sm-medium text-primary">
-          <span>{issue.name}</span>
+        <div
+          className={cn(
+            "line-clamp-2 w-full text-13 leading-[1.38] font-medium",
+            stateDetails?.group === "completed" ? "text-secondary" : "text-primary"
+          )}
+        >
+          {issue.name}
         </div>
       </Tooltip>
 
-      <IssueProperties
-        className="flex flex-wrap items-center gap-2 pt-1.5 whitespace-nowrap text-tertiary"
-        issue={issue}
-        displayProperties={displayProperties}
-        activeLayout="Kanban"
-        updateIssue={updateIssue}
-        isReadOnly={isReadOnly}
-        isEpic={isEpic}
-      />
-    </>
+      {(on("priority") || on("labels") || showState) && (
+        // oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions
+        <div className="flex flex-wrap items-center gap-1.5" onClick={handleEventPropagation}>
+          {showState && (
+            <StateSelect
+              value={issue.state_id}
+              projectId={issue.project_id ?? undefined}
+              onChange={(val) => void updateIssue?.(issue.project_id, issue.id, { state_id: val })}
+              disabled={isReadOnly}
+              variant="icon-sm"
+              tooltip
+            />
+          )}
+          {on("priority") && (
+            <PrioritySelect
+              value={issue.priority}
+              onChange={(val) => void updateIssue?.(issue.project_id, issue.id, { priority: val })}
+              disabled={isReadOnly}
+              variant="icon-sm"
+              tooltip
+            />
+          )}
+          {on("labels") && (issue.label_ids?.length ?? 0) > 0 && (
+            <IssuePropertyLabels
+              projectId={issue.project_id || null}
+              value={issue.label_ids || []}
+              onChange={(ids) => void updateIssue?.(issue.project_id, issue.id, { label_ids: ids })}
+              disabled={isReadOnly}
+              variant="select-ghost-md"
+              placeholderText=""
+              maxChips={2}
+            />
+          )}
+        </div>
+      )}
+
+      {showFoot && (
+        <div className="flex items-center gap-2 border-t border-subtle pt-[7px]">
+          {parent && (
+            <span className="flex h-[18px] max-w-36 min-w-0 items-center gap-[5px] rounded-[10px] bg-layer-2 px-[7px] text-11 text-secondary">
+              {parent.is_epic ? (
+                <EpicOutline className="size-2.5 shrink-0" aria-hidden="true" />
+              ) : (
+                <ParentOutline className="size-2.5 shrink-0" aria-hidden="true" />
+              )}
+              <span className="truncate">{parent.name}</span>
+            </span>
+          )}
+          {subIssuesCount > 0 && on("sub_issue_count") && (
+            <span className="flex shrink-0 items-center gap-1 text-[11.5px] text-secondary tabular-nums">
+              <SubWorkItemsOutline className="size-3" aria-hidden="true" />
+              {subIssuesCount}
+            </span>
+          )}
+          <span className="flex-1" />
+          {dueDate && on("due_date") && (
+            <span
+              className={cn("flex shrink-0 items-center gap-1 text-[11.5px] text-secondary", {
+                "text-danger-primary": shouldHighlightIssueDueDate(issue.target_date, stateDetails?.group),
+              })}
+            >
+              <CalendarOutline className="size-3" aria-hidden="true" />
+              {renderFormattedDate(dueDate, "MMM d")}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
   );
 });
 
@@ -156,6 +259,7 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
     canEditProperties,
     scrollableContainerRef,
     shouldRenderByDefault,
+    groupBy,
     isEpic = false,
   } = props;
 
@@ -265,7 +369,7 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
           href={workItemLink}
           ref={cardRef}
           className={cn(
-            "block w-full rounded-lg border border-subtle bg-layer-2 p-3 text-13 shadow-raised-100 outline-[0.5px] outline-transparent transition-all hover:border-strong hover:shadow-raised-200",
+            "block w-full rounded-[10px] border border-strong bg-layer-1 px-[11px] py-2.5 text-13 shadow-e1 transition-[transform,box-shadow,border-color] duration-[140ms] hover:-translate-y-px hover:shadow-e2",
             { "hover:cursor-pointer": isDragAllowed },
             { "border border-accent-strong hover:border-accent-strong": getIsIssuePeeked(issue.id) },
             { "z-[100] bg-layer-1": isCurrentBlockDragging }
@@ -274,7 +378,7 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
           disabled={!!issue?.tempId}
         >
           <RenderIfVisible
-            classNames="space-y-2"
+            classNames=""
             root={scrollableContainerRef}
             defaultHeight="100px"
             horizontalOffset={100}
@@ -288,6 +392,7 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
               updateIssue={updateIssue}
               quickActions={quickActions}
               isReadOnly={!canEditIssueProperties}
+              groupBy={groupBy}
               isEpic={isEpic}
             />
           </RenderIfVisible>

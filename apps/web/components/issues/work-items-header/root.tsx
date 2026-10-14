@@ -39,6 +39,7 @@ import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectNavigationPreferences } from "@/hooks/use-navigation-preferences";
 // local imports
+import { BoardSwimlanes } from "./board-swimlanes";
 import { WorkItemsLayoutTabs } from "./layout-tabs";
 import { WorkItemsPQLToolbar } from "./pql-toolbar";
 
@@ -188,21 +189,30 @@ export const WorkItemsHeader = observer(function WorkItemsHeader() {
           workspaceSlug={workspaceSlug}
           projectId={projectId}
           trailing={
-            <FiltersDropdown
-              miniIcon={<PreferencesOutline className="size-3.5" />}
-              title={t("common.display")}
-              placement="bottom-end"
-            >
-              <DisplayFiltersSelection
-                layoutDisplayFiltersOptions={layoutDisplayFiltersOptions}
-                displayFilters={issueFilters?.displayFilters ?? {}}
-                handleDisplayFiltersUpdate={handleDisplayFilters}
-                displayProperties={issueFilters?.displayProperties ?? {}}
-                handleDisplayPropertiesUpdate={handleDisplayProperties}
-                cycleViewDisabled={!currentProjectDetails?.cycle_view}
-                moduleViewDisabled={!currentProjectDetails?.module_view}
-              />
-            </FiltersDropdown>
+            <>
+              {activeLayout === EIssueLayoutTypes.KANBAN && (
+                <BoardSwimlanes
+                  groupBy={issueFilters?.displayFilters?.group_by}
+                  subGroupBy={issueFilters?.displayFilters?.sub_group_by}
+                  onChange={(subGroupBy) => handleDisplayFilters({ sub_group_by: subGroupBy })}
+                />
+              )}
+              <FiltersDropdown
+                miniIcon={<PreferencesOutline className="size-3.5" />}
+                title={t("common.display")}
+                placement="bottom-end"
+              >
+                <DisplayFiltersSelection
+                  layoutDisplayFiltersOptions={layoutDisplayFiltersOptions}
+                  displayFilters={issueFilters?.displayFilters ?? {}}
+                  handleDisplayFiltersUpdate={handleDisplayFilters}
+                  displayProperties={issueFilters?.displayProperties ?? {}}
+                  handleDisplayPropertiesUpdate={handleDisplayProperties}
+                  cycleViewDisabled={!currentProjectDetails?.cycle_view}
+                  moduleViewDisabled={!currentProjectDetails?.module_view}
+                />
+              </FiltersDropdown>
+            </>
           }
         />
       )}

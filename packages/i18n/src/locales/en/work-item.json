@@ -428,7 +428,11 @@
     "query_error_at": "{message} (at character {position})",
     "layouts": "Layouts",
     "more_actions": "More actions",
-    "editor": "Query editor"
+    "editor": "Query editor",
+    "swimlanes": "Swimlanes",
+    "swimlane_assignee": "Assignee",
+    "swimlane_priority": "Priority",
+    "swimlane_none": "None"
   },
   "work_item_peek": {
     "previous": "Previous work item",
@@ -466,6 +470,8 @@
     "due": "Due",
     "unassigned": "Unassigned",
     "collapse": "Collapse or expand {group}",
+    "collapse_column": "Collapse column",
+    "column_options": "Options for {group}",
     "sub_items": "{count, plural, one {# sub-item} other {# sub-items}}"
   }
 }
