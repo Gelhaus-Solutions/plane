@@ -1,13 +1,14 @@
 #!/bin/bash
 
-BRANCH=${BRANCH:-master}
+BRANCH=${BRANCH:-main}
 SCRIPT_DIR=$PWD
 SERVICE_FOLDER=plane-app
 PLANE_INSTALL_DIR=$PWD/$SERVICE_FOLDER
 export APP_RELEASE=stable
-export DOCKERHUB_USER=makeplane
+# Image owner prefix; the images are <DOCKERHUB_USER>/plane-<image>:<APP_RELEASE>
+export DOCKERHUB_USER=ghcr.io/gelhaus-solutions
 export PULL_POLICY=${PULL_POLICY:-if_not_present}
-export GH_REPO=makeplane/plane
+export GH_REPO=Gelhaus-Solutions/plane
 export RELEASE_DOWNLOAD_URL="https://github.com/$GH_REPO/releases/download"
 export FALLBACK_DOWNLOAD_URL="https://raw.githubusercontent.com/$GH_REPO/$BRANCH/deployments/cli/community"
 
@@ -77,7 +78,7 @@ function initialize(){
         return 1
     fi
 
-    local IMAGE_NAME=makeplane/plane-proxy
+    local IMAGE_NAME=${DOCKERHUB_USER}/plane-proxy
     local IMAGE_TAG=${APP_RELEASE}
     docker manifest inspect "${IMAGE_NAME}:${IMAGE_TAG}" | grep -q "\"architecture\": \"${CPU_ARCH}\"" &
     local pid=$!
@@ -693,7 +694,7 @@ if [ -f "$DOCKER_ENV_PATH" ]; then
     CUSTOM_BUILD=$(getEnvValue "CUSTOM_BUILD" "$DOCKER_ENV_PATH")
 
     if [ -z "$DOCKERHUB_USER" ]; then
-        DOCKERHUB_USER=makeplane
+        DOCKERHUB_USER=ghcr.io/gelhaus-solutions
         updateEnvFile "DOCKERHUB_USER" "$DOCKERHUB_USER" "$DOCKER_ENV_PATH"
     fi
 

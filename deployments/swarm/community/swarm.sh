@@ -1,13 +1,14 @@
 #!/bin/bash
 
-BRANCH=${BRANCH:-master}
+BRANCH=${BRANCH:-main}
 SERVICE_FOLDER=plane-app
 SCRIPT_DIR=$PWD
 PLANE_INSTALL_DIR=$PWD/$SERVICE_FOLDER
 export APP_RELEASE="stable"
-export DOCKERHUB_USER=makeplane
+# Image owner prefix; the images are <DOCKERHUB_USER>/plane-<image>:<APP_RELEASE>
+export DOCKERHUB_USER=ghcr.io/gelhaus-solutions
 
-export GH_REPO=makeplane/plane
+export GH_REPO=Gelhaus-Solutions/plane
 export RELEASE_DOWNLOAD_URL="https://github.com/$GH_REPO/releases/download"
 export FALLBACK_DOWNLOAD_URL="https://raw.githubusercontent.com/$GH_REPO/$BRANCH/deployments/cli/community"
 
@@ -596,7 +597,7 @@ if [ -f "$DOCKER_ENV_PATH" ]; then
     APP_RELEASE=$(getEnvValue "APP_RELEASE" "$DOCKER_ENV_PATH")
 
     if [ -z "$DOCKERHUB_USER" ]; then
-        DOCKERHUB_USER=makeplane
+        DOCKERHUB_USER=ghcr.io/gelhaus-solutions
         updateEnvFile "DOCKERHUB_USER" "$DOCKERHUB_USER" "$DOCKER_ENV_PATH"
     fi
 
