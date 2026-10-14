@@ -8,7 +8,7 @@ import { useCallback, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // icons
-import { BarOutline, CyclesOutline, PreferencesOutline, RightSidePaneOutline } from "@makeplane/propel/icons";
+import { BarOutline, CyclesOutline, RightSidePaneOutline } from "@makeplane/propel/icons";
 // plane imports
 import {
   CYCLE_STATUS,
@@ -32,12 +32,8 @@ import { WorkItemsModal } from "@/components/analytics/work-items/modal";
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { CycleQuickActions } from "@/components/cycles/quick-actions";
 import { CycleSelect } from "@/components/dropdowns/cycle/cycle-select";
-import {
-  DisplayFiltersSelection,
-  FiltersDropdown,
-  LayoutSelection,
-  MobileLayoutSelection,
-} from "@/components/issues/issue-layouts/filters";
+import { LayoutSelection, MobileLayoutSelection } from "@/components/issues/issue-layouts/filters";
+import { WorkItemsDisplayMenu } from "@/components/issues/work-items-header/display-menu";
 import { WorkItemFiltersToggle } from "@/components/work-item-filters/filters-toggle";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
@@ -205,24 +201,20 @@ export const CycleIssuesHeader = observer(function CycleIssuesHeader() {
               />
             </div>
             <WorkItemFiltersToggle entityType={EIssuesStoreType.CYCLE} entityId={cycleId} />
-            <FiltersDropdown
-              title={t("common.display")}
-              placement="bottom-end"
-              miniIcon={<PreferencesOutline className="size-3.5" />}
-            >
-              <DisplayFiltersSelection
-                layoutDisplayFiltersOptions={
-                  activeLayout ? ISSUE_DISPLAY_FILTERS_BY_PAGE.issues.layoutOptions[activeLayout] : undefined
-                }
-                displayFilters={issueFilters?.displayFilters ?? {}}
-                handleDisplayFiltersUpdate={handleDisplayFilters}
-                displayProperties={issueFilters?.displayProperties ?? {}}
-                handleDisplayPropertiesUpdate={handleDisplayProperties}
-                ignoreGroupedFilters={["cycle"]}
-                cycleViewDisabled={!currentProjectDetails?.cycle_view}
-                moduleViewDisabled={!currentProjectDetails?.module_view}
-              />
-            </FiltersDropdown>
+            <WorkItemsDisplayMenu
+              layout={activeLayout}
+              onLayoutChange={handleLayoutChange}
+              layoutOptions={
+                activeLayout ? ISSUE_DISPLAY_FILTERS_BY_PAGE.issues.layoutOptions[activeLayout] : undefined
+              }
+              displayFilters={issueFilters?.displayFilters ?? {}}
+              displayProperties={issueFilters?.displayProperties ?? {}}
+              onDisplayFilters={handleDisplayFilters}
+              onDisplayProperties={handleDisplayProperties}
+              cycleViewDisabled={!currentProjectDetails?.cycle_view}
+              moduleViewDisabled={!currentProjectDetails?.module_view}
+              ignoreGroupBy={["cycle"]}
+            />
 
             {canUserCreateIssue && (
               <>

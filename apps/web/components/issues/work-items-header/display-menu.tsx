@@ -97,6 +97,8 @@ type Props = {
   onDisplayProperties: (properties: Partial<IIssueDisplayProperties>) => void;
   cycleViewDisabled?: boolean;
   moduleViewDisabled?: boolean;
+  /** grouping the page itself stands for, such as the cycle on a cycle's work items */
+  ignoreGroupBy?: TIssueGroupByOptions[];
 };
 
 /**
@@ -114,14 +116,22 @@ export const WorkItemsDisplayMenu = observer(function WorkItemsDisplayMenu(props
     onDisplayProperties,
     cycleViewDisabled = false,
     moduleViewDisabled = false,
+    ignoreGroupBy = [],
   } = props;
   const { t } = useTranslation();
   const filters = layoutOptions?.display_filters;
   const extras = layoutOptions?.extra_options?.access ? layoutOptions.extra_options.values : [];
   const available = layoutOptions?.display_properties ?? [];
 
+  const hidden = new Set<TIssueGroupByOptions>([
+    ...ignoreGroupBy,
+    ...(cycleViewDisabled ? (["cycle"] as const) : []),
+    ...(moduleViewDisabled ? (["module"] as const) : []),
+  ]);
   const groupOptions = (keys: TIssueGroupByOptions[] | undefined, without?: TIssueGroupByOptions) =>
-    ISSUE_GROUP_BY_OPTIONS.filter((o) => keys?.includes(o.key) && (o.key === null || o.key !== without)).map((o) => ({
+    ISSUE_GROUP_BY_OPTIONS.filter(
+      (o) => keys?.includes(o.key) && (o.key === null || (o.key !== without && !hidden.has(o.key)))
+    ).map((o) => ({
       id: o.key ?? "",
       label: t(o.titleTranslationKey),
     }));
@@ -205,14 +215,14 @@ export const WorkItemsDisplayMenu = observer(function WorkItemsDisplayMenu(props
               {extras.includes("sub_issue") && (
                 <Toggle
                   label={t(`${K}.show_sub_items`)}
-                  checked={!!displayFilters.sub_issue}
+                  checked={displayFilters.sub_issue ?? true}
                   onChange={(checked) => onDisplayFilters({ sub_issue: checked })}
                 />
               )}
               {extras.includes("show_empty_groups") && (
                 <Toggle
                   label={t(`${K}.show_empty_groups`)}
-                  checked={!!displayFilters.show_empty_groups}
+                  checked={displayFilters.show_empty_groups ?? layout === EIssueLayoutTypes.KANBAN}
                   onChange={(checked) => onDisplayFilters({ show_empty_groups: checked })}
                 />
               )}
