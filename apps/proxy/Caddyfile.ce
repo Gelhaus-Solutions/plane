@@ -1,8 +1,8 @@
-# While an upstream restarts (every deploy recreates the containers), keep dialing it for a while instead of
-# answering 502 at once. A request is retried when the connection itself failed, or, for a GET, when the
-# upstream dropped it; nothing that changes data is sent twice.
+# While an upstream restarts (every deploy recreates the containers, and the API needs about 35 seconds to
+# listen again), keep dialing it instead of answering 502 at once. A request is retried when the connection
+# itself failed, or, for a GET, when the upstream dropped it; nothing that changes data is sent twice.
 (upstream_retry) {
-	lb_try_duration 30s
+	lb_try_duration 60s
 	lb_try_interval 250ms
 }
 
