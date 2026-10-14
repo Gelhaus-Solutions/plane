@@ -1,0 +1,234 @@
+#!/usr/bin/env python3
+# Copyright (c) 2023-present Plane Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+"""Connect an agent harness's stdio MCP client to Plane's /mcp as one agent session.
+
+The harness starts this as its `plane` MCP server. It registers an agent session with the harness bot's key,
+then forwards every MCP message to /mcp with the session's own token, so each write in Plane is traceable to
+this session. It beats every five minutes and ends the session when the harness closes its input.
+
+Configuration (environment):
+  PLANE_BASE_URL      https://plane.example.com
+  PLANE_WORKSPACE     the workspace slug
+  PLANE_BOT_KEY       the harness bot's key, or PLANE_BOT_KEY_FILE pointing at a file that holds it
+                      (default ~/.config/plane/bot-key)
+Claude Code supplies CLAUDE_CODE_SESSION_ID, CLAUDE_PROJECT_DIR and AI_AGENT to its MCP servers.
+"""
+
+import json
+import os
+import re
+import socket
+import subprocess
+import sys
+import threading
+import time
+import urllib.error
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+
+HEARTBEAT_SECONDS = 300
+TIMEOUT_SECONDS = 120
+WORKERS = 4
+
+
+def log(message):
+    print("plane-mcp-bridge: %s" % message, file=sys.stderr, flush=True)
+
+
+def identity(env=None, cwd=None):
+    """What the session tells Plane about itself."""
+    env = os.environ if env is None else env
+    primary_dir = env.get("CLAUDE_PROJECT_DIR") or cwd or os.getcwd()
+    if env.get("CLAUDE_CODE_SESSION_ID"):
+        harness, external_id = "claude-code", env["CLAUDE_CODE_SESSION_ID"]
+    else:
+        harness, external_id = (
+            "other",
+            "%s-pid-%d-%d" % (socket.gethostname().split(".")[0], os.getppid(), int(time.time())),
+        )
+    version = ""
+    match = re.match(r"[a-z-]+_(\d+)-(\d+)-(\d+)", env.get("AI_AGENT", ""))
+    if match:
+        version = ".".join(match.groups())
+    data = {
+        "harness": harness,
+        "external_id": external_id,
+        "primary_dir": primary_dir,
+        "host": socket.gethostname().split(".")[0],
+        "harness_version": version,
+    }
+    branch = git_branch(primary_dir)
+    if branch:
+        data["git_branch"] = branch
+    return data
+
+
+def git_branch(path):
+    try:
+        out = subprocess.run(
+            ["git", "-C", path, "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, timeout=5
+        )
+        return out.stdout.strip() if out.returncode == 0 else ""
+    except Exception:
+        return ""
+
+
+def read_key(env=None):
+    env = os.environ if env is None else env
+    if env.get("PLANE_BOT_KEY"):
+        return env["PLANE_BOT_KEY"].strip()
+    path = os.path.expanduser(env.get("PLANE_BOT_KEY_FILE") or "~/.config/plane/bot-key")
+    try:
+        with open(path) as handle:
+            return handle.read().strip()
+    except OSError:
+        return ""
+
+
+class Plane:
+    def __init__(self, base_url, workspace, bot_key, opener=None):
+        self.base = base_url.rstrip("/")
+        self.workspace = workspace
+        self.bot_key = bot_key
+        self.open = opener or urllib.request.urlopen
+        self.session_id = None
+        self.token = None
+        self.lock = threading.Lock()
+
+    def request(self, method, path, body=None, token=None, bearer=False):
+        data = json.dumps(body).encode() if body is not None else None
+        headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
+        key = token or self.bot_key
+        if bearer:
+            headers["Authorization"] = "Bearer " + key
+        else:
+            headers["X-Api-Key"] = key
+        req = urllib.request.Request(self.base + path, data=data, method=method, headers=headers)
+        try:
+            with self.open(req, timeout=TIMEOUT_SECONDS) as response:
+                raw = response.read()
+                return response.status, (json.loads(raw) if raw else None)
+        except urllib.error.HTTPError as error:
+            raw = error.read()
+            try:
+                return error.code, (json.loads(raw) if raw else None)
+            except ValueError:
+                return error.code, None
+
+    def register(self, who):
+        status, data = self.request("POST", "/api/v1/workspaces/%s/agent-sessions/" % self.workspace, who)
+        if status not in (200, 201) or not isinstance(data, dict) or not data.get("token"):
+            log(
+                "could not register a session (%s %s); acting as the bot itself"
+                % (status, (data or {}).get("error", ""))
+            )
+            with self.lock:
+                self.session_id, self.token = None, None
+            return False
+        with self.lock:
+            self.session_id, self.token = data["id"], data["token"]
+        log("registered as %s" % data.get("name"))
+        return True
+
+    def beat(self):
+        with self.lock:
+            session_id, token = self.session_id, self.token
+        if not session_id:
+            return None
+        status, _ = self.request(
+            "POST", "/api/v1/workspaces/%s/agent-sessions/%s/heartbeat/" % (self.workspace, session_id), {}, token
+        )
+        return status
+
+    def end(self, reason="exit"):
+        with self.lock:
+            session_id, token = self.session_id, self.token
+        if session_id:
+            self.request(
+                "POST",
+                "/api/v1/workspaces/%s/agent-sessions/%s/end/" % (self.workspace, session_id),
+                {"reason": reason},
+                token,
+            )
+
+    def mcp(self, message):
+        with self.lock:
+            token = self.token
+        return self.request("POST", "/mcp?workspace=%s" % self.workspace, message, token, bearer=True)
+
+
+class Bridge:
+    def __init__(self, plane, who, out=None):
+        self.plane = plane
+        self.who = who
+        self.out = out or sys.stdout
+        self.write_lock = threading.Lock()
+
+    def emit(self, message):
+        with self.write_lock:
+            self.out.write(json.dumps(message, separators=(",", ":")) + "\n")
+            self.out.flush()
+
+    def forward(self, message):
+        try:
+            status, data = self.plane.mcp(message)
+            if status in (401, 403) and self.plane.token:
+                # The session token stopped working (the session was ended): register again, try once more
+                self.plane.register(self.who)
+                status, data = self.plane.mcp(message)
+        except Exception as error:
+            status, data = 0, {"error": str(error)}
+        replies = data if isinstance(data, list) else [data] if isinstance(data, dict) else []
+        if status in (200, 202) or (replies and all(isinstance(r, dict) and "jsonrpc" in r for r in replies)):
+            for reply in replies:
+                self.emit(reply)
+            return
+        if isinstance(message, dict) and "id" in message and "method" in message:
+            self.emit(
+                {
+                    "jsonrpc": "2.0",
+                    "id": message["id"],
+                    "error": {"code": -32603, "message": "Plane answered %s" % (status or "nothing")},
+                }
+            )
+
+    def heartbeats(self, stop):
+        while not stop.wait(HEARTBEAT_SECONDS):
+            status = self.plane.beat()
+            if status in (401, 403, 409):
+                self.plane.register(self.who)
+
+    def run(self, stream):
+        self.plane.register(self.who)
+        stop = threading.Event()
+        threading.Thread(target=self.heartbeats, args=(stop,), daemon=True).start()
+        with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+            for line in stream:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    message = json.loads(line)
+                except ValueError:
+                    self.emit({"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}})
+                    continue
+                pool.submit(self.forward, message)
+        stop.set()
+        self.plane.end("exit")
+
+
+def main():
+    base = os.environ.get("PLANE_BASE_URL", "").strip()
+    workspace = os.environ.get("PLANE_WORKSPACE", "").strip()
+    key = read_key()
+    if not (base and workspace and key):
+        log("set PLANE_BASE_URL, PLANE_WORKSPACE and PLANE_BOT_KEY (or PLANE_BOT_KEY_FILE)")
+        return 2
+    Bridge(Plane(base, workspace, key), identity()).run(sys.stdin)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
