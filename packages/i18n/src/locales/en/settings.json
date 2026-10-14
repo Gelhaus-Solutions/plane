@@ -152,5 +152,11 @@
         "label": "Custom theme"
       }
     }
+  },
+  "settings_shell": {
+    "back_to_plane": "Back to Plane",
+    "search": "Search settings",
+    "my_account": "My account",
+    "no_results": "No settings match"
   }
 }

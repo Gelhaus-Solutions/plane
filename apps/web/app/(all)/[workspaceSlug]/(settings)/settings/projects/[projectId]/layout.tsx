@@ -14,7 +14,7 @@ import { SettingsMobileNav } from "@/components/settings/mobile/nav";
 import { ProjectAuthWrapper } from "@/layouts/auth-layout/project-wrapper";
 // types
 import type { Route } from "./+types/layout";
-import { ProjectSettingsSidebarRoot } from "@/components/settings/project/sidebar";
+import { SettingsNavigation } from "@/components/settings/shell/navigation";
 
 function ProjectDetailSettingsLayout({ params }: Route.ComponentProps) {
   const { workspaceSlug, projectId } = params;
@@ -23,15 +23,9 @@ function ProjectDetailSettingsLayout({ params }: Route.ComponentProps) {
 
   return (
     <>
-      <SettingsMobileNav
-        hamburgerContent={(props) => <ProjectSettingsSidebarRoot {...props} projectId={projectId} />}
-        activePath={getProjectActivePath(pathname) || ""}
-      />
+      <SettingsMobileNav hamburgerContent={SettingsNavigation} activePath={getProjectActivePath(pathname) || ""} />
       <div className="inset-y-0 flex h-full w-full flex-row">
         <div className="relative flex size-full">
-          <div className="hidden h-full shrink-0 md:block">
-            <ProjectSettingsSidebarRoot projectId={projectId} />
-          </div>
           <ProjectAuthWrapper workspaceSlug={workspaceSlug} projectId={projectId}>
             <Outlet />
           </ProjectAuthWrapper>

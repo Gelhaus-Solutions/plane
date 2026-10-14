@@ -21,16 +21,16 @@ export function SettingsHeading({ className, control, description, title, varian
       <div className="flex flex-col items-start gap-1">
         {title && (
           <h3
-            className={cn("text-h3-medium text-primary", {
-              "text-h3-medium": variant === "h3",
-              "text-h4-medium": variant === "h4",
-              "text-h6-medium": variant === "h6",
+            className={cn("text-primary", {
+              "text-22 leading-[1.2] font-semibold tracking-[-0.02em]": variant === "h3",
+              "text-15 font-semibold": variant === "h4",
+              "text-13 font-semibold": variant === "h6",
             })}
           >
             {title}
           </h3>
         )}
-        {description && <p className="text-body-xs-regular text-tertiary">{description}</p>}
+        {description && <p className="text-13 leading-normal text-secondary">{description}</p>}
       </div>
       {control}
     </div>

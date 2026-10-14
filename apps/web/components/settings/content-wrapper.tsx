@@ -27,10 +27,11 @@ export function SettingsContentWrapper(props: Props) {
         </div>
       )}
       <ScrollArea orientation="vertical">
+        {/* Pulse settings: one centred column of 820 px (round 8, settings.py) */}
         <div
-          className={cn("py-9", {
+          className={cn("pt-[26px] pb-12", {
             "w-full px-page-x lg:px-12": hugging,
-            "mx-auto w-full max-w-225 px-page-x @min-[58.95rem]:px-0": !hugging, // 58.95rem = max-width(56.25rem) + padding-x(1.35rem * 2)
+            "mx-auto w-full max-w-[820px] px-page-x md:px-8": !hugging,
           })}
         >
           {children}

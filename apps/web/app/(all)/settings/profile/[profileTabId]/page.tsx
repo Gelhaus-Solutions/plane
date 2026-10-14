@@ -13,17 +13,15 @@ import type { TProfileSettingsTabs } from "@plane/types";
 import { LogoSpinner } from "@/components/common/logo-spinner";
 import { PageHead } from "@/components/core/page-title";
 import { ProfileSettingsContent } from "@/components/settings/profile/content";
-import { ProfileSettingsSidebarRoot } from "@/components/settings/profile/sidebar";
+import { SettingsMobileNav } from "@/components/settings/mobile/nav";
+import { SettingsNavigation } from "@/components/settings/shell/navigation";
 // hooks
 import { useUser } from "@/hooks/store/user";
-import { useAppRouter } from "@/hooks/use-app-router";
 // local imports
 import type { Route } from "../+types/layout";
 
 function ProfileSettingsPage(props: Route.ComponentProps) {
   const { profileTabId } = props.params;
-  // router
-  const router = useAppRouter();
   // store hooks
   const { data: currentUser } = useUser();
   // translation
@@ -41,18 +39,12 @@ function ProfileSettingsPage(props: Route.ComponentProps) {
   return (
     <>
       <PageHead title={`${t("profile.label")} - ${t("general_settings")}`} />
-      <div className="relative size-full">
-        <div className="flex size-full">
-          <ProfileSettingsSidebarRoot
-            activeTab={profileTabId as TProfileSettingsTabs}
-            className="w-[250px]"
-            updateActiveTab={(tab) => router.push(`/settings/profile/${tab}`)}
-          />
-          <ProfileSettingsContent
-            activeTab={profileTabId as TProfileSettingsTabs}
-            className="mx-auto w-fit max-w-225 grow px-page-x py-20"
-          />
-        </div>
+      <SettingsMobileNav hamburgerContent={SettingsNavigation} activePath="profile.label" />
+      <div className="relative size-full overflow-y-auto">
+        <ProfileSettingsContent
+          activeTab={profileTabId as TProfileSettingsTabs}
+          className="mx-auto w-full max-w-205 px-8 pt-[26px] pb-12"
+        />
       </div>
     </>
   );

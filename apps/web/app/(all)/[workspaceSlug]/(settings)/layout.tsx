@@ -8,22 +8,22 @@ import { Outlet } from "react-router";
 // components
 import { ContentWrapper } from "@/components/core/content-wrapper";
 import { ProjectsAppPowerKProvider } from "@/components/power-k/projects-app-provider";
+import { SettingsNavigation } from "@/components/settings/shell/navigation";
 
 export default function SettingsLayout() {
   return (
     <>
       <ProjectsAppPowerKProvider />
-      <div className="relative flex size-full overflow-hidden p-2">
-        <div className="relative flex size-full overflow-hidden rounded-xl border border-strong bg-surface-1 shadow-e1">
-          <main className="relative flex size-full flex-col overflow-hidden">
-            {/* Content */}
-            <ContentWrapper className="w-full bg-surface-1 md:flex">
-              <div className="size-full overflow-hidden">
-                <Outlet />
-              </div>
-            </ContentWrapper>
-          </main>
-        </div>
+      {/* In settings the sidebar becomes the settings navigation, on the canvas beside the inset panel */}
+      <div className="relative flex size-full overflow-hidden">
+        <SettingsNavigation className="hidden md:flex" />
+        <main className="relative my-2 mr-2 ml-2 flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-strong bg-surface-1 shadow-e1 md:ml-0">
+          <ContentWrapper className="w-full bg-surface-1 md:flex">
+            <div className="size-full overflow-hidden">
+              <Outlet />
+            </div>
+          </ContentWrapper>
+        </main>
       </div>
     </>
   );

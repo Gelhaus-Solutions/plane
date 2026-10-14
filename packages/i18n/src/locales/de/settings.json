@@ -152,5 +152,11 @@
         "label": "Benutzerdefiniertes Theme"
       }
     }
+  },
+  "settings_shell": {
+    "back_to_plane": "Zurück zu Plane",
+    "search": "Einstellungen durchsuchen",
+    "my_account": "Mein Konto",
+    "no_results": "Keine Einstellung passt"
   }
 }
