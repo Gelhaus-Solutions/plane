@@ -5,8 +5,10 @@
  */
 
 import type { TPowerKCommandConfig, TPowerKContext, TPowerKPageType } from "../../core/types";
+import type { TPowerKSearch } from "../../hooks/use-power-k-search";
 import { PowerKModalPagesList } from "../pages";
 import { PowerKContextBasedPagesList } from "../pages/context-based";
+import type { TPowerKScope } from "./header";
 import { PowerKModalSearchMenu } from "./search-menu";
 
 export type TPowerKCommandsListProps = {
@@ -14,7 +16,8 @@ export type TPowerKCommandsListProps = {
   context: TPowerKContext;
   handleCommandSelect: (command: TPowerKCommandConfig) => void;
   handlePageDataSelection: (data: unknown) => void;
-  isWorkspaceLevel: boolean;
+  search: TPowerKSearch;
+  scope: TPowerKScope;
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   handleSearchMenuClose?: () => void;
@@ -26,7 +29,8 @@ export function ProjectsAppPowerKCommandsList(props: TPowerKCommandsListProps) {
     context,
     handleCommandSelect,
     handlePageDataSelection,
-    isWorkspaceLevel,
+    search,
+    scope,
     searchTerm,
     setSearchTerm,
     handleSearchMenuClose,
@@ -37,7 +41,8 @@ export function ProjectsAppPowerKCommandsList(props: TPowerKCommandsListProps) {
       <PowerKModalSearchMenu
         activePage={activePage}
         context={context}
-        isWorkspaceLevel={!context.params.projectId || isWorkspaceLevel}
+        search={search}
+        scope={scope}
         searchTerm={searchTerm}
         updateSearchTerm={setSearchTerm}
         handleSearchMenuClose={handleSearchMenuClose}
@@ -47,12 +52,15 @@ export function ProjectsAppPowerKCommandsList(props: TPowerKCommandsListProps) {
         activePage={activePage}
         handleSelection={handlePageDataSelection}
       />
-      <PowerKModalPagesList
-        activePage={activePage}
-        context={context}
-        onPageDataSelect={handlePageDataSelection}
-        onCommandSelect={handleCommandSelect}
-      />
+      {/* The commands are the Actions scope; a scope of results hides them */}
+      {(scope === "all" || scope === "actions" || searchTerm.trim() === "") && (
+        <PowerKModalPagesList
+          activePage={activePage}
+          context={context}
+          onPageDataSelect={handlePageDataSelection}
+          onCommandSelect={handleCommandSelect}
+        />
+      )}
     </>
   );
 }

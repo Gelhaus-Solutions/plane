@@ -171,15 +171,24 @@
     "search_menu": {
       "no_results": "Keine Ergebnisse gefunden",
       "clear_search": "Suche löschen",
-      "go_to_advanced_search": "Zur erweiterten Suche"
+      "go_to_advanced_search": "Zur erweiterten Suche",
+      "results_count": "{count, plural, one {# Ergebnis} other {# Ergebnisse}}",
+      "searching": "Suche läuft",
+      "scopes": "Suchbereiche",
+      "actions": "Aktionen"
     },
     "footer": {
-      "workspace_level": "Arbeitsbereich-Ebene"
+      "workspace_level": "Arbeitsbereich-Ebene",
+      "move": "bewegen",
+      "open": "öffnen",
+      "open_in_peek": "in der Vorschau öffnen",
+      "close": "schließen"
     },
     "shortcuts_modal": {
       "search_placeholder": "Tastaturkürzel suchen",
       "no_results": "Keine Tastaturkürzel für „{query}“ gefunden",
-      "sequence_separator": "dann"
+      "sequence_separator": "dann",
+      "footer": "Drück ? an jeder Stelle. Unter Windows und Linux ist ⌘ die Taste Ctrl. Jede Aktion im Befehlsmenü zeigt ihr Kürzel auch."
     },
     "group_titles": {
       "actions": "Aktionen",
@@ -192,6 +201,12 @@
       "miscellaneous": "Sonstiges",
       "preferences": "Präferenzen",
       "help": "Hilfe"
+    },
+    "preview": {
+      "label": "Vorschau",
+      "open": "Öffnen",
+      "peek": "Vorschau",
+      "empty": "Geh auf ein Ergebnis, um es hier zu sehen"
     }
   }
 }

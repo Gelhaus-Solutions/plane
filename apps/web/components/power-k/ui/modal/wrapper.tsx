@@ -9,13 +9,22 @@ import { useState, useEffect, useCallback } from "react";
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
 import { Dialog, DialogContent } from "@makeplane/propel/components/dialog";
+import { useTranslation } from "@plane/i18n";
+import type { IWorkspaceIssueSearchResult } from "@plane/types";
+import { cn } from "@plane/utils";
 // hooks
+import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { usePowerK } from "@/hooks/store/use-power-k";
+import { useAppRouter } from "@/hooks/use-app-router";
 // local imports
 import type { TPowerKCommandConfig, TPowerKContext } from "../../core/types";
+import { usePowerKSearch } from "../../hooks/use-power-k-search";
 import type { TPowerKCommandsListProps } from "./commands-list";
 import { PowerKModalFooter } from "./footer";
+import type { TPowerKScope } from "./header";
 import { PowerKModalHeader } from "./header";
+import { PowerKSearchPreview } from "./preview";
+import { POWER_K_SEARCH_RESULTS_GROUPS_MAP, parsePowerKSearchResultValue } from "./search-results-map";
 
 type Props = {
   commandsListComponent: React.FC<TPowerKCommandsListProps>;
@@ -30,8 +39,48 @@ export const ProjectsAppPowerKModalWrapper = observer(function ProjectsAppPowerK
   // states
   const [searchTerm, setSearchTerm] = useState("");
   const [isWorkspaceLevel, setIsWorkspaceLevel] = useState(false);
+  const [scope, setScope] = useState<TPowerKScope>("all");
+  const [selectedValue, setSelectedValue] = useState("");
   // store hooks
   const { activePage, setActivePage } = usePowerK();
+  const { setPeekIssue } = useIssueDetail();
+  const { t } = useTranslation();
+  const router = useAppRouter();
+  // search
+  const search = usePowerKSearch({
+    activePage,
+    isWorkspaceLevel: !context.params.projectId || isWorkspaceLevel,
+    searchTerm,
+  });
+  const isSearchView = !activePage && searchTerm.trim() !== "";
+  // A scope whose group has no results any more shows everything
+  const activeScope: TPowerKScope =
+    scope === "all" || scope === "actions" || search.groups.some((group) => group.key === scope) ? scope : "all";
+  // The selected row, when it is a search result
+  const selectedResult = parsePowerKSearchResultValue(selectedValue);
+  const selectedItem = selectedResult
+    ? search.results.results[selectedResult.key]?.find((item) => item.id === selectedResult.id)
+    : undefined;
+
+  const openSelectedResult = useCallback(() => {
+    if (!selectedResult || !selectedItem) return;
+    context.closePalette();
+    router.push(
+      POWER_K_SEARCH_RESULTS_GROUPS_MAP[selectedResult.key].path(selectedItem, context.params.projectId?.toString())
+    );
+  }, [context, router, selectedItem, selectedResult]);
+
+  const peekSelectedResult = useCallback(() => {
+    if (selectedResult?.key !== "issue" || !selectedItem) return;
+    const workItem = selectedItem as IWorkspaceIssueSearchResult;
+    context.closePalette();
+    setPeekIssue({ workspaceSlug: workItem.workspace__slug, projectId: workItem.project_id, issueId: workItem.id });
+  }, [context, selectedItem, selectedResult, setPeekIssue]);
+
+  // Clearing the term leaves the scopes
+  useEffect(() => {
+    if (!searchTerm) setScope("all");
+  }, [searchTerm]);
 
   // Handle command selection
   const handleCommandSelect = useCallback(
@@ -77,6 +126,13 @@ export const ProjectsAppPowerKModalWrapper = observer(function ProjectsAppPowerK
         return;
       }
 
+      // Cmd/Ctrl+Enter peeks the selected work item instead of opening it
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && selectedResult?.key === "issue") {
+        e.preventDefault();
+        peekSelectedResult();
+        return;
+      }
+
       // Escape closes palette or clears search
       if (e.key === "Escape") {
         e.preventDefault();
@@ -102,7 +158,7 @@ export const ProjectsAppPowerKModalWrapper = observer(function ProjectsAppPowerK
         return;
       }
     },
-    [searchTerm, activePage, onClose, setActivePage, context]
+    [searchTerm, activePage, onClose, setActivePage, context, selectedResult, peekSelectedResult]
   );
 
   // Reset state when modal closes
@@ -111,6 +167,8 @@ export const ProjectsAppPowerKModalWrapper = observer(function ProjectsAppPowerK
     // Wait for the close animation. Reopening within the delay cancels the reset.
     const timeoutId = setTimeout(() => {
       setSearchTerm("");
+      setScope("all");
+      setSelectedValue("");
       setActivePage(null);
       context.setActiveCommand(null);
       context.setShouldShowContextBasedActions(true);
@@ -118,6 +176,24 @@ export const ProjectsAppPowerKModalWrapper = observer(function ProjectsAppPowerK
     return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  const commandsList = (
+    <>
+      <Command.Empty className="px-[18px] py-6 text-13 text-tertiary">
+        {t("power_k.search_menu.no_results")}
+      </Command.Empty>
+      <CommandsListComponent
+        activePage={activePage}
+        context={context}
+        handleCommandSelect={handleCommandSelect}
+        handlePageDataSelection={handlePageDataSelection}
+        search={search}
+        scope={activeScope}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
+    </>
+  );
 
   return (
     <Dialog
@@ -130,15 +206,18 @@ export const ProjectsAppPowerKModalWrapper = observer(function ProjectsAppPowerK
         onClose();
       }}
     >
-      {/* legacy panel was `max-w-2xl` (672px) = `md` */}
-      <DialogContent size="md">
+      {/* 7B: the search view is 1000 px wide with a preview; the command list stays 672 */}
+      <DialogContent size={isSearchView ? "xl" : "md"}>
         <Command
-          filter={(i18nValue: string, search: string) => {
-            if (i18nValue === "no-results") return 1;
-            if (i18nValue.toLowerCase().includes(search.toLowerCase())) return 1;
-            return 0;
+          filter={(value: string, term: string, keywords?: string[]) => {
+            // Search results matched on the server; only the commands are filtered here
+            if (value === "no-results" || value.startsWith("search-result:")) return 1;
+            const needle = term.toLowerCase();
+            return [value, ...(keywords ?? [])].some((text) => text.toLowerCase().includes(needle)) ? 1 : 0;
           }}
           shouldFilter={searchTerm.length > 0}
+          value={selectedValue}
+          onValueChange={setSelectedValue}
           onKeyDown={handleKeyDown}
           className="flex min-h-0 w-full flex-1 flex-col"
         >
@@ -147,24 +226,42 @@ export const ProjectsAppPowerKModalWrapper = observer(function ProjectsAppPowerK
             context={context}
             onSearchChange={setSearchTerm}
             searchTerm={searchTerm}
+            search={search}
+            scope={activeScope}
+            onScopeChange={setScope}
           />
-          <Command.List className="vertical-scrollbar scrollbar-sm max-h-96 min-h-0 flex-1 overflow-scroll outline-none">
-            <CommandsListComponent
-              activePage={activePage}
-              context={context}
-              handleCommandSelect={handleCommandSelect}
-              handlePageDataSelection={handlePageDataSelection}
-              isWorkspaceLevel={isWorkspaceLevel}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-            />
-          </Command.List>
-          {/* Footer hints */}
+          {isSearchView ? (
+            <div className="flex h-[540px] max-h-[calc(100dvh-18rem)] min-h-0">
+              <Command.List
+                className={cn(
+                  "vertical-scrollbar scrollbar-sm min-h-0 min-w-0 flex-1 overflow-y-auto pt-0.5 pb-1.5 outline-none",
+                  activeScope !== "actions" && search.resultsCount > 0 && "md:border-r md:border-subtle"
+                )}
+              >
+                {commandsList}
+              </Command.List>
+              {activeScope !== "actions" && search.resultsCount > 0 && (
+                <PowerKSearchPreview
+                  results={search.results}
+                  selectedValue={selectedValue}
+                  searchTerm={search.debouncedSearchTerm}
+                  onOpen={openSelectedResult}
+                  onPeek={peekSelectedResult}
+                  className="hidden w-[380px] flex-none md:flex"
+                />
+              )}
+            </div>
+          ) : (
+            <Command.List className="vertical-scrollbar scrollbar-sm max-h-[min(600px,calc(100dvh-16rem))] min-h-0 flex-1 overflow-y-auto pt-0.5 pb-1.5 outline-none">
+              {commandsList}
+            </Command.List>
+          )}
           {!hideFooter && (
             <PowerKModalFooter
               isWorkspaceLevel={isWorkspaceLevel}
               projectId={context.params.projectId?.toString()}
               onWorkspaceLevelChange={setIsWorkspaceLevel}
+              showPeekHint={isSearchView && selectedResult?.key === "issue"}
             />
           )}
         </Command>

@@ -238,6 +238,17 @@ export class ShortcutHandler {
    * Handle modifier shortcuts (Cmd+X, Cmd+Shift+X, etc.)
    */
   private handleModifierShortcut(e: KeyboardEvent): void {
+    // "?" is Shift plus a different key on every layout (Slash in US, ß in German), so it is matched
+    // by the character it types rather than by the physical key
+    if (e.key === "?" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      const help = this.registry.findByShortcut(this.getContext(), "?");
+      if (help && this.canExecuteCommand(help)) {
+        e.preventDefault();
+        this.executeCommand(help);
+        return;
+      }
+    }
+
     const shortcut = formatModifierShortcut(e, this.layoutMap);
     const command = this.registry.findByModifierShortcut(this.getContext(), shortcut);
 

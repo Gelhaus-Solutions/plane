@@ -171,15 +171,24 @@
     "search_menu": {
       "no_results": "No results found",
       "clear_search": "Clear search",
-      "go_to_advanced_search": "Go to advanced search"
+      "go_to_advanced_search": "Go to advanced search",
+      "results_count": "{count, plural, one {# result} other {# results}}",
+      "searching": "Searching",
+      "scopes": "Search scopes",
+      "actions": "Actions"
     },
     "footer": {
-      "workspace_level": "Workspace level"
+      "workspace_level": "Workspace level",
+      "move": "move",
+      "open": "open",
+      "open_in_peek": "open in peek",
+      "close": "close"
     },
     "shortcuts_modal": {
       "search_placeholder": "Search for shortcuts",
       "no_results": "No shortcuts found for \"{query}\"",
-      "sequence_separator": "then"
+      "sequence_separator": "then",
+      "footer": "Press ? anywhere. On Windows and Linux ⌘ is Ctrl. Every action in the command menu shows its shortcut too."
     },
     "group_titles": {
       "actions": "Actions",
@@ -192,6 +201,12 @@
       "miscellaneous": "Miscellaneous",
       "preferences": "Preferences",
       "help": "Help"
+    },
+    "preview": {
+      "label": "Preview",
+      "open": "Open",
+      "peek": "Peek",
+      "empty": "Move to a result to see it here"
     }
   }
 }

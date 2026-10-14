@@ -19,9 +19,11 @@ type Props = {
   isDisabled?: boolean;
   isSelected?: boolean;
   keySequence?: string;
-  /** Translated connector rendered between the keys of `keySequence` */
-  keySequenceSeparator?: string;
   label: string | React.ReactNode;
+  /** Muted text after the label: a work item's id, a result's kind and project */
+  sub?: string;
+  /** More text the menu's own filter matches on */
+  keywords?: string[];
   onSelect: () => void;
   shortcut?: string;
   value?: string;
@@ -34,27 +36,35 @@ export function PowerKModalCommandItem(props: Props) {
     isDisabled,
     isSelected,
     keySequence,
-    keySequenceSeparator = "",
     label,
+    sub,
+    keywords,
     onSelect,
     shortcut,
     value,
   } = props;
 
   return (
-    <Command.Item value={value} onSelect={onSelect} className="focus:outline-none" disabled={isDisabled}>
+    <Command.Item
+      value={value}
+      keywords={keywords}
+      onSelect={onSelect}
+      className="group/pk-item focus:outline-none"
+      disabled={isDisabled}
+    >
       <div
-        className={cn("flex items-center gap-2 text-secondary", {
+        className={cn("flex min-w-0 items-center gap-[9px] text-primary", {
           "opacity-70": isDisabled,
         })}
       >
-        {Icon && <Icon className="size-3.5 shrink-0" />}
+        {Icon && <Icon className="size-4 shrink-0 text-secondary" />}
         {iconNode}
-        {label}
+        <span className="min-w-0 truncate">{label}</span>
+        {sub && <span className="ml-0.5 shrink-0 text-12 text-tertiary">{sub}</span>}
       </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {isSelected && <TickOutline className="size-3 shrink-0 text-secondary" />}
-        {keySequence && <KeySequenceBadge sequence={keySequence} separator={keySequenceSeparator} />}
+      <div className="flex shrink-0 items-center gap-1.5 text-[11.5px] text-tertiary">
+        {isSelected && <TickOutline className="size-3.5 shrink-0 text-accent-primary" />}
+        {keySequence && <KeySequenceBadge sequence={keySequence} />}
         {shortcut && <ShortcutBadge shortcut={shortcut} />}
       </div>
     </Command.Item>

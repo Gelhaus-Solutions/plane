@@ -27,8 +27,6 @@ export function ShortcutRenderer(props: Props) {
   const { searchQuery, commands } = props;
   // translation
   const { t } = useTranslation();
-  // Translated once here rather than per badge, so rows don't each subscribe to i18n
-  const keySequenceSeparator = t("power_k.shortcuts_modal.sequence_separator");
   // The query's position in the sentence varies by language, so split the translation on a
   // sentinel and give only the query its emphasis
   const [noResultsBefore, noResultsAfter] = t("power_k.shortcuts_modal.no_results", {
@@ -85,40 +83,47 @@ export function ShortcutRenderer(props: Props) {
   // Sort groups by priority
   groupedCommands.sort((a, b) => a.priority - b.priority);
 
-  const isShortcutsEmpty = groupedCommands.length === 0;
+  if (groupedCommands.length === 0) {
+    return (
+      <p className="py-10 text-center text-13 text-secondary">
+        {noResultsBefore}
+        <span className="font-semibold italic">{searchQuery}</span>
+        {noResultsAfter}
+      </p>
+    );
+  }
+
+  // Three columns, the sections dealt round them in order
+  const columns: GroupedCommands[][] = [[], [], []];
+  groupedCommands.forEach((group, index) => columns[index % 3].push(group));
 
   return (
-    <div className="flex flex-col gap-y-3">
-      {!isShortcutsEmpty ? (
-        groupedCommands.map((group) => (
-          <div key={group.key}>
-            <h5 className="pt-1 pb-2 text-left text-13 font-medium">{group.title}</h5>
-            <div className="space-y-3 px-1">
+    <div className="grid grid-cols-1 gap-x-7 gap-y-1 md:grid-cols-3">
+      {columns.map((column) => (
+        <div key={column.map((group) => group.key).join("|") || "empty"} className="flex flex-col">
+          {column.map((group) => (
+            <section key={group.key} className="flex flex-col">
+              <h3 className="mt-2 flex h-[34px] items-center text-[11.5px] font-semibold tracking-[0.05em] text-tertiary uppercase">
+                {group.title}
+              </h3>
               {group.commands.map((command) => (
-                <div key={command.id} className="mt-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-left text-11 text-secondary">{t(command.i18n_title)}</h4>
-                    <div className="flex items-center gap-x-1.5">
-                      {command.keySequence && (
-                        <KeySequenceBadge sequence={command.keySequence} separator={keySequenceSeparator} />
-                      )}
-                      {(command.shortcut || command.modifierShortcut) && (
-                        <ShortcutBadge shortcut={command.shortcut || command.modifierShortcut} />
-                      )}
-                    </div>
-                  </div>
+                <div
+                  key={command.id}
+                  className="flex h-[30px] items-center gap-2.5 border-b border-subtle text-13 text-primary"
+                >
+                  <span className="min-w-0 truncate">{t(command.i18n_title)}</span>
+                  <span className="ml-auto flex shrink-0 items-center gap-[3px]">
+                    {command.keySequence && <KeySequenceBadge sequence={command.keySequence} />}
+                    {(command.shortcut || command.modifierShortcut) && (
+                      <ShortcutBadge shortcut={command.shortcut || command.modifierShortcut} />
+                    )}
+                  </span>
                 </div>
               ))}
-            </div>
-          </div>
-        ))
-      ) : (
-        <p className="text-center text-13 text-secondary">
-          {noResultsBefore}
-          <span className="font-semibold italic">{searchQuery}</span>
-          {noResultsAfter}
-        </p>
-      )}
+            </section>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

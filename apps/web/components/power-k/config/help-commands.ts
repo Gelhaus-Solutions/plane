@@ -24,6 +24,8 @@ export const usePowerKHelpCommands = (): TPowerKCommandConfig[] => {
       group: "help",
       i18n_title: "power_k.help_actions.open_keyboard_shortcuts",
       icon: RocketOutline,
+      // "?" as the shortcut help shows it (J6); Cmd+/ keeps working
+      shortcut: "?",
       modifierShortcut: "cmd+/",
       action: () => toggleShortcutsListModal(true),
       isEnabled: () => true,
