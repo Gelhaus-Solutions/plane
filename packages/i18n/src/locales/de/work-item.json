@@ -420,5 +420,14 @@
       "label": "Epic-Titel",
       "required": "Ein Titel für das Epic ist erforderlich."
     }
+  },
+  "work_items_header": {
+    "items": "{count, plural, one {# Element} other {# Elemente}}",
+    "query_label": "PQL-Abfrage",
+    "query_placeholder": "Abfrage, z. B. stateGroup IN openStates() AND priority = \"high\"",
+    "query_error_at": "{message} (bei Zeichen {position})",
+    "layouts": "Layouts",
+    "more_actions": "Weitere Aktionen",
+    "editor": "Abfrage-Editor"
   }
 }

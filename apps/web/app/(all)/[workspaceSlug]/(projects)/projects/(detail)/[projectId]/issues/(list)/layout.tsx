@@ -6,18 +6,16 @@
 
 // components
 import { Outlet } from "react-router";
-import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
-import { ProjectIssuesHeader } from "./header";
-import { ProjectIssuesMobileHeader } from "./mobile-header";
+import { WorkItemsHeader } from "@/components/issues/work-items-header";
 
 export default function ProjectIssuesLayout() {
   return (
-    <>
-      <AppHeader header={<ProjectIssuesHeader />} mobileHeader={<ProjectIssuesMobileHeader />} />
+    <div className="flex size-full flex-col overflow-hidden">
+      <WorkItemsHeader />
       <ContentWrapper>
         <Outlet />
       </ContentWrapper>
-    </>
+    </div>
   );
 }

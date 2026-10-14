@@ -351,6 +351,8 @@ class ProjectUserProperty(ProjectBaseModel):
     display_filters = models.JSONField(default=get_default_display_filters)
     display_properties = models.JSONField(default=get_default_display_properties)
     rich_filters = models.JSONField(default=dict)
+    # The PQL query the user's list of this project shows, combined with rich_filters by AND (D42)
+    pql = models.TextField(blank=True, default="")
     preferences = models.JSONField(default=get_default_preferences)
     sort_order = models.FloatField(default=65535)
 

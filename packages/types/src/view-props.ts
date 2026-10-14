@@ -86,7 +86,8 @@ export type TIssueParams =
   | "issue_type"
   | "layout"
   | "expand"
-  | "filters";
+  | "filters"
+  | "pql";
 
 export type TCalendarLayouts = "month" | "week";
 
@@ -187,7 +188,18 @@ export interface IIssueFilters {
   displayFilters: IIssueDisplayFilterOptions | undefined;
   displayProperties: IIssueDisplayProperties | undefined;
   kanbanFilters: TIssueKanbanFilters | undefined;
+  /** The PQL query the list shows, combined with richFilters by AND (project lists only, D42) */
+  pql?: string;
 }
+
+/** Why the server refused a list's PQL query, with where in the query */
+export type TPQLError = {
+  code: string;
+  message: string;
+  position?: number;
+  /** The refused query; the list keeps showing the last query that worked */
+  query?: string;
+};
 
 export type TSupportedFilterForUpdate = IIssueDisplayFilterOptions | IIssueDisplayProperties | TIssueKanbanFilters;
 
@@ -203,6 +215,7 @@ export interface IIssueFiltersResponse {
 
 export interface IProjectUserPropertiesResponse extends IIssueFiltersResponse {
   sort_order: number;
+  pql?: string;
   preferences: {
     pages: {
       block_display: boolean;

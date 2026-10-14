@@ -4,8 +4,4 @@
  * See the LICENSE file for details.
  */
 
-import { IssuesHeader } from "@/components/issues/header";
-
-export function ProjectIssuesHeader() {
-  return <IssuesHeader />;
-}
+export * from "./root";

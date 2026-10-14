@@ -420,5 +420,14 @@
       "label": "Epic Title",
       "required": "Epic title is required."
     }
+  },
+  "work_items_header": {
+    "items": "{count, plural, one {# item} other {# items}}",
+    "query_label": "PQL query",
+    "query_placeholder": "Query, e.g. stateGroup IN openStates() AND priority = \"high\"",
+    "query_error_at": "{message} (at character {position})",
+    "layouts": "Layouts",
+    "more_actions": "More actions",
+    "editor": "Query editor"
   }
 }

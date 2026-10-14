@@ -12,6 +12,7 @@ import type {
   ViewFlags,
   IssuePaginationOptions,
   TIssuesResponse,
+  TPQLError,
   TBulkOperationsPayload,
 } from "@plane/types";
 // helpers
@@ -83,7 +84,7 @@ export class ProjectIssues extends BaseIssuesStore implements IProjectIssues {
    * @param projectId
    */
   fetchParentStats = async (workspaceSlug: string, projectId?: string) => {
-    projectId && this.rootIssueStore.rootStore.projectRoot.project.fetchProjectDetails(workspaceSlug, projectId);
+    if (projectId) void this.rootIssueStore.rootStore.projectRoot.project.fetchProjectDetails(workspaceSlug, projectId);
   };
 
   /** */
@@ -124,6 +125,16 @@ export class ProjectIssues extends BaseIssuesStore implements IProjectIssues {
     } catch (error) {
       // set loader to undefined if errored out
       this.setLoader(undefined);
+      // A refused PQL query is shown at the query, not thrown at the list
+      const pqlError = (error as { pql?: TPQLError } | undefined)?.pql;
+      if (pqlError) {
+        // keep the options so the list can be fetched again with the last query that worked
+        runInAction(() => {
+          this.paginationOptions = options;
+        });
+        this.issueFilterStore?.onPQLRefused(workspaceSlug, projectId, pqlError);
+        return;
+      }
       throw error;
     }
   };

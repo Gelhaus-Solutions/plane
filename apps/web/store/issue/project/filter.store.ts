@@ -19,6 +19,7 @@ import type {
   IssuePaginationOptions,
   TWorkItemFilterExpression,
   TSupportedFilterForUpdate,
+  TPQLError,
 } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
 import { handleIssueQueryParamsByLayout } from "@plane/utils";
@@ -41,8 +42,15 @@ export interface IProjectIssuesFilter extends IBaseIssueFilterStore {
     subGroupId: string | undefined
   ) => Partial<Record<TIssueParams, string | boolean>>;
   getIssueFilters(projectId: string): IIssueFilters | undefined;
+  /** Why the server refused the project's PQL query, if it did */
+  getPQLError: (projectId: string) => TPQLError | undefined;
   // action
   fetchFilters: (workspaceSlug: string, projectId: string) => Promise<void>;
+  /** Applies a PQL query to the project's list, refetches it and keeps the query in the user's project properties */
+  updatePQL: (workspaceSlug: string, projectId: string, pql: string) => Promise<void>;
+  setPQLError: (projectId: string, error: TPQLError | undefined) => void;
+  /** The list fetch was refused for its PQL query: keep the error and go back to the last query that worked */
+  onPQLRefused: (workspaceSlug: string, projectId: string, error: TPQLError) => void;
   updateFilterExpression: (
     workspaceSlug: string,
     projectId: string,
@@ -59,6 +67,9 @@ export interface IProjectIssuesFilter extends IBaseIssueFilterStore {
 export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProjectIssuesFilter {
   // observables
   filters: { [projectId: string]: IIssueFilters } = {};
+  pqlErrors: { [projectId: string]: TPQLError | undefined } = {};
+  // the last query each project's list was fetched with successfully
+  lastValidPQL: { [projectId: string]: string } = {};
   // root store
   rootIssueStore: IIssueRootStore;
   // services
@@ -69,6 +80,7 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
     makeObservable(this, {
       // observables
       filters: observable,
+      pqlErrors: observable,
       // computed
       issueFilters: computed,
       appliedFilters: computed,
@@ -76,6 +88,9 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
       fetchFilters: action,
       updateFilterExpression: action,
       updateFilters: action,
+      updatePQL: action,
+      setPQLError: action,
+      onPQLRefused: action,
     });
     // root store
     this.rootIssueStore = _rootStore;
@@ -116,9 +131,27 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
       userFilters?.displayFilters,
       filteredParams
     );
+    // The server combines the PQL query with the rich filters by AND
+    if (userFilters.pql?.trim()) filteredRouteParams.pql = userFilters.pql.trim();
 
     return filteredRouteParams;
   }
+
+  getPQLError = (projectId: string) => this.pqlErrors[projectId];
+
+  setPQLError = (projectId: string, error: TPQLError | undefined) => {
+    set(this.pqlErrors, [projectId], error);
+  };
+
+  onPQLRefused = (workspaceSlug: string, projectId: string, error: TPQLError) => {
+    const refused = this.filters[projectId]?.pql ?? "";
+    const fallback = this.lastValidPQL[projectId] ?? "";
+    set(this.pqlErrors, [projectId], { ...error, query: refused });
+    // never loop on a fallback that is refused too
+    if (refused === fallback) return;
+    set(this.filters, [projectId, "pql"], fallback);
+    void this.rootIssueStore.projectIssues.fetchIssuesWithExistingPagination(workspaceSlug, projectId, "mutation");
+  };
 
   getFilterParams = computedFn(
     (
@@ -135,9 +168,14 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
   );
 
   fetchFilters = async (workspaceSlug: string, projectId: string) => {
+    // A query in the address (?pql=) wins over the one kept in the user's project properties (D42)
+    const urlPQL = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("pql") : null;
     const _filters = await this.projectService.getProjectUserProperties(workspaceSlug, projectId);
 
     const richFilters = _filters?.rich_filters;
+    const pql = urlPQL ?? _filters?.pql ?? "";
+    if (urlPQL !== null && urlPQL !== (_filters?.pql ?? ""))
+      void this.projectService.updateProjectUserProperties(workspaceSlug, projectId, { pql: urlPQL }).catch(() => {});
     const displayFilters = this.computedDisplayFilters(_filters?.display_filters);
     const displayProperties = this.computedDisplayProperties(_filters?.display_properties);
 
@@ -163,7 +201,23 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
       set(this.filters, [projectId, "displayFilters"], displayFilters);
       set(this.filters, [projectId, "displayProperties"], displayProperties);
       set(this.filters, [projectId, "kanbanFilters"], kanbanFilters);
+      set(this.filters, [projectId, "pql"], pql);
+      set(this.pqlErrors, [projectId], undefined);
     });
+    this.lastValidPQL[projectId] = "";
+  };
+
+  updatePQL: IProjectIssuesFilter["updatePQL"] = async (workspaceSlug, projectId, pql) => {
+    const query = pql.trim();
+    runInAction(() => {
+      set(this.filters, [projectId, "pql"], query);
+      set(this.pqlErrors, [projectId], undefined);
+    });
+    // A refused query comes back through onPQLRefused, which restores the last one that worked; only a valid one is kept
+    await this.rootIssueStore.projectIssues.fetchIssuesWithExistingPagination(workspaceSlug, projectId, "mutation");
+    if (this.pqlErrors[projectId]) return;
+    this.lastValidPQL[projectId] = query;
+    await this.projectService.updateProjectUserProperties(workspaceSlug, projectId, { pql: query });
   };
 
   /**

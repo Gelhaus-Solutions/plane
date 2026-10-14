@@ -80,6 +80,7 @@ export class IssueFilterHelperStore implements IIssueFilterHelperStore {
     displayFilters: isEmpty(filters?.displayFilters) ? undefined : filters?.displayFilters,
     displayProperties: isEmpty(filters?.displayProperties) ? undefined : filters?.displayProperties,
     kanbanFilters: isEmpty(filters?.kanbanFilters) ? undefined : filters?.kanbanFilters,
+    ...(filters?.pql ? { pql: filters.pql } : {}),
   });
 
   /**
