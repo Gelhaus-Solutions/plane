@@ -26,7 +26,7 @@ import { AvatarGroup } from "@makeplane/propel/components/avatar-group";
 import { Button } from "@makeplane/propel/components/button";
 import { Icon } from "@makeplane/propel/components/icon";
 import { IconButton } from "@makeplane/propel/components/icon-button";
-import { Logo } from "@plane/blocks/emoji-icon-picker";
+import { ProjectBadge } from "@plane/blocks/project-badge";
 import { setPromiseToast, setToast } from "@plane/blocks/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { IProject } from "@plane/types";
@@ -239,9 +239,14 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
 
           <div className="absolute bottom-4 z-[1] flex h-10 w-full items-center justify-between gap-3 px-4">
             <div className="flex flex-grow items-center gap-2.5 truncate">
-              <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-sm bg-white/10">
-                <Logo logo={project.logo_props} size={18} />
-              </div>
+              <ProjectBadge
+                name={project.name}
+                seed={project.id}
+                logo={project.logo_props}
+                size={36}
+                logoSize={18}
+                logoClassName="rounded-sm bg-white/10"
+              />
 
               <div className="flex w-full flex-col justify-between gap-0.5 truncate">
                 <h3 className="truncate font-semibold text-on-image">{project.name}</h3>

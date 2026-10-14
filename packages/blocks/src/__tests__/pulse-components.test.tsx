@@ -12,6 +12,7 @@ import { PriorityIcon } from "../icons/priority-icon";
 import { StateGroupIcon } from "../icons/state/state-group-icon";
 import { piePath } from "../icons/state/pulse-state-svg";
 import { LabelChip, labelPaletteColor } from "../label-chip";
+import { PROJECT_BADGE_COLORS, ProjectBadge, projectBadgeColor } from "../project-badge";
 import { SessionChip } from "../session-chip";
 import { StateLozenge } from "../state-lozenge";
 
@@ -141,5 +142,24 @@ describe("SessionChip", () => {
     expect(claim.className).toContain("bg-activity-subtle");
     expect(claim.textContent).not.toContain("Claude");
     expect(getAllByText("plane@6995b6f5", { selector: ".font-code" })).toHaveLength(2);
+  });
+});
+
+describe("ProjectBadge", () => {
+  it("draws the first letter on a square in a stable colour when the project has no logo", () => {
+    const { container } = render(<ProjectBadge name="homelab" seed="HOME" size={16} />);
+    const badge = container.firstElementChild as HTMLElement;
+    expect(badge.textContent).toBe("H");
+    expect(badge.style.width).toBe("16px");
+    expect(badge.style.borderRadius).toBe("4px");
+    expect(projectBadgeColor("HOME")).toBe(projectBadgeColor("HOME"));
+    expect(PROJECT_BADGE_COLORS).toContain(projectBadgeColor("HOME"));
+  });
+
+  it("falls back to the badge when the logo names nothing, and shows the logo when it does", () => {
+    const empty = render(<ProjectBadge name="Plane" logo={{ in_use: "emoji", emoji: {} }} />);
+    expect(empty.container.textContent).toBe("P");
+    const withEmoji = render(<ProjectBadge name="Plane" logo={{ in_use: "emoji", emoji: { value: "128512" } }} />);
+    expect(withEmoji.container.textContent).not.toBe("P");
   });
 });

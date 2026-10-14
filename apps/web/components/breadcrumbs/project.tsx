@@ -9,7 +9,7 @@ import { ProjectsOutline } from "@makeplane/propel/icons";
 // plane imports
 import type { BreadcrumbNavigationItem, TCrumbLabelProps } from "@plane/blocks/breadcrumb";
 import { Breadcrumbs, BreadcrumbNavigationSelect } from "@plane/blocks/breadcrumb";
-import { Logo } from "@plane/blocks/emoji-icon-picker";
+import { ProjectBadge } from "@plane/blocks/project-badge";
 import { useTranslation } from "@plane/i18n";
 import { SwitcherLabel } from "@/components/common/switcher-label";
 // hooks
@@ -69,7 +69,14 @@ export const ProjectBreadcrumb = observer(function ProjectBreadcrumb(props: TPro
             router.push(`/${workspaceSlug}/projects/${value}/issues`);
           }}
           label={currentProjectDetails.name}
-          icon={<Logo logo={currentProjectDetails.logo_props} size={14} />}
+          icon={
+            <ProjectBadge
+              name={currentProjectDetails.name}
+              seed={currentProjectDetails.id}
+              logo={currentProjectDetails.logo_props}
+              size={14}
+            />
+          }
           handleOnClick={() => {
             if (handleOnClick) handleOnClick();
             else router.push(`/${workspaceSlug}/projects/${currentProjectDetails.id}/issues/`);

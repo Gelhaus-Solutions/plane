@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 // plane imports
 import { ROLE_DETAILS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
-import { Logo } from "@plane/blocks/emoji-icon-picker";
+import { ProjectBadge } from "@plane/blocks/project-badge";
 import { IconButton } from "@makeplane/propel/components/icon-button";
 import { Icon } from "@makeplane/propel/components/icon";
 // hooks
@@ -53,9 +53,14 @@ export const ProjectSettingsSidebarHeader = observer(function ProjectSettingsSid
         <p>Project settings</p>
       </div>
       <div className="mt-1.5 flex items-center gap-2 truncate px-5 py-0.5">
-        <div className="grid size-8 shrink-0 place-items-center rounded bg-layer-2">
-          <Logo logo={projectDetails?.logo_props} size={20} />
-        </div>
+        <ProjectBadge
+          name={projectDetails?.name ?? ""}
+          seed={projectDetails?.id}
+          logo={projectDetails?.logo_props}
+          size={32}
+          logoSize={20}
+          logoClassName="rounded bg-layer-2"
+        />
         <div className="truncate">
           <p className="truncate text-body-sm-medium">{projectDetails?.name}</p>
           <p className="truncate text-caption-md-regular">{t(ROLE_DETAILS[currentProjectRole].i18n_title)}</p>

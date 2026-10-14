@@ -27,7 +27,7 @@ import {
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useOutsideClickDetector } from "@plane/hooks";
 import { useTranslation } from "@plane/i18n";
-import { Logo } from "@plane/blocks/emoji-icon-picker";
+import { ProjectBadge } from "@plane/blocks/project-badge";
 import { IconButton } from "@makeplane/propel/components/icon-button";
 import { Icon } from "@makeplane/propel/components/icon";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
@@ -168,9 +168,7 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
               const root = createRoot(container);
               root.render(
                 <div className="flex items-center rounded-sm bg-surface-1 p-1 pr-2 text-13">
-                  <div className="grid size-4 flex-shrink-0 place-items-center">
-                    {project && <Logo logo={project?.logo_props} />}
-                  </div>
+                  {project && <ProjectBadge name={project.name} seed={project.id} logo={project.logo_props} />}
                   <p className="truncate text-secondary">{project?.name}</p>
                 </div>
               );
@@ -299,10 +297,10 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
           <DropIndicator classNames="absolute top-0" isVisible={instruction === "DRAG_OVER"} />
           <div
             className={cn(
-              "group/project-item relative flex w-full items-center rounded-md px-2 py-1.5 text-primary hover:bg-layer-transparent-hover",
+              "group/project-item relative flex h-7 w-full items-center rounded-[7px] pr-1 pl-1 text-13 text-primary transition-colors duration-[120ms] hover:bg-layer-1-hover",
               {
-                "bg-surface-2": isMenuActive,
-                "bg-layer-transparent-active": shouldHighlightProject,
+                "bg-layer-1-hover": isMenuActive,
+                "bg-layer-1-selected": shouldHighlightProject,
               }
             )}
             id={`${project?.id}`}
@@ -342,17 +340,20 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
                         : t("aria_labels.projects_sidebar.open_project_menu")
                     }
                   >
-                    <div className="grid size-4 flex-shrink-0 place-items-center">
-                      <Logo logo={project.logo_props} size={16} />
-                    </div>
-                    <p className="truncate text-13 font-medium text-secondary">{project.name}</p>
+                    <span className="grid w-3 flex-shrink-0 place-items-center text-tertiary">
+                      <ChevronRightOutline
+                        className={cn("size-3 transition-transform duration-[120ms]", {
+                          "rotate-90": isProjectListOpen,
+                        })}
+                      />
+                    </span>
+                    <ProjectBadge name={project.name} seed={project.id} logo={project.logo_props} />
+                    <p className="ml-0.5 truncate text-13 text-primary">{project.name}</p>
                   </button>
                 ) : (
-                  <div className="flex w-full flex-grow items-center gap-1.5 text-left select-none">
-                    <div className="grid size-4 flex-shrink-0 place-items-center">
-                      <Logo logo={project.logo_props} size={16} />
-                    </div>
-                    <p className="truncate text-13 font-medium text-secondary">{project.name}</p>
+                  <div className="flex w-full flex-grow items-center gap-1.5 pl-[18px] text-left select-none">
+                    <ProjectBadge name={project.name} seed={project.id} logo={project.logo_props} />
+                    <p className="ml-0.5 truncate text-13 text-primary">{project.name}</p>
                   </div>
                 )}
               </ControlLink>
@@ -415,38 +416,12 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
                     </MenuContent>
                   </Menu>
                 </div>
-                {isAccordionMode && (
-                  <span
-                    className={cn("hidden text-placeholder group-hover/project-item:inline-flex", {
-                      "inline-flex": isMenuActive,
-                    })}
-                  >
-                    <IconButton
-                      variant="ghost"
-                      size="xs"
-                      icon={
-                        <ChevronRightOutline
-                          className={cn("size-3.5 transition-transform", {
-                            "rotate-90": isProjectListOpen,
-                          })}
-                        />
-                      }
-                      onClick={() => setIsProjectListOpen(!isProjectListOpen)}
-                      aria-expanded={isProjectListOpen}
-                      aria-label={t(
-                        isProjectListOpen
-                          ? "aria_labels.projects_sidebar.close_project_menu"
-                          : "aria_labels.projects_sidebar.open_project_menu"
-                      )}
-                    />
-                  </span>
-                )}
               </div>
             </>
           </div>
           {isAccordionMode && isProjectListOpen && (
-            <div className="relative mt-1 mb-1.5 flex flex-col gap-0.5 pl-6">
-              <div className="absolute top-0 bottom-1 left-[15px] w-[1px] bg-layer-3" />
+            <div className="relative mt-px mb-1.5 flex flex-col gap-px pl-5">
+              <span aria-hidden="true" className="absolute top-[3px] bottom-[3px] left-[17px] border-l border-strong" />
               <ProjectNavigation workspaceSlug={workspaceSlug.toString()} projectId={projectId.toString()} />
             </div>
           )}
