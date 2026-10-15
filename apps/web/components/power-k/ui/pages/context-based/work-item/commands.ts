@@ -8,6 +8,7 @@ import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Signal, TicketCheck, Triangle } from "lucide-react";
 import {
+  AgentOutline,
   CyclesOutline,
   DeleteOutline,
   LabelsOutline,
@@ -25,13 +26,15 @@ import {
 import { EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { ICycle, IIssueLabel, IModule, TIssue, TIssuePriorities } from "@plane/types";
+import type { ICycle, IIssueLabel, IModule, TIssue, TIssueAgentAssignment, TIssuePriorities } from "@plane/types";
 import { EIssueServiceType, EUserPermissions } from "@plane/types";
 import { copyTextToClipboard } from "@plane/utils";
 // components
+import { useProjectBotIds } from "@/components/agents/use-project-bots";
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
+import { useAgent } from "@/hooks/store/use-agent";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
@@ -48,6 +51,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
   const { toggleDeleteIssueModal } = useCommandPalette();
   const { getProjectById } = useProject();
   const { areEstimateEnabledByProjectId } = useProjectEstimates();
+  const agent = useAgent();
   const {
     issue: { getIssueById, getIssueIdByIdentifier, addCycleToIssue, removeIssueFromCycle, changeModulesInIssue },
     subscription: { getSubscriptionByIssueId, createSubscription, removeSubscription },
@@ -72,6 +76,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
     ? areEstimateEnabledByProjectId(entityDetails?.project_id)
     : false;
   const isSubscribed = Boolean(entityId ? getSubscriptionByIssueId(entityId) : false);
+  const hasBots = useProjectBotIds(entityDetails?.project_id ?? undefined).length > 0;
   // translation
   const { t } = useTranslation();
   // handlers
@@ -99,6 +104,28 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       });
     },
     [entityDetails, isEpic, updateEntity, workspaceSlug]
+  );
+
+  // the delegate already chosen comes off when chosen again; anything else replaces the bot's delegation
+  const handleUpdateDelegate = useCallback(
+    async (assignment: TIssueAgentAssignment) => {
+      if (!workspaceSlug || !entityDetails?.project_id) return;
+      const slug = workspaceSlug.toString();
+      const botId = assignment.bot ?? agent.getSessionById(assignment.session ?? "")?.bot.user_id;
+      const row = agent.getIssueAgents(entityDetails.id).find((item) => item.delegated && item.bot.id === botId);
+      const isCurrent =
+        !!row &&
+        (assignment.session
+          ? row.state === "session" && row.session?.id === assignment.session
+          : row.state !== "session");
+      try {
+        if (isCurrent && botId) await agent.unassign(slug, entityDetails.project_id, entityDetails.id, botId);
+        else await agent.assign(slug, entityDetails.project_id, entityDetails.id, assignment);
+      } catch {
+        setToast({ type: "error", title: t("common.error.label"), message: t("agents.picker.failed") });
+      }
+    },
+    [agent, entityDetails, t, workspaceSlug]
   );
 
   const handleUpdateAssignee = useCallback(
@@ -152,6 +179,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
           type: "success",
           title: t("power_k.contextual_actions.work_item.copy_id_toast_success"),
         });
+        return;
       })
       .catch(() => {
         setToast({
@@ -169,6 +197,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
           type: "success",
           title: t("power_k.contextual_actions.work_item.copy_title_toast_success"),
         });
+        return;
       })
       .catch(() => {
         setToast({
@@ -187,6 +216,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
           type: "success",
           title: t("power_k.contextual_actions.work_item.copy_url_toast_success"),
         });
+        return;
       })
       .catch(() => {
         setToast({
@@ -254,6 +284,22 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       isEnabled: () => isEditingAllowed,
       isVisible: () => isEditingAllowed,
       closeOnSelect: false,
+    },
+    {
+      id: "change_work_item_delegate",
+      i18n_title: "power_k.contextual_actions.work_item.change_delegate",
+      icon: AgentOutline,
+      group: "contextual",
+      contextType: "work-item",
+      type: "change-page",
+      page: "update-work-item-delegate",
+      onSelect: (data) => {
+        void handleUpdateDelegate(data as TIssueAgentAssignment);
+      },
+      modifierShortcut: "shift+d",
+      isEnabled: () => isEditingAllowed && hasBots,
+      isVisible: () => isEditingAllowed && hasBots,
+      closeOnSelect: true,
     },
     {
       id: "assign_work_item_to_me",
