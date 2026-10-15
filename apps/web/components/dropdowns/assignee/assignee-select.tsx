@@ -14,6 +14,7 @@ import { BotAvatar } from "@plane/blocks/bot-avatar";
 import { MemberSelect as MemberSelectBlock } from "@plane/blocks/property-select";
 import type { MemberOption, MemberSelectVariant } from "@plane/blocks/property-select";
 import type { SelectPaginationParams, SelectTooltip, SelectTooltipOverride } from "@plane/blocks/select";
+import { SessionChip } from "@plane/blocks/session-chip";
 import { setToast } from "@plane/blocks/toast";
 import { useTranslation } from "@plane/i18n";
 import type { TAgentSession, TIssueAgent, TPaginatedResponse } from "@plane/types";
@@ -23,7 +24,7 @@ import { AgentStatusBadge } from "@/components/agents/status-badge";
 import { useProjectBotIds } from "@/components/agents/use-project-bots";
 import { MemberSelect } from "@/components/dropdowns/member/member-select";
 // helpers
-import { botFaceOf, displayStatusOf, harnessLabelKey, shortDir } from "@/helpers/agent.helper";
+import { botFaceOf, displayStatusOf, harnessColor, harnessLabelKey, shortDir } from "@/helpers/agent.helper";
 // hooks
 import { useAgent } from "@/hooks/store/use-agent";
 import { useMember } from "@/hooks/store/use-member";
@@ -177,7 +178,27 @@ export const AssigneeSelect = observer(function AssigneeSelect(props: Props) {
         const row = rowByBot.get(id);
         const session = row?.session && row.state === "session" ? row.session : null;
         const name = getUserDetails(id)?.display_name ?? "";
-        options.push(botOption(id, session ? { display_name: `${name} · ${session.name}` } : {}));
+        const harness = agent.getBotHarness(id, name);
+        options.push(
+          botOption(
+            id,
+            session
+              ? {
+                  display_name: `${name} · ${session.name}`,
+                  // the rail draws the session as its chip (r6-14), as everywhere else a session is named
+                  triggerContent: (
+                    <SessionChip
+                      botName={name}
+                      harness={harness}
+                      botColor={harnessColor(harness)}
+                      sessionName={session.name}
+                      size="sm"
+                    />
+                  ),
+                }
+              : {}
+          )
+        );
         if (session) options.push(sessionOption(session, { hiddenInTrigger: true }));
       } else {
         options.push(personOption(id));
@@ -185,7 +206,7 @@ export const AssigneeSelect = observer(function AssigneeSelect(props: Props) {
     }
     return options;
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedIds.join(","), rows, getUserDetails, botOption, sessionOption, personOption]);
+  }, [selectedIds.join(","), rows, agent, getUserDetails, botOption, sessionOption, personOption]);
 
   const getValues = useCallback(
     async ({ search }: SelectPaginationParams): Promise<TPaginatedResponse<MemberOption[]>> => {

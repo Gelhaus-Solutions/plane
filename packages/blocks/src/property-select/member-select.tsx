@@ -46,6 +46,9 @@ export type MemberOption = {
   trailing?: ReactElement;
   /** Takes part in the selection (its row is checked) without a face of its own on the trigger. */
   hiddenInTrigger?: boolean;
+  /** Drawn on a labelled trigger in place of the face and name when this is the only one shown (a bot's session
+   *  chip). */
+  triggerContent?: ReactNode;
   /** An agent bot: its face is the harness's rounded square, not a circle with initials. */
   bot?: { harness?: Harness; color?: string };
 };
@@ -325,6 +328,10 @@ export function MemberSelect(props: MemberSelectProps) {
     >
       {(selected) => {
         const members = shown(selected);
+        const only = members.length === 1 ? members[0] : undefined;
+        if (showLabel && only?.triggerContent) {
+          return <span className="flex min-w-0 grow items-center">{only.triggerContent}</span>;
+        }
         return (
           <>
             {members.length > 0 && (

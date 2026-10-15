@@ -196,4 +196,16 @@ describe("MemberSelect agent rows", () => {
     const session = await popup().findByRole("option", { name: /plane@6995b6f5/ });
     expect(session.getAttribute("aria-selected")).toBe("true");
   });
+
+  it("draws a lone option's trigger content in place of its face and name, and only with a label", () => {
+    const named = { ...BOT, triggerContent: <span data-testid="chip">Claude · plane@6995b6f5</span> };
+    const { rerender } = render(
+      <MemberSelect multiple getValues={rows} value={[named]} onChange={vi.fn()} variant="select-ghost-md" />
+    );
+    expect(within(screen.getByRole("button")).getByTestId("chip")).toBeDefined();
+
+    // a faces-only trigger (list rows) keeps the face
+    rerender(<MemberSelect multiple getValues={rows} value={[named]} onChange={vi.fn()} variant="avatar-group-sm" />);
+    expect(within(screen.getByRole("button")).queryByTestId("chip")).toBeNull();
+  });
 });
