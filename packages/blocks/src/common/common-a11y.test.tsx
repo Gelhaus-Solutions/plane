@@ -45,6 +45,12 @@ describe("DragHandle", () => {
     render(<DragHandle disabled />);
     expect(screen.queryByRole("button")).toBeNull();
   });
+
+  it("draws a hidden glyph and no button when decorative, so it can sit inside the real drag button", () => {
+    const { container } = render(<DragHandle decorative />);
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(container.querySelector("span[aria-hidden='true'] svg")).not.toBeNull();
+  });
 });
 
 describe("ColorPicker", () => {

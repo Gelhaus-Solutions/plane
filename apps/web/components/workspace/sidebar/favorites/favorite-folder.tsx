@@ -113,7 +113,7 @@ export function FavoriteFolder(props: Props) {
       dropTargetForElements({
         element,
         canDrop: ({ source }) => getCanDrop(source, favorite, false),
-        getData: ({ input, element }) => {
+        getData: ({ input, element: target }) => {
           const blockedStates: InstructionType[] = [];
           if (!isLastChild) {
             blockedStates.push("reorder-below");
@@ -121,7 +121,7 @@ export function FavoriteFolder(props: Props) {
 
           return attachInstruction(initialData, {
             input,
-            element,
+            element: target,
             currentLevel: 0,
             indentPerLevel: 0,
             mode: isLastChild ? "last-in-group" : "standard",
@@ -129,8 +129,7 @@ export function FavoriteFolder(props: Props) {
           });
         },
         onDrag: ({ source, self, location }) => {
-          const instruction = getInstructionFromPayload(self, source, location);
-          setInstruction(instruction);
+          setInstruction(getInstructionFromPayload(self, source, location));
         },
         onDragLeave: () => {
           setInstruction(undefined);
@@ -194,8 +193,8 @@ export function FavoriteFolder(props: Props) {
                     align="end"
                     disabled={isDragging || isMobile}
                   >
-                    {/* Visual drag affordance only: the whole row is the draggable, and a <span> keeps it from
-                        nesting a second button inside the folder toggle. Clicks bubble to the toggle as before. */}
+                    {/* Visual drag affordance only: the whole row is the draggable, and the span and the decorative
+                        handle keep a second button out of the folder toggle. Clicks bubble to the toggle as before. */}
                     <span
                       className={cn(
                         "absolute top-1/2 -left-3 hidden -translate-y-1/2 cursor-grab items-center justify-center rounded-sm text-placeholder group-hover/project-item:flex",
@@ -205,7 +204,7 @@ export function FavoriteFolder(props: Props) {
                         }
                       )}
                     >
-                      <DragHandle className="bg-transparent" />
+                      <DragHandle className="bg-transparent" decorative />
                     </span>
                   </Tooltip>
                   <div className="grid size-5 flex-shrink-0 place-items-center">

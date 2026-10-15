@@ -182,8 +182,9 @@ export const ExtendedSidebarItem = observer(function ExtendedSidebarItem(props: 
                 }
               )}
               ref={dragHandleRef}
+              aria-label={t("drag_to_rearrange")}
             >
-              <DragHandle className="bg-transparent" />
+              <DragHandle className="bg-transparent" decorative />
             </button>
           </Tooltip>
         )}

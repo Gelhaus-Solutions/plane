@@ -21,13 +21,17 @@ function ControlledPicker() {
       isOpen={isOpen}
       handleToggle={setIsOpen}
       onChange={vi.fn()}
-      label={<span>Add reaction</span>}
+      label={
+        <button type="button" onClick={() => setIsOpen(true)}>
+          Add reaction
+        </button>
+      }
     />
   );
 }
 
 describe("EmojiReactionPicker popover", () => {
-  it("opens on trigger click and marks the panel as preventing outside click", async () => {
+  it("opens from the label's add button and marks the panel as preventing outside click", async () => {
     const user = userEvent.setup();
     render(<ControlledPicker />);
     expect(document.querySelector("[data-prevent-outside-click]")).toBeNull();
@@ -52,5 +56,16 @@ describe("EmojiReactionPicker popover", () => {
     );
     const panel = document.querySelector("[data-prevent-outside-click]");
     expect(panel == null || panel.hasAttribute("data-closed")).toBe(true);
+  });
+
+  it("wraps the label in no button, since the label's own buttons cannot nest in one", () => {
+    render(<ControlledPicker />);
+    const add = screen.getByRole("button", { name: "Add reaction" });
+    expect(add.parentElement?.closest("button")).toBeNull();
+  });
+
+  it("stays shut while disabled", () => {
+    render(<EmojiReactionPicker isOpen disabled handleToggle={vi.fn()} onChange={vi.fn()} label={<span>Add</span>} />);
+    expect(screen.queryByTestId("emoji-grid")).toBeNull();
   });
 });

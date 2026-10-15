@@ -48,21 +48,21 @@ export function IdentifierText(props: TIdentifierTextProps) {
   const textSizeClassName = SIZE_MAP[size];
   const variantClassName = VARIANT_MAP[variant];
 
+  const className = cn(
+    "font-code text-12 font-medium whitespace-nowrap text-tertiary",
+    textSizeClassName,
+    variantClassName,
+    {
+      "cursor-pointer": enableClickToCopyIdentifier,
+    }
+  );
+
+  // text unless it copies: identifiers sit inside links and buttons (rows, the parent picker), where a button cannot
+  if (!enableClickToCopyIdentifier) return <span className={className}>{identifier}</span>;
+
   return (
-    <Tooltip label="Click to copy" disabled={!enableClickToCopyIdentifier}>
-      <button
-        type="button"
-        className={cn(
-          "font-code text-12 font-medium whitespace-nowrap text-tertiary",
-          textSizeClassName,
-          variantClassName,
-          {
-            "cursor-pointer": enableClickToCopyIdentifier,
-          }
-        )}
-        onClick={handleCopyIssueIdentifier}
-        disabled={!enableClickToCopyIdentifier}
-      >
+    <Tooltip label="Click to copy">
+      <button type="button" className={className} onClick={handleCopyIssueIdentifier}>
         {identifier}
       </button>
     </Tooltip>

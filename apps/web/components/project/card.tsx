@@ -21,6 +21,7 @@ import {
 // plane imports
 import { EUserPermissions, EUserPermissionsLevel, IS_FAVORITE_MENU_OPEN } from "@plane/constants";
 import { useLocalStorage } from "@plane/hooks";
+import { useTranslation } from "@plane/i18n";
 import { Avatar } from "@makeplane/propel/components/avatar";
 import { AvatarGroup } from "@makeplane/propel/components/avatar-group";
 import { Button } from "@makeplane/propel/components/button";
@@ -68,6 +69,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
   const { allowPermissions } = useUserPermissions();
   // hooks
   const { isMobile } = usePlatformOS();
+  const { t } = useTranslation();
   // derived values
   const projectMembers = (project.members ?? []).flatMap((memberId) => {
     const member = getUserDetails(memberId);
@@ -359,15 +361,18 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
               <>
                 {isMemberOfProject &&
                   (hasAdminRole || hasMemberRole ? (
-                    <Link
-                      className="flex items-center justify-center rounded-sm p-1 text-placeholder hover:bg-layer-1 hover:text-secondary"
+                    // a button, not a link: the whole card is a link already, and links cannot nest
+                    <IconButton
+                      variant="ghost"
+                      size="xs"
+                      aria-label={t("settings")}
+                      icon={<Icon icon={SettingsOutline} />}
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
+                        router.push(`/${workspaceSlug}/settings/projects/${project.id}`);
                       }}
-                      href={`/${workspaceSlug}/settings/projects/${project.id}`}
-                    >
-                      <SettingsOutline className="h-3.5 w-3.5" />
-                    </Link>
+                    />
                   ) : (
                     <span className="flex items-center gap-1 text-13 text-placeholder">
                       <TickOutline className="h-3.5 w-3.5" />

@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import React, { useMemo, useCallback, useState } from "react";
+import React, { useMemo, useCallback, useRef, useState } from "react";
 import { EmojiRoot } from "../emoji-icon-picker/emoji/emoji";
 import { emojiToString } from "../emoji-icon-picker/helper";
-import { Popover, PopoverBody, PopoverContent, PopoverTrigger } from "@makeplane/propel/components/popover";
+import { Popover, PopoverBody, PopoverContent } from "@makeplane/propel/components/popover";
 import { useTranslation } from "@plane/i18n";
 import { cn } from "@plane/utils";
 import { convertPlacementToSideAndAlign } from "../utils/placement";
@@ -20,6 +20,7 @@ export type EmojiReactionPickerProps = {
   closeOnSelect?: boolean;
   disabled?: boolean;
   dropdownClassName?: string;
+  /** What the panel opens under: the reactions and the add button, which opens the picker through `handleToggle`. */
   label: React.ReactNode;
   onChange: (emoji: string) => void;
   placement?: Placement;
@@ -50,6 +51,7 @@ export function EmojiReactionPicker(props: EmojiReactionPickerProps) {
 
   // local search state
   const [searchQuery, setSearchQuery] = useState("");
+  const anchorRef = useRef<HTMLDivElement>(null);
   const resolvedSearchPlaceholder = searchPlaceholder ?? t("common.search.label");
 
   // Start every open with an empty search. Clearing on both transitions (not only on close) also
@@ -81,14 +83,14 @@ export function EmojiReactionPicker(props: EmojiReactionPickerProps) {
   );
 
   return (
-    <Popover open={isOpen} onOpenChange={handleOpenChange}>
-      <PopoverTrigger
-        disabled={disabled}
-        render={<button type="button" className={cn("outline-none", buttonClassName)} disabled={disabled} />}
-      >
+    <Popover open={isOpen && !disabled} onOpenChange={handleOpenChange}>
+      {/* The label anchors the panel rather than triggering it: it holds buttons of its own (the reactions and the add
+          button), and a trigger is a button, which cannot contain them. */}
+      <div ref={anchorRef} className={cn("outline-none", buttonClassName)}>
         {label}
-      </PopoverTrigger>
+      </div>
       <PopoverContent
+        anchor={anchorRef}
         variant="rich"
         side={finalSide}
         align={finalAlign}
