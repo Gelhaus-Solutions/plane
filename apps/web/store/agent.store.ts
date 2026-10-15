@@ -58,6 +58,8 @@ export interface IAgentStore {
     data: TIssueAgentAssignment
   ) => Promise<TIssueAgentRows>;
   unassign: (workspaceSlug: string, projectId: string, issueId: string, botUserId: string) => Promise<TIssueAgentRows>;
+  /** A person releases the claim on an item; the panel of the session that held it is fetched again. */
+  releaseClaim: (workspaceSlug: string, projectId: string, issueId: string, sessionId?: string) => Promise<void>;
 }
 
 const STATUS_ORDER: Record<TAgentSessionStatus, number> = { live: 0, away: 1, ended: 2 };
@@ -99,6 +101,7 @@ export class AgentStore implements IAgentStore {
       fetchIssueAgents: action,
       assign: action,
       unassign: action,
+      releaseClaim: action,
     });
   }
 
@@ -250,5 +253,11 @@ export class AgentStore implements IAgentStore {
     const rows = await this.service.unassign(workspaceSlug, projectId, issueId, botUserId);
     runInAction(() => this.putIssueRows(issueId, rows));
     return rows;
+  };
+
+  releaseClaim = async (workspaceSlug: string, projectId: string, issueId: string, sessionId?: string) => {
+    const rows = await this.service.releaseClaim(workspaceSlug, projectId, issueId);
+    runInAction(() => this.putIssueRows(issueId, rows));
+    if (sessionId) await this.fetchPanel(workspaceSlug, sessionId);
   };
 }

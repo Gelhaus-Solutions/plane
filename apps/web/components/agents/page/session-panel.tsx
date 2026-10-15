@@ -12,9 +12,12 @@ import { CloseOutline, CopyOutline } from "@makeplane/propel/icons";
 import { BotAvatar } from "@plane/blocks/bot-avatar";
 import { setToast } from "@plane/blocks/toast";
 import { useTranslation } from "@plane/i18n";
+import type { TAgentItemRef } from "@plane/types";
 import { cn, copyTextToClipboard } from "@plane/utils";
 // helpers
 import { botFaceOf, displayStatusOf } from "@/helpers/agent.helper";
+// hooks
+import { useAgent } from "@/hooks/store/use-agent";
 // local imports
 import { AgentBox, AgentHeartbeat, AgentSessionFields, AgentStatusPill, BotBadge, Count, agentByline } from "./parts";
 import { AgentClaimsList, AgentHandoffsList, AgentInboxList, AgentItemsList } from "./sections";
@@ -27,6 +30,7 @@ type Props = { slug: string; sessionId: string; onClose: () => void };
 /** The session panel (r6-10): everything about one session, over the page, from the right. */
 export const AgentSessionPanel = observer(function AgentSessionPanel({ slug, sessionId, onClose }: Props) {
   const { t } = useTranslation();
+  const agent = useAgent();
   const { panel, failed } = usePanel(slug, sessionId);
   const [section, setSection] = useState<TSection>("overview");
 
@@ -48,6 +52,12 @@ export const AgentSessionPanel = observer(function AgentSessionPanel({ slug, ses
       setToast({ type: "success", title: t("agents.panel.copied", { name: panel.name }) })
     );
   };
+
+  const releaseClaim = (item: TAgentItemRef) =>
+    agent.releaseClaim(slug, item.project_id, item.id, sessionId).then(
+      () => setToast({ type: "success", title: t("agents.panel.released", { item: item.identifier }) }),
+      () => setToast({ type: "error", title: t("agents.panel.release_failed", { item: item.identifier }) })
+    );
 
   const shell = (children: ReactNode) => (
     <aside
@@ -170,7 +180,7 @@ export const AgentSessionPanel = observer(function AgentSessionPanel({ slug, ses
         )}
         {show("claims") && (
           <AgentBox label={t("agents.panel.section.claims")}>
-            <AgentClaimsList slug={slug} claims={panel.claims} />
+            <AgentClaimsList slug={slug} claims={panel.claims} onRelease={releaseClaim} />
           </AgentBox>
         )}
         {show("handoffs") && (

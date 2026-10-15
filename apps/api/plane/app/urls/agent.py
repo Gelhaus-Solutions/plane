@@ -7,6 +7,7 @@ from django.urls import path
 from plane.app.views.agent.base import (
     ProjectAgentRowsEndpoint,
     WorkItemAgentsEndpoint,
+    WorkItemClaimEndpoint,
     WorkspaceAgentSessionEndpoint,
     WorkspaceAgentSessionPanelEndpoint,
     WorkspaceAgentSessionsEndpoint,
@@ -33,5 +34,10 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/agents/",
         WorkItemAgentsEndpoint.as_view(),
         name="work-item-agents",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/claim/",
+        WorkItemClaimEndpoint.as_view(),
+        name="work-item-claim",
     ),
 ]

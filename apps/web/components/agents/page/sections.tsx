@@ -4,8 +4,10 @@
  * See the LICENSE file for details.
  */
 
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { observer } from "mobx-react";
+import { Button } from "@makeplane/propel/components/button";
 import {
   AtOutline,
   ChatOutline,
@@ -178,9 +180,20 @@ export function AgentItemsList({ slug, items }: { slug: string; items: TAgentPan
   );
 }
 
-/** The session's claims, open and ended, with how each ended. */
-export function AgentClaimsList({ slug, claims }: { slug: string; claims: TAgentPanel["claims"] }) {
+/** The session's claims, open and ended, with how each ended; a person can release an open one. */
+export function AgentClaimsList(props: {
+  slug: string;
+  claims: TAgentPanel["claims"];
+  onRelease?: (item: TAgentItemRef) => Promise<void>;
+}) {
+  const { slug, claims, onRelease } = props;
   const { t } = useTranslation();
+  const [releasing, setReleasing] = useState<string | null>(null);
+  const release = (item: TAgentItemRef) => {
+    if (!onRelease) return;
+    setReleasing(item.id);
+    void onRelease(item).finally(() => setReleasing(null));
+  };
   return (
     <div className="flex flex-col gap-2 px-3 pt-2.5 pb-3 text-[12.5px]">
       {claims.length === 0 && <span className="text-12 text-tertiary">{t("agents.page.claims_none")}</span>}
@@ -201,6 +214,18 @@ export function AgentClaimsList({ slug, claims }: { slug: string; claims: TAgent
                 })
               : t("agents.page.claim_open", { when: agentWhen(t, claim.claimed_at) })}
           </span>
+          {!claim.ended_at && onRelease && (
+            <Button
+              variant="secondary"
+              size="sm"
+              stretch="auto"
+              className="ml-auto shrink-0"
+              loading={releasing === claim.item.id}
+              disabled={releasing !== null}
+              onClick={() => release(claim.item)}
+              label={t("agents.page.release")}
+            />
+          )}
         </div>
       ))}
       <span className="text-[11.5px] text-tertiary">{t("agents.page.claim_lapses")}</span>

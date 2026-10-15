@@ -16,6 +16,8 @@ from plane.db.models import (
     IssueComment,
     Project,
     ProjectMember,
+    WorkItemClaim,
+    WorkspaceMember,
 )
 from plane.utils import agent_assignments, agent_sessions, bots
 
@@ -270,6 +272,24 @@ class TestAgentsPage:
         # without board=1 the listing stays what the pickers read
         plain = session_client.get(f"/api/workspaces/{workspace.slug}/agent-sessions/?status=ended").json()
         assert "queues" not in plain and "touched" not in plain["results"][0]
+
+    @pytest.mark.django_db
+    def test_a_person_releases_a_claim_from_the_web(self, session_client, workspace, bot, item, create_user):
+        holder = register(bot, workspace, "aaaaaaaa-1111")
+        agent_sessions.claim(item, holder)
+        url = f"/api/workspaces/{workspace.slug}/projects/{item.project_id}/issues/{item.id}/claim/"
+
+        response = session_client.delete(url)
+        assert response.status_code == status.HTTP_200_OK, response.content
+        assert response.json()["claim"] is None
+        assert WorkItemClaim.objects.get(session=holder).end_reason == "released_by_person"
+        # nothing to release is fine, and a guest of the project may not
+        assert session_client.delete(url).status_code == status.HTTP_200_OK
+        agent_sessions.claim(item, holder)
+        ProjectMember.objects.filter(project_id=item.project_id, member=create_user).update(role=5)
+        WorkspaceMember.objects.filter(workspace=workspace, member=create_user).update(role=5)
+        assert session_client.delete(url).status_code == status.HTTP_403_FORBIDDEN
+        assert agent_sessions.open_claim(item) is not None
 
     @pytest.mark.django_db
     def test_the_panel_shows_items_claims_handoffs_and_inbox_from_the_viewers_projects(

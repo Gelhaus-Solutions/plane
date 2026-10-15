@@ -95,6 +95,15 @@ export class AgentService extends APIService {
       });
   }
 
+  /** A person releases the session's claim on the item; answers with the item's agents. */
+  async releaseClaim(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueAgentRows> {
+    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issues/${issueId}/claim/`)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
   async unassign(
     workspaceSlug: string,
     projectId: string,

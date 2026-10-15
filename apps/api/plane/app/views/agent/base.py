@@ -12,7 +12,7 @@ from rest_framework.response import Response
 
 from plane.app.permissions import ROLE, allow_permission
 from plane.db.models import AgentSession, Issue, IssueAssignee, WorkItemClaim
-from plane.utils import agent_assignments, agent_board
+from plane.utils import agent_assignments, agent_board, agent_sessions
 from plane.utils.agent_sessions import SessionError, session_data, sessions_in
 
 from .. import BaseAPIView
@@ -145,31 +145,34 @@ class ProjectAgentRowsEndpoint(BaseAPIView):
         return Response({"results": list(by_issue.values())}, status=status.HTTP_200_OK)
 
 
+def _work_item(slug, project_id, issue_id):
+    return Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, pk=issue_id).first()
+
+
+def _item_agents(issue):
+    """The agents on a work item with where each stands, and the session that holds it."""
+    claim = WorkItemClaim.objects.filter(issue=issue, ended_at__isnull=True).select_related("session__bot__user")
+    claim = claim.first()
+    return {
+        "agents": [agent_assignments.row_data(row, state) for row, state in agent_assignments.rows_for(issue)],
+        "claim": agent_assignments.claim_data(claim) if claim else None,
+    }
+
+
 class WorkItemAgentsEndpoint(BaseAPIView):
     """The agents on a work item: POST names a bot (its queue), one of its sessions, or a bot to delegate to; DELETE
     takes a bot off; GET lists them with where each stands (queue, session, or waiting after its session ended)."""
 
-    def _issue(self, slug, project_id, issue_id):
-        return Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, pk=issue_id).first()
-
-    def _listing(self, issue):
-        claim = WorkItemClaim.objects.filter(issue=issue, ended_at__isnull=True).select_related("session__bot__user")
-        claim = claim.first()
-        return {
-            "agents": [agent_assignments.row_data(row, state) for row, state in agent_assignments.rows_for(issue)],
-            "claim": agent_assignments.claim_data(claim) if claim else None,
-        }
-
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id, issue_id):
-        issue = self._issue(slug, project_id, issue_id)
+        issue = _work_item(slug, project_id, issue_id)
         if issue is None:
             return Response({"error": "Work item not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(self._listing(issue), status=status.HTTP_200_OK)
+        return Response(_item_agents(issue), status=status.HTTP_200_OK)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def post(self, request, slug, project_id, issue_id):
-        issue = self._issue(slug, project_id, issue_id)
+        issue = _work_item(slug, project_id, issue_id)
         if issue is None:
             return Response({"error": "Work item not found"}, status=status.HTTP_404_NOT_FOUND)
         body = request.data if isinstance(request.data, dict) else {}
@@ -191,15 +194,28 @@ class WorkItemAgentsEndpoint(BaseAPIView):
             agent_assignments.assign(issue, bot, session=session, delegate=delegate, actor=request.user)
         except SessionError as error:
             return Response({"error": str(error)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(self._listing(issue), status=status.HTTP_200_OK)
+        return Response(_item_agents(issue), status=status.HTTP_200_OK)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def delete(self, request, slug, project_id, issue_id):
-        issue = self._issue(slug, project_id, issue_id)
+        issue = _work_item(slug, project_id, issue_id)
         if issue is None:
             return Response({"error": "Work item not found"}, status=status.HTTP_404_NOT_FOUND)
         bot = agent_assignments.find_bot(issue.workspace_id, _uuid_or_none(request.GET.get("bot")))
         if bot is None:
             return Response({"error": "Name the bot to take off"}, status=status.HTTP_400_BAD_REQUEST)
         agent_assignments.unassign(issue, bot)
-        return Response(self._listing(issue), status=status.HTTP_200_OK)
+        return Response(_item_agents(issue), status=status.HTTP_200_OK)
+
+
+class WorkItemClaimEndpoint(BaseAPIView):
+    """A person releases the session's claim on a work item (the panel's Release button): DELETE ends it as released by
+    a person and answers with the item's agents, as the agents endpoint does."""
+
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
+    def delete(self, request, slug, project_id, issue_id):
+        issue = _work_item(slug, project_id, issue_id)
+        if issue is None:
+            return Response({"error": "Work item not found"}, status=status.HTTP_404_NOT_FOUND)
+        agent_sessions.release(issue)
+        return Response(_item_agents(issue), status=status.HTTP_200_OK)

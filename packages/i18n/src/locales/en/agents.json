@@ -126,6 +126,7 @@
         "delegated": "delegated to it"
       },
       "claims_none": "No claims.",
+      "release": "Release",
       "claim_open": "exclusive since {when}",
       "claim_ended": "held {from} to {to}, {reason}",
       "claim_end": {
@@ -166,6 +167,8 @@
       "close": "Close, press Escape",
       "copy_name": "Copy the bus name",
       "copied": "Copied {name}",
+      "released": "Released the claim on {item}",
+      "release_failed": "Could not release the claim on {item}",
       "sections": "Session sections",
       "section": {
         "overview": "Overview",

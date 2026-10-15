@@ -126,6 +126,7 @@
         "delegated": "an sie delegiert"
       },
       "claims_none": "Keine Ansprüche.",
+      "release": "Freigeben",
       "claim_open": "exklusiv seit {when}",
       "claim_ended": "gehalten von {from} bis {to}, {reason}",
       "claim_end": {
@@ -166,6 +167,8 @@
       "close": "Schließen, Escape drücken",
       "copy_name": "Bus-Namen kopieren",
       "copied": "{name} kopiert",
+      "released": "Anspruch auf {item} freigegeben",
+      "release_failed": "Der Anspruch auf {item} ließ sich nicht freigeben",
       "sections": "Bereiche der Session",
       "section": {
         "overview": "Überblick",
