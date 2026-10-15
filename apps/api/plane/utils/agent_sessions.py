@@ -21,7 +21,7 @@ from plane.utils import agent_inbox
 
 SESSION_TOKEN_DAYS = 30
 AWAY_AFTER = timedelta(minutes=30)
-END_AFTER_AWAY = timedelta(hours=24)
+END_AFTER_AWAY = timedelta(hours=2)
 # A session's last_seen_at is written at most this often by ordinary calls
 TOUCH_EVERY = timedelta(seconds=60)
 

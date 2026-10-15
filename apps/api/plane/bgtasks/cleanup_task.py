@@ -18,6 +18,7 @@ from celery import shared_task
 
 # Module imports
 from plane.db.models import (
+    AgentSession,
     EmailDelivery,
     EmailNotificationLog,
     PageVersion,
@@ -110,6 +111,17 @@ def get_email_deliveries_queryset():
     cutoff_time = timezone.now() - timedelta(days=settings.EMAIL_LOG_RETENTION_DAYS)
     return (
         EmailDelivery.all_objects.filter(created_at__lte=cutoff_time)
+        .values_list("id", flat=True)
+        .iterator(chunk_size=BATCH_SIZE)
+    )
+
+
+def get_ended_agent_sessions_queryset():
+    """Get agent sessions that ended longer ago than the agent session retention window."""
+    cutoff_time = timezone.now() - timedelta(days=settings.AGENT_SESSION_RETENTION_DAYS)
+    logger.info(f"Agent sessions cutoff time: {cutoff_time}")
+    return (
+        AgentSession.all_objects.filter(status=AgentSession.Status.ENDED, ended_at__lte=cutoff_time)
         .values_list("id", flat=True)
         .iterator(chunk_size=BATCH_SIZE)
     )
@@ -226,4 +238,14 @@ def delete_webhook_logs():
         queryset_func=get_webhook_logs_queryset,
         model=WebhookLog,
         task_name="Webhook Log",
+    )
+
+
+@shared_task
+def delete_ended_agent_sessions():
+    """Delete agent sessions that ended long ago, with their tokens, claims and inbox messages."""
+    process_cleanup_task(
+        queryset_func=get_ended_agent_sessions_queryset,
+        model=AgentSession,
+        task_name="Agent Session",
     )

@@ -444,6 +444,10 @@ WEBHOOK_LOG_RETENTION_DAYS = _retention_days("WEBHOOK_LOG_RETENTION_DAYS", 14)
 # Email notification logs are retained on their own window.
 EMAIL_LOG_RETENTION_DAYS = _retention_days("EMAIL_LOG_RETENTION_DAYS", 7)
 
+# An ended agent session is deleted with its tokens, claims and inbox messages after this many days; the comments and
+# activity it made stay, without the session's name. Sessions are cheap to start, so a busy day makes dozens.
+AGENT_SESSION_RETENTION_DAYS = _retention_days("AGENT_SESSION_RETENTION_DAYS", 7)
+
 ATTACHMENT_MIME_TYPES = [
     # Images
     "image/jpeg",

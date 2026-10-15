@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from django.test import RequestFactory
 
+from plane.bgtasks.cleanup_task import delete_ended_agent_sessions
 from plane.bgtasks.issue_activities_task import issue_activity
 from plane.bgtasks.logger_task import log_to_postgres
 from plane.db.models import (
@@ -160,13 +161,28 @@ class TestLifecycle:
         busy, _, _ = register(key, workspace, external_id="busy")
         now = timezone.now()
         AgentSession.objects.filter(pk=quiet.pk).update(last_seen_at=now - timedelta(minutes=31))
-        AgentSession.objects.filter(pk=gone.pk).update(status="away", last_seen_at=now - timedelta(hours=25))
+        AgentSession.objects.filter(pk=gone.pk).update(status="away", last_seen_at=now - timedelta(hours=3))
 
         assert agent_sessions.sweep(now) == (1, 1)
         statuses = dict(AgentSession.objects.values_list("external_id", "status"))
         assert statuses == {"quiet": "away", "gone": "ended", "busy": "live"}
         assert APIToken.objects.get(pk=quiet_token.pk).is_active
         assert not APIToken.objects.get(pk=gone_token.pk).is_active
+
+    def test_ended_sessions_are_deleted_after_the_retention_window(self, workspace, key):
+        old, old_token, _ = register(key, workspace, external_id="old")
+        recent, _, _ = register(key, workspace, external_id="recent")
+        live, _, _ = register(key, workspace, external_id="live")
+        for session in (old, recent):
+            agent_sessions.end(session)
+        now = timezone.now()
+        AgentSession.objects.filter(pk=old.pk).update(ended_at=now - timedelta(days=8))
+        AgentSession.objects.filter(pk=recent.pk).update(ended_at=now - timedelta(days=1))
+
+        delete_ended_agent_sessions()
+
+        assert set(AgentSession.all_objects.values_list("external_id", flat=True)) == {"recent", "live"}
+        assert not APIToken.objects.filter(pk=old_token.pk).exists()
 
 
 @pytest.fixture
