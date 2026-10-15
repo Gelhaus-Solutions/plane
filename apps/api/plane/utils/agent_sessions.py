@@ -222,6 +222,7 @@ def hand_over_to(session):
             "issue_id": str(row.issue_id),
             "project_id": str(row.issue.project_id),
             "delegated": row.delegated,
+            "from_session": row.agent_session.name,
         }
         for row in rows
     ]

@@ -17,7 +17,7 @@ from plane.db.models import (
     Project,
     ProjectMember,
 )
-from plane.utils import agent_sessions, bots
+from plane.utils import agent_assignments, agent_sessions, bots
 
 
 @pytest.fixture
@@ -230,3 +230,80 @@ class TestSessionCards:
         detail = comments["Parser is in."]["agent_session_detail"]
         assert detail["name"] == live.name and detail["bot"]["display_name"] == "Claude"
         assert comments["Hi."]["agent_session_detail"] is None
+
+
+@pytest.mark.contract
+class TestAgentsPage:
+    """The Agents page (r6-03, r6-10): each bot's queue, what ended sessions handed over, and the session panel."""
+
+    @pytest.mark.django_db
+    def test_the_board_lists_queues_and_what_an_ended_session_handed_over(
+        self, session_client, workspace, bot, item, project, create_user
+    ):
+        queued = Issue.objects.create(name="Queued work", project=project, created_by=create_user)
+        agent_assignments.assign(queued, bot)
+        early = register(bot, workspace, "aaaaaaaa-1111")
+        agent_assignments.assign(item, bot, session=early)
+        agent_sessions.claim(item, early)
+        agent_sessions.end(early)
+        url = f"/api/workspaces/{workspace.slug}/agent-sessions/?status=ended&board=1"
+
+        [row] = session_client.get(url).json()["results"]
+        assert [touched["identifier"] for touched in row["touched"]] == [f"AGT-{item.sequence_id}"]
+        item.refresh_from_db()
+        assert row["touched"][0]["state_group"] == (item.state.group if item.state_id else None)
+        assert row["handoff"]["to"] is None
+        assert [waiting["id"] for waiting in row["handoff"]["waiting"]] == [str(item.id)]
+
+        later = register(bot, workspace, "bbbbbbbb-2222")
+        board = session_client.get(url).json()
+        [row] = board["results"]
+        assert row["handoff"]["to"]["id"] == str(later.id)
+        assert [handed["id"] for handed in row["handoff"]["items"]] == [str(item.id)]
+        assert row["handoff"]["waiting"] == []
+        [queue] = board["queues"]
+        assert queue["bot"]["id"] == str(bot.user_id) and queue["count"] == 1
+        assert [entry["id"] for entry in queue["items"]] == [str(queued.id)]
+        queued.refresh_from_db()
+        assert queue["items"][0]["state_group"] == (queued.state.group if queued.state_id else None)
+
+        # without board=1 the listing stays what the pickers read
+        plain = session_client.get(f"/api/workspaces/{workspace.slug}/agent-sessions/?status=ended").json()
+        assert "queues" not in plain and "touched" not in plain["results"][0]
+
+    @pytest.mark.django_db
+    def test_the_panel_shows_items_claims_handoffs_and_inbox_from_the_viewers_projects(
+        self, session_client, workspace, bot, item, create_user
+    ):
+        early = register(bot, workspace, "aaaaaaaa-1111")
+        agent_assignments.assign(item, bot, session=early)
+        agent_sessions.claim(item, early)
+        agent_sessions.end(early)
+        later = register(bot, workspace, "bbbbbbbb-2222")
+        agent_sessions.claim(item, later)
+        hidden_project = Project.objects.create(
+            name="Hidden", identifier="HID", workspace=workspace, created_by=create_user
+        )
+        hidden = Issue.objects.create(name="Not yours", project=hidden_project, created_by=create_user)
+        agent_sessions.claim(hidden, later)
+
+        url = f"/api/workspaces/{workspace.slug}/agent-sessions/{later.id}/panel/"
+        response = session_client.get(url)
+        assert response.status_code == status.HTTP_200_OK, response.content
+        panel = response.json()
+        assert [held["id"] for held in panel["holds"]] == [str(item.id)]
+        item.refresh_from_db()
+        assert panel["holds"][0]["state_group"] == (item.state.group if item.state_id else None)
+        [entry] = panel["items"]
+        assert entry["id"] == str(item.id) and "holds" in entry["roles"] and "assigned" in entry["roles"]
+        assert [claim["item"]["id"] for claim in panel["claims"]] == [str(item.id)]
+        [received] = panel["handoffs"]["received"]
+        assert [source["id"] for source in received["from_sessions"]] == [str(early.id)]
+        assert [handed["id"] for handed in received["items"]] == [str(item.id)]
+        assert "handover" in [message["kind"] for message in panel["inbox"]]
+        assert {recent["kind"] for recent in panel["recent"]} == {"claimed"}
+
+        earlier = session_client.get(f"/api/workspaces/{workspace.slug}/agent-sessions/{early.id}/panel/").json()
+        assert earlier["handoffs"]["given"]["to"]["id"] == str(later.id)
+        [claim] = earlier["claims"]
+        assert claim["end_reason"] == "session_ended" and claim["ended_at"]

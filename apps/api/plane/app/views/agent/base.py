@@ -12,7 +12,7 @@ from rest_framework.response import Response
 
 from plane.app.permissions import ROLE, allow_permission
 from plane.db.models import AgentSession, Issue, IssueAssignee, WorkItemClaim
-from plane.utils import agent_assignments
+from plane.utils import agent_assignments, agent_board
 from plane.utils.agent_sessions import SessionError, session_data, sessions_in
 
 from .. import BaseAPIView
@@ -29,32 +29,42 @@ def _uuid_or_none(value):
         return None
 
 
-def _with_holds(sessions):
-    """The sessions as the app shows them, each with the work items it holds."""
-    claims = WorkItemClaim.objects.filter(session__in=sessions, ended_at__isnull=True).select_related("issue__project")
+def _with_holds(sessions, visible, board=False):
+    """The sessions as the app shows them, each with the work items it holds (from the viewer's projects); for the
+    Agents page (``board``) also what each touched and, once ended, what it handed over."""
+    claims = WorkItemClaim.objects.filter(
+        session__in=sessions, ended_at__isnull=True, issue__project_id__in=visible
+    ).select_related("issue__project", "issue__state")
     holds = {}
     for claim in claims:
-        issue = claim.issue
         holds.setdefault(claim.session_id, []).append(
             {
-                "id": str(issue.id),
-                "project_id": str(issue.project_id),
-                "identifier": f"{issue.project.identifier}-{issue.sequence_id}",
-                "name": issue.name,
+                **agent_board.item_ref(claim.issue),
+                "state_group": agent_board.state_group(claim.issue),
                 "claimed_at": claim.claimed_at,
             }
         )
+    if board:
+        touched = agent_board.touched([session.id for session in sessions], visible)
+        handoffs = agent_board.handoffs(sessions, visible)
     results = []
     for session in sessions:
         data = session_data(session)
         data["bot"]["avatar_url"] = session.bot.user.avatar_url
         data["holds"] = holds.get(session.id, [])
+        if board:
+            data["touched"] = touched.get(session.id, [])
+            data["handoff"] = handoffs.get(session.id)
         results.append(data)
     return results
 
 
 class WorkspaceAgentSessionsEndpoint(BaseAPIView):
-    """The workspace's agent sessions, live first, each with what it holds; ``status`` picks live, away or ended."""
+    """The workspace's agent sessions, live first, each with what it holds; ``status`` picks live, away or ended.
+
+    ``board=1`` is the Agents page: each session also lists what it touched and handed over, and ``queues`` lists
+    every bot's queue (open items assigned or delegated to the bot alone, unclaimed).
+    """
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug):
@@ -66,7 +76,12 @@ class WorkspaceAgentSessionsEndpoint(BaseAPIView):
         sessions = sorted(
             sessions[:PAGE_SIZE], key=lambda s: (STATUS_ORDER.get(s.status, 3), -s.last_seen_at.timestamp())
         )
-        return Response({"results": _with_holds(sessions)}, status=status.HTTP_200_OK)
+        visible = agent_board.visible_project_ids(request.user, slug)
+        board = request.GET.get("board") == "1"
+        payload = {"results": _with_holds(sessions, visible, board=board)}
+        if board:
+            payload["queues"] = agent_board.queues(slug, visible)
+        return Response(payload, status=status.HTTP_200_OK)
 
 
 class WorkspaceAgentSessionEndpoint(BaseAPIView):
@@ -77,7 +92,23 @@ class WorkspaceAgentSessionEndpoint(BaseAPIView):
         session = sessions_in(slug).filter(pk=pk).first()
         if session is None:
             return Response({"error": "Agent session not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(_with_holds([session])[0], status=status.HTTP_200_OK)
+        visible = agent_board.visible_project_ids(request.user, slug)
+        return Response(_with_holds([session], visible)[0], status=status.HTTP_200_OK)
+
+
+class WorkspaceAgentSessionPanelEndpoint(BaseAPIView):
+    """The session panel (r6-10): the session with the items it touched, its claims, handoffs, inbox and recent
+    activity."""
+
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
+    def get(self, request, slug, pk):
+        session = sessions_in(slug).filter(pk=pk).first()
+        if session is None:
+            return Response({"error": "Agent session not found"}, status=status.HTTP_404_NOT_FOUND)
+        visible = agent_board.visible_project_ids(request.user, slug)
+        data = _with_holds([session], visible, board=True)[0]
+        data.update(agent_board.panel(session, visible))
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class ProjectAgentRowsEndpoint(BaseAPIView):

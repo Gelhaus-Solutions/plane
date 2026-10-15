@@ -56,6 +56,128 @@
       "queue": "the queue: the next {name} session picks it up",
       "holds": "holds {identifier}",
       "idle": "no work item held"
+    },
+    "page": {
+      "title": "Agents",
+      "views": "Views",
+      "stale": "Stale",
+      "ago": "{time} ago",
+      "today_at": "today {time}",
+      "yesterday_at": "yesterday {time}",
+      "live_count": "{count} live",
+      "away_count": "{count} away",
+      "queued_count": "{count} queued",
+      "tabs": {
+        "live": "Live",
+        "history": "History"
+      },
+      "filter": {
+        "bot": "Bot",
+        "all_bots": "All bots",
+        "status": "Status",
+        "last_week": "Last 7 days"
+      },
+      "queues": "Queues",
+      "queue": "Queue",
+      "queue_hidden": "{count, plural, one {# queued item is hidden.} other {# queued items are hidden.}} Turn on Queues to see them.",
+      "delegated": "Delegated: the assignee stays accountable",
+      "search": "Find a session or item",
+      "failed": "The agents could not be loaded. Try again in a moment.",
+      "none_live": "No agent session is live. A session shows up here once an agent registers with its bot key.",
+      "none_selected": "Pick a session on the left to see what it is doing.",
+      "recent_title": "Recent",
+      "recent_none": "Nothing yet.",
+      "recent": {
+        "filed": "filed",
+        "completed": "completed",
+        "commented": "commented on",
+        "updated": "changed",
+        "claimed": "claimed",
+        "released": "released",
+        "holds": "holds",
+        "assigned": "was assigned",
+        "delegated": "was delegated"
+      },
+      "session_title": "Session",
+      "inbox_title": "Inbox",
+      "inbox_none": "Nothing was sent to this session.",
+      "inbox": {
+        "mention": "Mention from {who}",
+        "comment": "Comment from {who} on",
+        "assignment": "Assigned by {who}",
+        "handover": "Work handed over",
+        "answer": "Answer from {who}"
+      },
+      "someone": "someone",
+      "acknowledged": "acknowledged",
+      "waiting": "not taken yet",
+      "via_queue": "via the queue",
+      "holds_none": "This session holds no work item.",
+      "claimed_note": "Claimed {when}, nobody else can claim it while this session is live.",
+      "items_none": "This session has not touched a work item.",
+      "role": {
+        "holds": "holds the claim",
+        "claimed": "held the claim",
+        "filed": "filed it",
+        "completed": "completed it",
+        "commented": "commented",
+        "updated": "changed it",
+        "assigned": "assigned to it",
+        "delegated": "delegated to it"
+      },
+      "claims_none": "No claims.",
+      "claim_open": "exclusive since {when}",
+      "claim_ended": "held {from} to {to}, {reason}",
+      "claim_end": {
+        "released": "released by the session",
+        "released_by_person": "released by a person",
+        "session_ended": "the session ended",
+        "session_away": "the session went away",
+        "lapsed": "taken over after the session stopped"
+      },
+      "claim_lapses": "A claim lapses when the session ends or stays away for 30 minutes.",
+      "handoffs_none": "No handoffs.",
+      "handoff_received": "Received",
+      "handoff_from": "from",
+      "handoff_given": "Handed",
+      "handoff_to": "to",
+      "handoff_waiting": "waits for a session",
+      "line": {
+        "working": "Working on {item}",
+        "live": "Live, no work item held",
+        "away": "No heartbeat for over 30 minutes",
+        "ended": "Ended"
+      },
+      "history": {
+        "session": "Session",
+        "started_ended": "Started and ended",
+        "ran": "Ran",
+        "touched": "Items touched",
+        "handoff": "Handoff",
+        "none": "No session ended in the last 7 days.",
+        "no_items": "Read only, no items",
+        "no_handoff": "Nothing left open",
+        "none_touched": "none",
+        "footer": "Ended sessions are kept for 7 days with their claims and handoffs. Their tokens are revoked."
+      }
+    },
+    "panel": {
+      "label": "Session {session}",
+      "close": "Close, press Escape",
+      "copy_name": "Copy the bus name",
+      "copied": "Copied {name}",
+      "sections": "Session sections",
+      "section": {
+        "overview": "Overview",
+        "items": "Items",
+        "claims": "Claims",
+        "handoffs": "Handoffs",
+        "inbox": "Inbox"
+      },
+      "items_title": "Items touched",
+      "token": "Token",
+      "token_live": "derived from the bot key, ends with the session",
+      "token_revoked": "revoked when the session ended"
     }
   }
 }

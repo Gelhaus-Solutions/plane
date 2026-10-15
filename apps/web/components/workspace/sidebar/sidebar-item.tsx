@@ -51,6 +51,7 @@ export const SidebarItemBase = observer(function SidebarItemBase({
     "home",
     "projects",
     "epics",
+    "agents",
     "your_work",
     "stickies",
     "drafts",

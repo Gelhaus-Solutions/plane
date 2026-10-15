@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Link } from "react-router";
 import { Badge } from "@makeplane/propel/components/badge";
+import { NewTabArrowOutline } from "@makeplane/propel/icons";
 // plane imports
 import { BotAvatar } from "@plane/blocks/bot-avatar";
 import { useTranslation } from "@plane/i18n";
@@ -115,6 +116,13 @@ export const AgentSessionCard = observer(function AgentSessionCard({ sessionId }
             ))
           )}
         </div>
+        <Link
+          to={`/${slug}/agents/?${session.status === "ended" ? "tab=history&" : ""}panel=${session.id}`}
+          className="flex shrink-0 items-center gap-1 text-12 font-medium text-accent-primary hover:underline"
+        >
+          <NewTabArrowOutline className="size-3" />
+          {t("agents.card.open_session")}
+        </Link>
       </div>
     </div>
   );

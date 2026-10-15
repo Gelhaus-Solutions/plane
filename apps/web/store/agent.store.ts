@@ -7,7 +7,10 @@
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 import type {
+  TAgentBoardSession,
   TAgentHarness,
+  TAgentPanel,
+  TAgentQueue,
   TAgentSession,
   TAgentSessionStatus,
   TIssueAgent,
@@ -24,6 +27,12 @@ export interface IAgentStore {
   /** The ids of the sessions the pickers offer (live and away), from the last time the workspace was asked. */
   pickableIds: string[];
   issueRows: Record<string, TIssueAgentRows>;
+  /** The Agents page: its sessions by id, the live and away ones, the ended ones, and each bot's queue. */
+  boardMap: Record<string, TAgentBoardSession>;
+  liveIds: string[] | undefined;
+  historyIds: string[] | undefined;
+  queues: TAgentQueue[];
+  panelMap: Record<string, TAgentPanel>;
   // computed functions
   getSessionById: (sessionId: string) => TAgentSession | undefined;
   getBotSessions: (botUserId: string) => TAgentSession[];
@@ -35,6 +44,9 @@ export interface IAgentStore {
   fetchSessions: (workspaceSlug: string, statuses?: TAgentSessionStatus[]) => Promise<TAgentSession[]>;
   fetchPickableSessions: (workspaceSlug: string) => Promise<TAgentSession[]>;
   fetchSession: (workspaceSlug: string, sessionId: string) => Promise<TAgentSession>;
+  fetchBoard: (workspaceSlug: string) => Promise<void>;
+  fetchHistory: (workspaceSlug: string) => Promise<void>;
+  fetchPanel: (workspaceSlug: string, sessionId: string) => Promise<TAgentPanel>;
   fetchProjectRows: (workspaceSlug: string, projectId: string) => Promise<void>;
   /** Loads a project's agent rows unless they were loaded a moment ago; any number of rows may ask at once. */
   ensureProjectRows: (workspaceSlug: string, projectId: string, maxAgeMs?: number) => Promise<void>;
@@ -58,6 +70,11 @@ export class AgentStore implements IAgentStore {
   sessionMap: Record<string, TAgentSession> = {};
   pickableIds: string[] = [];
   issueRows: Record<string, TIssueAgentRows> = {};
+  boardMap: Record<string, TAgentBoardSession> = {};
+  liveIds: string[] | undefined = undefined;
+  historyIds: string[] | undefined = undefined;
+  queues: TAgentQueue[] = [];
+  panelMap: Record<string, TAgentPanel> = {};
   private projectRowsAt: Record<string, number> = {};
 
   service = new AgentService();
@@ -67,7 +84,15 @@ export class AgentStore implements IAgentStore {
       sessionMap: observable,
       pickableIds: observable,
       issueRows: observable,
+      boardMap: observable,
+      liveIds: observable,
+      historyIds: observable,
+      queues: observable,
+      panelMap: observable,
       fetchSessions: action,
+      fetchBoard: action,
+      fetchHistory: action,
+      fetchPanel: action,
       fetchPickableSessions: action,
       fetchSession: action,
       fetchProjectRows: action,
@@ -131,6 +156,42 @@ export class AgentStore implements IAgentStore {
       this.sessionMap[session.id] = session;
     });
     return session;
+  };
+
+  private putBoard(sessions: TAgentBoardSession[]) {
+    for (const session of sessions) {
+      this.boardMap[session.id] = session;
+      this.sessionMap[session.id] = session;
+    }
+    return sessions.map((session) => session.id);
+  }
+
+  /** The live and away sessions with each bot's queue: the Agents page's Live tab. */
+  fetchBoard = async (workspaceSlug: string) => {
+    const board = await this.service.listBoard(workspaceSlug, ["live", "away"]);
+    runInAction(() => {
+      this.liveIds = this.putBoard(board.results);
+      this.queues = board.queues;
+    });
+  };
+
+  /** The ended sessions, kept for a week: the History tab. */
+  fetchHistory = async (workspaceSlug: string) => {
+    const board = await this.service.listBoard(workspaceSlug, ["ended"]);
+    runInAction(() => {
+      this.historyIds = this.putBoard(board.results);
+      this.queues = board.queues;
+    });
+  };
+
+  fetchPanel = async (workspaceSlug: string, sessionId: string) => {
+    const panel = await this.service.retrievePanel(workspaceSlug, sessionId);
+    runInAction(() => {
+      this.panelMap[sessionId] = panel;
+      this.boardMap[sessionId] = panel;
+      this.sessionMap[sessionId] = panel;
+    });
+    return panel;
   };
 
   /** Puts a fresh listing of one item in the map, and the item's assignee list in line with it. */

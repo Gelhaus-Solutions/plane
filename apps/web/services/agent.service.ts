@@ -6,6 +6,8 @@
 
 import { API_BASE_URL } from "@plane/constants";
 import type {
+  TAgentBoard,
+  TAgentPanel,
   TAgentSession,
   TAgentSessionStatus,
   TIssueAgentAssignment,
@@ -35,6 +37,25 @@ export class AgentService extends APIService {
 
   async retrieveSession(workspaceSlug: string, sessionId: string): Promise<TAgentSession> {
     return this.get(`/api/workspaces/${workspaceSlug}/agent-sessions/${sessionId}/`)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  /** The Agents page: the sessions with what they touched and handed over, and every bot's queue. */
+  async listBoard(workspaceSlug: string, statuses: TAgentSessionStatus[]): Promise<TAgentBoard> {
+    return this.get(`/api/workspaces/${workspaceSlug}/agent-sessions/`, {
+      params: { status: statuses.join(","), board: 1 },
+    })
+      .then((response) => ({ results: response?.data?.results ?? [], queues: response?.data?.queues ?? [] }))
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  async retrievePanel(workspaceSlug: string, sessionId: string): Promise<TAgentPanel> {
+    return this.get(`/api/workspaces/${workspaceSlug}/agent-sessions/${sessionId}/panel/`)
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data;

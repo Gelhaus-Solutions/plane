@@ -56,6 +56,128 @@
       "queue": "die Warteschlange: die nächste {name}-Session übernimmt es",
       "holds": "hält {identifier}",
       "idle": "hält kein Work Item"
+    },
+    "page": {
+      "title": "Agenten",
+      "views": "Ansichten",
+      "stale": "Veraltet",
+      "ago": "vor {time}",
+      "today_at": "heute {time}",
+      "yesterday_at": "gestern {time}",
+      "live_count": "{count} live",
+      "away_count": "{count} abwesend",
+      "queued_count": "{count} wartend",
+      "tabs": {
+        "live": "Live",
+        "history": "Verlauf"
+      },
+      "filter": {
+        "bot": "Bot",
+        "all_bots": "Alle Bots",
+        "status": "Status",
+        "last_week": "Letzte 7 Tage"
+      },
+      "queues": "Warteschlangen",
+      "queue": "Warteschlange",
+      "queue_hidden": "{count, plural, one {# Eintrag in der Warteschlange ist ausgeblendet.} other {# Einträge in der Warteschlange sind ausgeblendet.}} Schalte Warteschlangen ein, um sie zu sehen.",
+      "delegated": "Delegiert: die zuständige Person bleibt verantwortlich",
+      "search": "Session oder Arbeitselement suchen",
+      "failed": "Die Agenten konnten nicht geladen werden. Versuche es gleich noch einmal.",
+      "none_live": "Keine Agenten-Session ist live. Eine Session erscheint hier, sobald sich ein Agent mit seinem Bot-Schlüssel anmeldet.",
+      "none_selected": "Wähle links eine Session, um zu sehen, was sie gerade tut.",
+      "recent_title": "Zuletzt",
+      "recent_none": "Noch nichts.",
+      "recent": {
+        "filed": "angelegt",
+        "completed": "abgeschlossen",
+        "commented": "kommentiert",
+        "updated": "geändert",
+        "claimed": "beansprucht",
+        "released": "freigegeben",
+        "holds": "hält",
+        "assigned": "zugewiesen bekommen",
+        "delegated": "delegiert bekommen"
+      },
+      "session_title": "Session",
+      "inbox_title": "Posteingang",
+      "inbox_none": "An diese Session wurde nichts geschickt.",
+      "inbox": {
+        "mention": "Erwähnung von {who}",
+        "comment": "Kommentar von {who} zu",
+        "assignment": "Zugewiesen von {who}",
+        "handover": "Arbeit übergeben",
+        "answer": "Antwort von {who}"
+      },
+      "someone": "jemandem",
+      "acknowledged": "bestätigt",
+      "waiting": "noch nicht abgeholt",
+      "via_queue": "über die Warteschlange",
+      "holds_none": "Diese Session hält kein Arbeitselement.",
+      "claimed_note": "Beansprucht {when}, niemand sonst kann es beanspruchen, solange diese Session live ist.",
+      "items_none": "Diese Session hat noch kein Arbeitselement angefasst.",
+      "role": {
+        "holds": "hält den Anspruch",
+        "claimed": "hielt den Anspruch",
+        "filed": "angelegt",
+        "completed": "abgeschlossen",
+        "commented": "kommentiert",
+        "updated": "geändert",
+        "assigned": "ihr zugewiesen",
+        "delegated": "an sie delegiert"
+      },
+      "claims_none": "Keine Ansprüche.",
+      "claim_open": "exklusiv seit {when}",
+      "claim_ended": "gehalten von {from} bis {to}, {reason}",
+      "claim_end": {
+        "released": "von der Session freigegeben",
+        "released_by_person": "von einer Person freigegeben",
+        "session_ended": "die Session wurde beendet",
+        "session_away": "die Session war abwesend",
+        "lapsed": "übernommen, nachdem die Session stehen blieb"
+      },
+      "claim_lapses": "Ein Anspruch verfällt, wenn die Session endet oder 30 Minuten abwesend ist.",
+      "handoffs_none": "Keine Übergaben.",
+      "handoff_received": "Erhalten:",
+      "handoff_from": "von",
+      "handoff_given": "Übergeben:",
+      "handoff_to": "an",
+      "handoff_waiting": "wartet auf eine Session",
+      "line": {
+        "working": "Arbeitet an {item}",
+        "live": "Live, hält kein Arbeitselement",
+        "away": "Seit über 30 Minuten kein Lebenszeichen",
+        "ended": "Beendet"
+      },
+      "history": {
+        "session": "Session",
+        "started_ended": "Gestartet und beendet",
+        "ran": "Dauer",
+        "touched": "Angefasste Elemente",
+        "handoff": "Übergabe",
+        "none": "In den letzten 7 Tagen wurde keine Session beendet.",
+        "no_items": "Nur gelesen, keine Elemente",
+        "no_handoff": "Nichts offen gelassen",
+        "none_touched": "keine",
+        "footer": "Beendete Sessions bleiben 7 Tage mit ihren Ansprüchen und Übergaben erhalten. Ihre Tokens sind widerrufen."
+      }
+    },
+    "panel": {
+      "label": "Session {session}",
+      "close": "Schließen, Escape drücken",
+      "copy_name": "Bus-Namen kopieren",
+      "copied": "{name} kopiert",
+      "sections": "Bereiche der Session",
+      "section": {
+        "overview": "Überblick",
+        "items": "Elemente",
+        "claims": "Ansprüche",
+        "handoffs": "Übergaben",
+        "inbox": "Posteingang"
+      },
+      "items_title": "Angefasste Elemente",
+      "token": "Token",
+      "token_live": "vom Bot-Schlüssel abgeleitet, endet mit der Session",
+      "token_revoked": "beim Ende der Session widerrufen"
     }
   }
 }

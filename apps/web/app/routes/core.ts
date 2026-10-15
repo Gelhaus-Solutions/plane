@@ -80,6 +80,9 @@ export const coreRoutes: RouteConfigEntry[] = [
         // Epics across projects (E11)
         route(":workspaceSlug/epics", "./(all)/[workspaceSlug]/(projects)/epics/page.tsx"),
 
+        // Agents: live sessions by bot, their queues and history (E28, D46)
+        route(":workspaceSlug/agents", "./(all)/[workspaceSlug]/(projects)/agents/page.tsx"),
+
         // Notifications
         layout("./(all)/[workspaceSlug]/(projects)/notifications/layout.tsx", [
           route(":workspaceSlug/notifications", "./(all)/[workspaceSlug]/(projects)/notifications/page.tsx"),
