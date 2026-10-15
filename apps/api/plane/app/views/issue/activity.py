@@ -42,7 +42,7 @@ class IssueActivityEndpoint(BaseAPIView):
                 workspace__slug=slug,
             )
             .filter(**filters)
-            .select_related("actor", "workspace", "issue", "project")
+            .select_related("actor", "workspace", "issue", "project", "agent_session__bot__user")
         ).order_by("created_at")
         issue_comments = (
             IssueComment.objects.filter(issue_id=issue_id)
@@ -54,7 +54,7 @@ class IssueActivityEndpoint(BaseAPIView):
             )
             .filter(**filters)
             .order_by("created_at")
-            .select_related("actor", "issue", "project", "workspace")
+            .select_related("actor", "issue", "project", "workspace", "agent_session__bot__user")
             .prefetch_related(
                 Prefetch(
                     "comment_reactions",

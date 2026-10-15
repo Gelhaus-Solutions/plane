@@ -33,6 +33,14 @@ export class AgentService extends APIService {
       });
   }
 
+  async retrieveSession(workspaceSlug: string, sessionId: string): Promise<TAgentSession> {
+    return this.get(`/api/workspaces/${workspaceSlug}/agent-sessions/${sessionId}/`)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
   async listProjectRows(workspaceSlug: string, projectId: string): Promise<TProjectAgentRow[]> {
     return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/agent-rows/`)
       .then((response) => response?.data?.results ?? [])

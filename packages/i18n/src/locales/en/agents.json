@@ -29,6 +29,33 @@
     "state": {
       "queue": "In the queue",
       "waiting": "Waiting for a session"
+    },
+    "card": {
+      "harness": "Harness",
+      "model": "Model",
+      "primary_dir": "Primary dir",
+      "host": "Host",
+      "branch": "Branch",
+      "started": "Started",
+      "last_seen": "Last seen",
+      "ended": "Ended",
+      "still_live": "still live",
+      "holds": "Holds",
+      "holds_nothing": "nothing",
+      "open_session": "Open session",
+      "loading": "Loading the session",
+      "not_found": "This session is gone"
+    },
+    "tag": {
+      "agent": "Agent",
+      "human": "Human"
+    },
+    "worked_on_by": "Worked on by",
+    "mention": {
+      "section": "Bots and sessions",
+      "queue": "the queue: the next {name} session picks it up",
+      "holds": "holds {identifier}",
+      "idle": "no work item held"
     }
   }
 }

@@ -7,11 +7,17 @@ from django.urls import path
 from plane.app.views.agent.base import (
     ProjectAgentRowsEndpoint,
     WorkItemAgentsEndpoint,
+    WorkspaceAgentSessionEndpoint,
     WorkspaceAgentSessionsEndpoint,
 )
 
 urlpatterns = [
     path("workspaces/<str:slug>/agent-sessions/", WorkspaceAgentSessionsEndpoint.as_view(), name="agent-sessions"),
+    path(
+        "workspaces/<str:slug>/agent-sessions/<uuid:pk>/",
+        WorkspaceAgentSessionEndpoint.as_view(),
+        name="agent-session",
+    ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/agent-rows/",
         ProjectAgentRowsEndpoint.as_view(),

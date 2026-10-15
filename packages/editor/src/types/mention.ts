@@ -5,15 +5,17 @@
  */
 
 // plane types
-import type { TSearchEntities } from "@plane/types";
+import type { TMentionEntities } from "@plane/types";
 
 export type TMentionSuggestion = {
   entity_identifier: string;
-  entity_name: TSearchEntities;
+  entity_name: TMentionEntities;
   icon: React.ReactNode;
   id: string;
   subTitle?: string;
   title: string;
+  /** A muted line of help after the title, for rows that need to say what they reach. */
+  description?: string;
 };
 
 export type TMentionSection = {

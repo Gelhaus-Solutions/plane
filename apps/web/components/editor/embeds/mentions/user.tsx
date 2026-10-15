@@ -9,10 +9,13 @@ import { useParams } from "next/navigation";
 import { Link } from "react-router";
 // plane imports
 import { Avatar } from "@makeplane/propel/components/avatar";
+import { BotAvatar } from "@plane/blocks/bot-avatar";
 import { ROLE } from "@plane/constants";
 import { Popover, PopoverContent, PopoverTrigger } from "@makeplane/propel/components/popover";
 import { cn, getFileURL } from "@plane/utils";
 // hooks
+import { botFaceOf } from "@/helpers/agent.helper";
+import { useAgent } from "@/hooks/store/use-agent";
 import { useMember } from "@/hooks/store/use-member";
 import { useUser } from "@/hooks/store/user";
 
@@ -32,6 +35,7 @@ export const EditorUserMention = observer(function EditorUserMention(props: Prop
     getUserDetails,
     project: { getProjectMemberDetails },
   } = useMember();
+  const { getBotHarness } = useAgent();
   // derived values
   const userDetails = getUserDetails(id);
   const roleDetails = projectId ? getProjectMemberDetails(id, projectId.toString())?.role : null;
@@ -59,7 +63,19 @@ export const EditorUserMention = observer(function EditorUserMention(props: Prop
           openOnHover
           delay={100}
           nativeButton={false}
-          render={<Link to={profileLink}>@{userDetails?.display_name}</Link>}
+          render={
+            <Link to={profileLink} className="inline-flex items-center gap-1 align-baseline">
+              {userDetails.is_bot && (
+                <BotAvatar
+                  name={userDetails.display_name}
+                  bot
+                  size={14}
+                  {...botFaceOf(getBotHarness(id, userDetails.display_name))}
+                />
+              )}
+              <span>@{userDetails?.display_name}</span>
+            </Link>
+          }
         />
         <PopoverContent variant="rich" side="bottom" align="start" sideOffset={8}>
           <div className="flex items-center gap-3">

@@ -6,7 +6,16 @@
 
 import { FloatingOverlay } from "@floating-ui/react";
 import type { SuggestionProps } from "@tiptap/suggestion";
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { v4 as uuidv4 } from "uuid";
 import { debounce } from "lodash-es";
 // plane utils
@@ -83,19 +92,20 @@ export const MentionsListDropdown = forwardRef(function MentionsListDropdown(pro
   }, [sections]);
 
   // debounced search callback
-  const debouncedSearchCallback = useCallback(
-    debounce(async (searchQuery: string) => {
-      try {
-        const sectionsResponse = await searchCallback?.(searchQuery);
-        if (sectionsResponse) {
-          setSections(sectionsResponse);
+  const debouncedSearchCallback = useMemo(
+    () =>
+      debounce(async (searchQuery: string) => {
+        try {
+          const sectionsResponse = await searchCallback?.(searchQuery);
+          if (sectionsResponse) {
+            setSections(sectionsResponse);
+          }
+        } catch (error) {
+          console.error("Failed to fetch suggestions:", error);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Failed to fetch suggestions:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 300),
+      }, 300),
     [searchCallback]
   );
 
@@ -135,6 +145,9 @@ export const MentionsListDropdown = forwardRef(function MentionsListDropdown(pro
 
   useOutsideClickDetector(dropdownContainer, onClose);
 
+  // rows that carry a line of help need room for it
+  const hasDescriptions = sections.some((section) => section.items.some((item) => item.description));
+
   return (
     <>
       {/* Backdrop */}
@@ -145,8 +158,12 @@ export const MentionsListDropdown = forwardRef(function MentionsListDropdown(pro
         lockScroll
       />
       <div
+        role="presentation"
         ref={dropdownContainer}
-        className="relative max-h-80 w-[14rem] space-y-2 overflow-y-auto rounded-md border-[0.5px] border-strong bg-surface-1 px-2 py-2.5 shadow-raised-200"
+        className={cn(
+          "relative max-h-80 space-y-2 overflow-y-auto rounded-md border-[0.5px] border-strong bg-surface-1 px-2 py-2.5 shadow-raised-200",
+          hasDescriptions ? "w-[26rem]" : "w-[14rem]"
+        )}
         style={{
           zIndex: 100,
         }}
@@ -193,7 +210,10 @@ export const MentionsListDropdown = forwardRef(function MentionsListDropdown(pro
                     {item.subTitle && (
                       <h5 className="flex-shrink-0 text-11 whitespace-nowrap text-tertiary">{item.subTitle}</h5>
                     )}
-                    <p className="flex-grow truncate">{item.title}</p>
+                    <p className={cn("truncate", item.description ? "flex-shrink-0 text-primary" : "flex-grow")}>
+                      {item.title}
+                    </p>
+                    {item.description && <p className="min-w-0 flex-grow truncate text-tertiary">{item.description}</p>}
                   </button>
                 );
               })}

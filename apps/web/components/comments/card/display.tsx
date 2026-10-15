@@ -18,6 +18,7 @@ import type { TCommentsOperations, TIssueComment } from "@plane/types";
 import { useTranslation } from "@plane/i18n";
 import { calculateTimeAgo, cn, renderFormattedDate, renderFormattedTime } from "@plane/utils";
 // components
+import { AgentSessionChip } from "@/components/agents/session-chip";
 import { LiteTextEditor } from "@/components/editor/lite-text";
 // local imports
 import { CommentReactions } from "../comment-reaction";
@@ -121,6 +122,9 @@ export const CommentCardDisplay = observer(function CommentCardDisplay(props: TC
       <div className="relative flex w-full items-center gap-1.5">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 text-[12.5px]">
           <span className="font-semibold text-primary">{displayName}</span>
+          {comment.agent_session_detail && (
+            <AgentSessionChip session={comment.agent_session_detail} appearance="text" />
+          )}
           {isBot && (
             <span className="inline-flex h-4 items-center rounded-[5px] bg-loz-review-bg px-[5px] text-[9.5px] font-semibold tracking-[0.06em] text-loz-review-fg">
               BOT
@@ -138,19 +142,29 @@ export const CommentCardDisplay = observer(function CommentCardDisplay(props: TC
             </span>
           </Tooltip>
         </div>
-        {!disabled && (
-          <div className="flex shrink-0 items-center gap-1">
-            <EmojiReactionPicker
-              isOpen={isPickerOpen}
-              handleToggle={setIsPickerOpen}
-              onChange={handleEmojiSelect}
-              disabled={disabled}
-              label={<EmojiReactionButton onAddReaction={() => setIsPickerOpen(true)} />}
-              placement="bottom-start"
-            />
-            {renderQuickActions ? renderQuickActions() : null}
-          </div>
-        )}
+        <div className="flex shrink-0 items-center gap-1">
+          <span
+            className={cn(
+              "inline-flex h-4 items-center rounded-[5px] border px-[5px] text-[9.5px] font-semibold tracking-[0.06em] uppercase",
+              isBot ? "border-transparent bg-accent-subtle text-accent-primary" : "border-subtle text-tertiary"
+            )}
+          >
+            {isBot ? t("agents.tag.agent") : t("agents.tag.human")}
+          </span>
+          {!disabled && (
+            <>
+              <EmojiReactionPicker
+                isOpen={isPickerOpen}
+                handleToggle={setIsPickerOpen}
+                onChange={handleEmojiSelect}
+                disabled={disabled}
+                label={<EmojiReactionButton onAddReaction={() => setIsPickerOpen(true)} />}
+                placement="bottom-start"
+              />
+              {renderQuickActions ? renderQuickActions() : null}
+            </>
+          )}
+        </div>
       </div>
       {isEditing && setIsEditing ? (
         <CommentCardEditForm

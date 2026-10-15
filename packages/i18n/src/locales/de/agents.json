@@ -29,6 +29,33 @@
     "state": {
       "queue": "In der Warteschlange",
       "waiting": "Wartet auf eine Session"
+    },
+    "card": {
+      "harness": "Harness",
+      "model": "Modell",
+      "primary_dir": "Hauptordner",
+      "host": "Host",
+      "branch": "Branch",
+      "started": "Gestartet",
+      "last_seen": "Zuletzt gesehen",
+      "ended": "Beendet",
+      "still_live": "läuft noch",
+      "holds": "Hält",
+      "holds_nothing": "nichts",
+      "open_session": "Session öffnen",
+      "loading": "Session wird geladen",
+      "not_found": "Diese Session gibt es nicht mehr"
+    },
+    "tag": {
+      "agent": "Agent",
+      "human": "Mensch"
+    },
+    "worked_on_by": "Bearbeitet von",
+    "mention": {
+      "section": "Bots und Sessions",
+      "queue": "die Warteschlange: die nächste {name}-Session übernimmt es",
+      "holds": "hält {identifier}",
+      "idle": "hält kein Work Item"
     }
   }
 }

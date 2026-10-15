@@ -17,8 +17,7 @@ import { cn, isCommentEmpty } from "@plane/utils";
 import { EditorMentionsRoot } from "@/components/editor/embeds/mentions";
 import { IssueCommentToolbar } from "@/components/editor/lite-text/toolbar";
 // hooks
-import { useEditorConfig, useEditorMention } from "@/hooks/editor";
-import { useMember } from "@/hooks/store/use-member";
+import { useEditorConfig, useEditorMention, useMentionedEntityDetails } from "@/hooks/editor";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 // plane web hooks
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
@@ -98,13 +97,13 @@ export const LiteTextEditor = React.forwardRef(function LiteTextEditor(
     projectId,
   });
   // store hooks
-  const { getUserDetails } = useMember();
   // parse content
   const { getEditorMetaData } = useParseEditorContent({
     projectId,
     workspaceSlug,
   });
   // use editor mention
+  const getMentionedEntityDetails = useMentionedEntityDetails();
   const { fetchMentions } = useEditorMention({
     searchEntity: async (payload) =>
       await workspaceService.searchEntity(workspaceSlug, {
@@ -162,9 +161,7 @@ export const LiteTextEditor = React.forwardRef(function LiteTextEditor(
                 return res;
               },
               renderComponent: EditorMentionsRoot,
-              getMentionedEntityDetails: (id) => ({
-                display_name: getUserDetails(id)?.display_name ?? "",
-              }),
+              getMentionedEntityDetails,
             }}
             placeholder={placeholder}
             showPlaceholderOnEmpty={showPlaceholderOnEmpty}

@@ -29,6 +29,30 @@ def _uuid_or_none(value):
         return None
 
 
+def _with_holds(sessions):
+    """The sessions as the app shows them, each with the work items it holds."""
+    claims = WorkItemClaim.objects.filter(session__in=sessions, ended_at__isnull=True).select_related("issue__project")
+    holds = {}
+    for claim in claims:
+        issue = claim.issue
+        holds.setdefault(claim.session_id, []).append(
+            {
+                "id": str(issue.id),
+                "project_id": str(issue.project_id),
+                "identifier": f"{issue.project.identifier}-{issue.sequence_id}",
+                "name": issue.name,
+                "claimed_at": claim.claimed_at,
+            }
+        )
+    results = []
+    for session in sessions:
+        data = session_data(session)
+        data["bot"]["avatar_url"] = session.bot.user.avatar_url
+        data["holds"] = holds.get(session.id, [])
+        results.append(data)
+    return results
+
+
 class WorkspaceAgentSessionsEndpoint(BaseAPIView):
     """The workspace's agent sessions, live first, each with what it holds; ``status`` picks live, away or ended."""
 
@@ -42,28 +66,18 @@ class WorkspaceAgentSessionsEndpoint(BaseAPIView):
         sessions = sorted(
             sessions[:PAGE_SIZE], key=lambda s: (STATUS_ORDER.get(s.status, 3), -s.last_seen_at.timestamp())
         )
-        claims = WorkItemClaim.objects.filter(session__in=sessions, ended_at__isnull=True).select_related(
-            "issue__project"
-        )
-        holds = {}
-        for claim in claims:
-            issue = claim.issue
-            holds.setdefault(claim.session_id, []).append(
-                {
-                    "id": str(issue.id),
-                    "project_id": str(issue.project_id),
-                    "identifier": f"{issue.project.identifier}-{issue.sequence_id}",
-                    "name": issue.name,
-                    "claimed_at": claim.claimed_at,
-                }
-            )
-        results = []
-        for session in sessions:
-            data = session_data(session)
-            data["bot"]["avatar_url"] = session.bot.user.avatar_url
-            data["holds"] = holds.get(session.id, [])
-            results.append(data)
-        return Response({"results": results}, status=status.HTTP_200_OK)
+        return Response({"results": _with_holds(sessions)}, status=status.HTTP_200_OK)
+
+
+class WorkspaceAgentSessionEndpoint(BaseAPIView):
+    """One session of the workspace, with what it holds: the card a chip opens."""
+
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], level="WORKSPACE")
+    def get(self, request, slug, pk):
+        session = sessions_in(slug).filter(pk=pk).first()
+        if session is None:
+            return Response({"error": "Agent session not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(_with_holds([session])[0], status=status.HTTP_200_OK)
 
 
 class ProjectAgentRowsEndpoint(BaseAPIView):

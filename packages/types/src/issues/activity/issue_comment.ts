@@ -7,6 +7,7 @@
 import type { JSONContent } from "../../editor";
 import type { EIssueCommentAccessSpecifier } from "../../enums";
 import type { TFileSignedURLResponse } from "../../file";
+import type { TAgentSessionLite } from "../../agents";
 import type { IUserLite } from "../../users";
 import type { IWorkspaceLite } from "../../workspace";
 import type {
@@ -45,6 +46,9 @@ export type TIssueComment = {
   external_id: string | undefined;
   external_source: string | undefined;
   access: EIssueCommentAccessSpecifier;
+  /** The agent session that wrote the comment, when it came through a session. */
+  agent_session?: string | null;
+  agent_session_detail?: TAgentSessionLite | null;
 };
 
 export type TCommentsOperations = {

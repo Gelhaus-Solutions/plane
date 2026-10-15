@@ -8,7 +8,15 @@ assigning or delegating from the web through the agents path, so the session hea
 import pytest
 from rest_framework import status
 
-from plane.db.models import AgentInboxMessage, AgentSession, Issue, IssueAssignee, Project, ProjectMember
+from plane.db.models import (
+    AgentInboxMessage,
+    AgentSession,
+    Issue,
+    IssueAssignee,
+    IssueComment,
+    Project,
+    ProjectMember,
+)
 from plane.utils import agent_sessions, bots
 
 
@@ -181,3 +189,44 @@ class TestAgentRows:
         assert agent["session"]["name"] == live.name and agent["delegated"] and agent["state"] == "session"
         assert by_issue[str(claimed.id)]["agents"] == []
         assert by_issue[str(claimed.id)]["claim"]["session"]["id"] == str(live.id)
+
+
+@pytest.mark.contract
+class TestSessionCards:
+    """What a session chip needs: the session behind a comment, and one session with what it holds."""
+
+    @pytest.mark.django_db
+    def test_one_session_comes_with_what_it_holds(self, session_client, workspace, bot, item):
+        live = register(bot, workspace, "bbbbbbbb-2222")
+        agent_sessions.claim(item, live)
+        response = session_client.get(f"/api/workspaces/{workspace.slug}/agent-sessions/{live.id}/")
+        assert response.status_code == status.HTTP_200_OK, response.content
+        data = response.json()
+        assert data["name"] == live.name and data["harness"] == "claude-code"
+        assert [held["identifier"] for held in data["holds"]] == [f"AGT-{item.sequence_id}"]
+
+        missing = session_client.get(f"/api/workspaces/{workspace.slug}/agent-sessions/{item.id}/")
+        assert missing.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.django_db
+    def test_a_comment_names_the_session_that_wrote_it(self, session_client, workspace, bot, item, project):
+        live = register(bot, workspace, "bbbbbbbb-2222")
+        IssueComment.objects.create(
+            issue=item,
+            project=project,
+            workspace=workspace,
+            actor=bot.user,
+            comment_html="<p>Parser is in.</p>",
+            agent_session=live,
+        )
+        IssueComment.objects.create(
+            issue=item, project=project, workspace=workspace, actor=bot.user, comment_html="<p>Hi.</p>"
+        )
+        response = session_client.get(
+            f"/api/workspaces/{workspace.slug}/projects/{project.id}/issues/{item.id}/history/"
+        )
+        assert response.status_code == status.HTTP_200_OK, response.content
+        comments = {c["comment_stripped"]: c for c in response.json() if c.get("comment_stripped")}
+        detail = comments["Parser is in."]["agent_session_detail"]
+        assert detail["name"] == live.name and detail["bot"]["display_name"] == "Claude"
+        assert comments["Hi."]["agent_session_detail"] is None

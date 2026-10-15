@@ -5,6 +5,8 @@
  */
 
 import Link from "next/link";
+// components
+import { AgentSessionChip } from "@/components/agents/session-chip";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 
@@ -35,6 +37,13 @@ export function IssueUser(props: TIssueUser) {
         >
           {activity.actor_detail?.display_name}
         </Link>
+      )}
+      {/* a change that came through an agent session names the session (r6-11) */}
+      {activity.agent_session_detail && (
+        <>
+          {" "}
+          <AgentSessionChip session={activity.agent_session_detail} appearance="text" />
+        </>
       )}
     </>
   );

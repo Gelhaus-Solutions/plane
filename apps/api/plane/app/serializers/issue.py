@@ -44,6 +44,7 @@ from plane.db.models import (
     EstimatePoint,
 )
 from plane.utils import agent_assignments
+from plane.utils.agent_sessions import session_lite
 from plane.utils.content_validator import (
     validate_html_content,
     validate_binary_data,
@@ -325,6 +326,10 @@ class IssueActivitySerializer(BaseSerializer):
     project_detail = ProjectLiteSerializer(read_only=True, source="project")
     workspace_detail = WorkspaceLiteSerializer(read_only=True, source="workspace")
     source_data = serializers.SerializerMethodField()
+    agent_session_detail = serializers.SerializerMethodField()
+
+    def get_agent_session_detail(self, obj):
+        return session_lite(obj.agent_session)
 
     def get_source_data(self, obj):
         if hasattr(obj, "issue") and hasattr(obj.issue, "source_data") and obj.issue.source_data:
@@ -690,6 +695,10 @@ class IssueCommentSerializer(BaseSerializer):
     workspace_detail = WorkspaceLiteSerializer(read_only=True, source="workspace")
     comment_reactions = CommentReactionSerializer(read_only=True, many=True)
     is_member = serializers.BooleanField(read_only=True)
+    agent_session_detail = serializers.SerializerMethodField()
+
+    def get_agent_session_detail(self, obj):
+        return session_lite(obj.agent_session)
 
     class Meta:
         model = IssueComment

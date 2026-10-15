@@ -5,6 +5,7 @@
  */
 
 // local imports
+import type { TAgentSessionLite } from "../../agents";
 import type { EInboxIssueSource } from "../../inbox";
 import type {
   TIssueActivityWorkspaceDetail,
@@ -23,6 +24,8 @@ export type TIssueActivity = {
   issue_detail: TIssueActivityIssueDetail;
   actor: string;
   actor_detail: TIssueActivityUserDetail;
+  /** The agent session that made the change, when it came through a session. */
+  agent_session_detail?: TAgentSessionLite | null;
   created_at: string;
   updated_at: string;
   created_by: string | undefined;

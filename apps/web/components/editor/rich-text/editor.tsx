@@ -13,8 +13,7 @@ import { cn } from "@plane/utils";
 // components
 import { EditorMentionsRoot } from "@/components/editor/embeds/mentions";
 // hooks
-import { useEditorConfig, useEditorMention } from "@/hooks/editor";
-import { useMember } from "@/hooks/store/use-member";
+import { useEditorConfig, useEditorMention, useMentionedEntityDetails } from "@/hooks/editor";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 // plane web hooks
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
@@ -53,13 +52,13 @@ export const RichTextEditor = forwardRef(function RichTextEditor(
     ...rest
   } = props;
   // store hooks
-  const { getUserDetails } = useMember();
   // editor flaggings
   const { richText: richTextEditorExtensions } = useEditorFlagging({
     workspaceSlug,
     projectId,
   });
   // use editor mention
+  const getMentionedEntityDetails = useMentionedEntityDetails();
   const { fetchMentions } = useEditorMention({
     searchEntity: editable ? async (payload) => await props.searchMentionCallback(payload) : async () => ({}),
   });
@@ -92,9 +91,7 @@ export const RichTextEditor = forwardRef(function RichTextEditor(
           return res;
         },
         renderComponent: EditorMentionsRoot,
-        getMentionedEntityDetails: (id) => ({
-          display_name: getUserDetails(id)?.display_name ?? "",
-        }),
+        getMentionedEntityDetails,
       }}
       extendedEditorProps={{}}
       {...rest}

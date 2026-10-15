@@ -41,6 +41,12 @@ export type TAgentSession = {
   holds: TAgentSessionHold[];
 };
 
+/** The session behind a comment or an activity: what its chip needs. */
+export type TAgentSessionLite = TAgentSessionRef & {
+  harness: TAgentHarness;
+  bot: { id: string; display_name: string };
+};
+
 /** The session a chip or a row names: enough to draw it, not the whole run. */
 export type TAgentSessionRef = {
   id: string;

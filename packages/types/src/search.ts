@@ -14,6 +14,9 @@ import type { IWorkspace } from "./workspace";
 
 export type TSearchEntities = "user_mention" | "issue" | "project" | "cycle" | "module" | "page";
 
+// what a mention chip can name: a search entity, or one session of an agent bot, which reaches that session (E28)
+export type TMentionEntities = TSearchEntities | "agent_session_mention";
+
 export type TUserSearchResponse = {
   member__avatar_url: IUser["avatar_url"];
   member__display_name: IUser["display_name"];

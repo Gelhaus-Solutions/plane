@@ -329,5 +329,19 @@ def session_data(session):
     }
 
 
+def session_lite(session):
+    """The session behind a comment or an activity, for its chip: enough to name it and show where it stands."""
+    if session is None:
+        return None
+    bot_user = session.bot.user
+    return {
+        "id": str(session.id),
+        "name": session.name,
+        "status": session.status,
+        "harness": session.harness,
+        "bot": {"id": str(bot_user.id), "display_name": bot_user.display_name},
+    }
+
+
 def sessions_in(slug):
     return AgentSession.objects.filter(workspace__slug=slug).select_related("bot__user")

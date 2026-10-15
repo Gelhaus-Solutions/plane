@@ -47,6 +47,7 @@ class IssueCommentViewSet(BaseViewSet):
             .select_related("project")
             .select_related("workspace")
             .select_related("issue")
+            .select_related("agent_session__bot__user")
             .annotate(
                 is_member=Exists(
                     ProjectMember.objects.filter(

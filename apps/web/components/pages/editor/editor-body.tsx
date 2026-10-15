@@ -26,7 +26,7 @@ import { cn, generateRandomColor, hslToHex } from "@plane/utils";
 // components
 import { EditorMentionsRoot } from "@/components/editor/embeds/mentions";
 // hooks
-import { useEditorMention } from "@/hooks/editor";
+import { useEditorMention, useMentionedEntityDetails } from "@/hooks/editor";
 import { useMember } from "@/hooks/store/use-member";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser } from "@/hooks/store/user";
@@ -137,6 +137,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
   } = page;
   const workspaceId = getWorkspaceBySlug(workspaceSlug)?.id ?? "";
   // use editor mention
+  const getMentionedEntityDetails = useMentionedEntityDetails();
   const { fetchMentions } = useEditorMention({
     enableAdvancedMentions: true,
     searchEntity: handlers.fetchEntity,
@@ -292,7 +293,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
               },
               // oxlint-disable-next-line no-shadow
               renderComponent: (props) => <EditorMentionsRoot {...props} />,
-              getMentionedEntityDetails: (id: string) => ({ display_name: getUserDetails(id)?.display_name ?? "" }),
+              getMentionedEntityDetails,
             }}
             updatePageProperties={updatePageProperties}
             realtimeConfig={realtimeConfig}

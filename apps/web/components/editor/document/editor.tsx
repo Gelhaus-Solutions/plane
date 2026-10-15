@@ -11,8 +11,7 @@ import type { IEditorPropsExtended, EditorRefApi, IDocumentEditorProps, TFileHan
 import type { MakeOptional, TSearchEntityRequestPayload, TSearchResponse } from "@plane/types";
 import { cn } from "@plane/utils";
 // hooks
-import { useEditorConfig, useEditorMention } from "@/hooks/editor";
-import { useMember } from "@/hooks/store/use-member";
+import { useEditorConfig, useEditorMention, useMentionedEntityDetails } from "@/hooks/editor";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
 // local imports
@@ -53,7 +52,6 @@ export const DocumentEditor = forwardRef(function DocumentEditor(
     ...rest
   } = props;
   // store hooks
-  const { getUserDetails } = useMember();
   // parse content
   const { getEditorMetaData } = useParseEditorContent({
     projectId,
@@ -65,6 +63,7 @@ export const DocumentEditor = forwardRef(function DocumentEditor(
     projectId,
   });
   // use editor mention
+  const getMentionedEntityDetails = useMentionedEntityDetails();
   const { fetchMentions } = useEditorMention({
     enableAdvancedMentions: true,
     searchEntity: editable ? async (payload) => await props.searchMentionCallback(payload) : async () => ({}),
@@ -93,7 +92,7 @@ export const DocumentEditor = forwardRef(function DocumentEditor(
           return res;
         },
         renderComponent: EditorMentionsRoot,
-        getMentionedEntityDetails: (id: string) => ({ display_name: getUserDetails(id)?.display_name ?? "" }),
+        getMentionedEntityDetails,
       }}
       extendedEditorProps={extendedEditorProps}
       {...rest}

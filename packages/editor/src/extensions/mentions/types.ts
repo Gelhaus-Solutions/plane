@@ -5,7 +5,7 @@
  */
 
 // plane types
-import type { TSearchEntities } from "@plane/types";
+import type { TMentionEntities } from "@plane/types";
 
 export enum EMentionComponentAttributeNames {
   ID = "id",
@@ -16,5 +16,5 @@ export enum EMentionComponentAttributeNames {
 export type TMentionComponentAttributes = {
   [EMentionComponentAttributeNames.ID]: string | null;
   [EMentionComponentAttributeNames.ENTITY_IDENTIFIER]: string | null;
-  [EMentionComponentAttributeNames.ENTITY_NAME]: TSearchEntities | null;
+  [EMentionComponentAttributeNames.ENTITY_NAME]: TMentionEntities | null;
 };

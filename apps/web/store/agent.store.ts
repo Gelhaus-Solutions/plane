@@ -34,6 +34,7 @@ export interface IAgentStore {
   // actions
   fetchSessions: (workspaceSlug: string, statuses?: TAgentSessionStatus[]) => Promise<TAgentSession[]>;
   fetchPickableSessions: (workspaceSlug: string) => Promise<TAgentSession[]>;
+  fetchSession: (workspaceSlug: string, sessionId: string) => Promise<TAgentSession>;
   fetchProjectRows: (workspaceSlug: string, projectId: string) => Promise<void>;
   /** Loads a project's agent rows unless they were loaded a moment ago; any number of rows may ask at once. */
   ensureProjectRows: (workspaceSlug: string, projectId: string, maxAgeMs?: number) => Promise<void>;
@@ -68,6 +69,7 @@ export class AgentStore implements IAgentStore {
       issueRows: observable,
       fetchSessions: action,
       fetchPickableSessions: action,
+      fetchSession: action,
       fetchProjectRows: action,
       fetchIssueAgents: action,
       assign: action,
@@ -120,6 +122,15 @@ export class AgentStore implements IAgentStore {
       this.pickableIds = sessions.map((session) => session.id);
     });
     return sessions;
+  };
+
+  /** One session by its id, ended ones too: what a chip's card shows. */
+  fetchSession = async (workspaceSlug: string, sessionId: string) => {
+    const session = await this.service.retrieveSession(workspaceSlug, sessionId);
+    runInAction(() => {
+      this.sessionMap[session.id] = session;
+    });
+    return session;
   };
 
   /** Puts a fresh listing of one item in the map, and the item's assignee list in line with it. */
