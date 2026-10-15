@@ -66,7 +66,7 @@ type SelectBaseProps<T> = {
   /** Content pinned at a row's inline end, after the single-select check — e.g. a project identifier. */
   getOptionTrailing?: (option: T) => ReactElement | undefined;
   /**
-   * The row's text as nodes, in place of the plain `getOptionLabel` string — a name followed by a badge and a muted
+   * The row's text as nodes, in place of the plain `getOptionLabel` string: a name followed by a badge and a muted
    * hint, a monospace id beside a status. The row keeps its standard chrome (selection mark, icon, trailing);
    * `getOptionLabel` still names the option for search and assistive tech.
    */

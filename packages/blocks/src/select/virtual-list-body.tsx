@@ -71,7 +71,7 @@ type SelectOptionRowProps = {
  * The standard option row: `[checkbox] icon label [check] [trailing]`, with the mark read from
  * base-ui's selection rather than decided per picker.
  *
- * Propel's ready-made `ComboboxItem` draws it, except for a row with a description, content or an `href` —
+ * Propel's ready-made `ComboboxItem` draws it, except for a row with a description, content or an `href`:
  * it takes a `label` string only and sets its own `render`, so those are assembled from the same
  * `elements` parts, in the same order, for the same mark.
  */
