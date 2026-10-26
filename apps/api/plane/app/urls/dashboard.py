@@ -5,6 +5,7 @@
 from django.urls import path
 
 from plane.app.views import (
+    DashboardChartEndpoint,
     DashboardDataEndpoint,
     DashboardDetailEndpoint,
     DashboardDuplicateEndpoint,
@@ -19,6 +20,7 @@ from plane.app.views import (
 # Dashboards of PQL widgets (E23)
 urlpatterns = [
     path("workspaces/<str:slug>/dashboards/", DashboardListEndpoint.as_view(), name="dashboards"),
+    path("workspaces/<str:slug>/dashboards/chart/", DashboardChartEndpoint.as_view(), name="dashboard-chart"),
     path("workspaces/<str:slug>/dashboards/<uuid:pk>/", DashboardDetailEndpoint.as_view(), name="dashboard"),
     path(
         "workspaces/<str:slug>/dashboards/<uuid:pk>/duplicate/",

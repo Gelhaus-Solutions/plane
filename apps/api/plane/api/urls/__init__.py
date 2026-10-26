@@ -5,6 +5,7 @@
 from .agent_session import urlpatterns as agent_session_patterns
 from .asset import urlpatterns as asset_patterns
 from .cycle import urlpatterns as cycle_patterns
+from .dashboard import urlpatterns as dashboard_patterns
 from .intake import urlpatterns as intake_patterns
 from .label import urlpatterns as label_patterns
 from .member import urlpatterns as member_patterns
@@ -22,6 +23,7 @@ urlpatterns = [
     *agent_session_patterns,
     *asset_patterns,
     *cycle_patterns,
+    *dashboard_patterns,
     *intake_patterns,
     *label_patterns,
     *member_patterns,

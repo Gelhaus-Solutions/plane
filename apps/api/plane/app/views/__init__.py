@@ -258,6 +258,7 @@ from .epic.base import (
 )
 
 from .dashboard.base import (
+    DashboardChartEndpoint,
     DashboardDataEndpoint,
     DashboardDetailEndpoint,
     DashboardDuplicateEndpoint,

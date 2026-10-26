@@ -5,6 +5,8 @@
 """Dashboards (E23): workspace pages of PQL widgets. A private dashboard is its owner's; a workspace dashboard every
 member sees and can duplicate, and its owner and the workspace's admins edit it (D47)."""
 
+import uuid
+
 from django.db import transaction
 from django.db.models import Count, Exists, OuterRef, Q
 from rest_framework import serializers, status
@@ -122,14 +124,24 @@ class DashboardBase(BaseAPIView):
         without saving them."""
         period_key = params.get("period") if params.get("period") in PERIOD_DAYS else dashboard.period
         wanted = params.get("project_ids")
-        if isinstance(wanted, str):
-            wanted = [p for p in wanted.split(",") if p]
         if wanted is None:
             wanted = dashboard.project_ids
+        pql = params.get("pql") if params.get("pql") is not None else dashboard.pql
+        return self.scope_of(slug, period_key, wanted, pql)
+
+    def scope_of(self, slug, period_key, project_ids, pql):
+        """The viewer's projects, narrowed to project_ids (a list, or ids separated by commas) when given."""
+        if isinstance(project_ids, str):
+            project_ids = project_ids.split(",")
+        wanted = []
+        for value in project_ids or []:
+            try:
+                wanted.append(uuid.UUID(str(value).strip()))
+            except ValueError:
+                continue
         projects = self.member_projects(slug)
         if wanted:
             projects = projects.filter(id__in=wanted)
-        pql = params.get("pql") if params.get("pql") is not None else dashboard.pql
         period = Period.last_days(self.request.user, PERIOD_DAYS[period_key])
         return Scope(list(projects), pql, period, self.context(slug))
 
@@ -450,5 +462,29 @@ class DashboardPreviewEndpoint(DashboardBase):
         data = widget_data(scope, chart, str(request.data.get("pql") or ""), request.data.get("config") or {})
         return Response(
             {"period": scope.period.as_dict(), "config": clean_config(chart, request.data.get("config")), **data},
+            status=status.HTTP_200_OK,
+        )
+
+
+class DashboardChartEndpoint(DashboardBase):
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
+    def post(self, request, slug):
+        """One chart's numbers without a dashboard, for agents and the API: a chart, its query and settings, over a
+        period and the caller's projects."""
+        chart = request.data.get("chart")
+        if chart not in dict(WIDGET_CHARTS):
+            return Response(
+                {"error": f"chart must be one of: {', '.join(dict(WIDGET_CHARTS))}"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        period_key = request.data.get("period") or "6w"
+        if period_key not in PERIOD_DAYS:
+            return Response(
+                {"error": f"period must be one of: {', '.join(PERIOD_DAYS)}"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        scope = self.scope_of(slug, period_key, request.data.get("project_ids") or [], "")
+        config = request.data.get("config") or {}
+        data = widget_data(scope, chart, str(request.data.get("pql") or ""), config)
+        return Response(
+            {"period": scope.period.as_dict(), "chart": chart, "config": clean_config(chart, config), **data},
             status=status.HTTP_200_OK,
         )
