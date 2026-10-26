@@ -5,12 +5,12 @@
 """The workspace analytics screens read one endpoint: tiles, series and tables per tab, for a period and the
 projects the viewer is a member of; an item with a bot among its assignees counts as the bots' work."""
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import pytest
 from rest_framework import status
 
-from plane.db.models import Issue, IssueAssignee, Project, ProjectMember, State
+from plane.db.models import Issue, IssueActivity, IssueAssignee, Project, ProjectMember, State
 
 PERIOD = {"start": "2026-09-01", "end": "2026-09-30"}
 
@@ -79,6 +79,29 @@ class TestAnalyticsInsights:
         assert sum(series["done"]) == 2
         assert sum(series["created"]) == 3
         assert len(series["previous_done"]) == 30
+
+    @pytest.mark.django_db
+    def test_overview_running_totals_count_every_item_and_the_resolved(
+        self, session_client, workspace, project, items, create_user
+    ):
+        # Cancelled counts as resolved, at its last state change, and archiving keeps an item in the history (D47)
+        cancelled = State.objects.create(name="Cancelled", group="cancelled", project=project, workspace=workspace)
+        dropped = Issue.objects.create(
+            name="dropped", state=cancelled, project=project, workspace=workspace, created_by=create_user
+        )
+        Issue.objects.filter(pk=dropped.pk).update(created_at=at(8, 1), archived_at=date(2026, 9, 20))
+        change = IssueActivity.objects.create(
+            issue=dropped, field="state", verb="updated", project=project, workspace=workspace
+        )
+        IssueActivity.objects.filter(pk=change.pk).update(created_at=at(9, 10))
+
+        series = insights(session_client, workspace, "overview")["series"]
+        total, resolved = series["total_running"], series["resolved_running"]
+        assert len(total) == len(resolved) == 30
+        # before September: done before and dropped exist, done before is resolved
+        assert (total[0], resolved[0]) == (2, 1)
+        assert total[1] == 4 and total[2] == 5 and total[-1] == 5
+        assert (resolved[3], resolved[4], resolved[8], resolved[9], resolved[-1]) == (2, 3, 3, 4, 4)
 
     @pytest.mark.django_db
     def test_weeks_past_a_month(self, session_client, workspace, items):

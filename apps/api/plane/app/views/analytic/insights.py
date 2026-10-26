@@ -30,12 +30,19 @@ from plane.db.models import (
 from plane.utils.build_chart import bot_assigned, build_analytics_chart
 from plane.utils.pql.backend import apply_pql
 from plane.utils.pql.compiler import PQLContext
+from plane.utils.resolved import history_issues, total_and_resolved
 
 OPEN_GROUPS = ("backlog", "unstarted", "started")
 DEFAULT_DAYS = 90
 MAX_DAYS = 366
 # Up to a month the charts count per day, past that per week
 DAILY_UP_TO = 31
+
+
+def week_start_of(user):
+    """The user's first day of the week, Monday as 0: Profile counts from Sunday, Python from Monday."""
+    week_start = Profile.objects.filter(user_id=user.id).values_list("start_of_the_week", flat=True).first()
+    return ((week_start or 0) + 6) % 7
 
 
 class Period:
@@ -61,9 +68,14 @@ class Period:
         )
         if start > end or (end - start).days + 1 > MAX_DAYS:
             raise ValueError(f"A period runs forwards and covers at most {MAX_DAYS} days")
-        # Profile counts the first day of the week from Sunday, Python from Monday
-        week_start = Profile.objects.filter(user_id=request.user.id).values_list("start_of_the_week", flat=True).first()
-        return cls(start, end, tz, ((week_start or 0) + 6) % 7)
+        return cls(start, end, tz, week_start_of(request.user))
+
+    @classmethod
+    def last_days(cls, user, days):
+        """The last ``days`` whole days, today included, in the user's time zone."""
+        tz = ZoneInfo(user.user_timezone or "UTC")
+        end = timezone.now().astimezone(tz).date()
+        return cls(end - timedelta(days=days - 1), end, tz, week_start_of(user))
 
     def previous(self):
         """The period of the same length just before this one."""
@@ -189,6 +201,7 @@ class AnalyticsInsightsEndpoint(BaseAPIView):
         done, done_before = done_in(period), done_in(previous)
         done_by_bots = done.filter(bot_assigned())
         open_now = issues.filter(state__group__in=OPEN_GROUPS)
+        running = total_and_resolved(history_issues(project_ids), period)
 
         projects = (
             Project.objects.filter(id__in=project_ids)
@@ -225,6 +238,9 @@ class AnalyticsInsightsEndpoint(BaseAPIView):
                     previous.series(created_before.values_list("created_at", flat=True)), length
                 ),
                 "previous_done": aligned(previous.series(done_before.values_list("completed_at", flat=True)), length),
+                # running totals at each bucket's end: every item so far, and those done or cancelled (D47)
+                "total_running": running["total"],
+                "resolved_running": running["resolved"],
             },
             "projects": sorted(
                 ({**p, "id": str(p["id"])} for p in projects),
