@@ -1,0 +1,261 @@
+{
+  "dashboards": {
+    "title": "Dashboards",
+    "new": "Neues Dashboard",
+    "untitled": "Unbenanntes Dashboard",
+    "show_label": "Anzeigen",
+    "show": {
+      "all": "Alle",
+      "favourites": "Favoriten",
+      "mine": "Meine",
+      "shared": "Geteilt"
+    },
+    "search": "Dashboards durchsuchen",
+    "columns": {
+      "name": "Name",
+      "widgets": "Widgets",
+      "access": "Zugriff",
+      "owner": "Eigentümer",
+      "updated": "Aktualisiert"
+    },
+    "widgets_count": "{count, plural, one {# Widget} other {# Widgets}}",
+    "access": {
+      "private": "Privat",
+      "workspace": "Arbeitsbereich"
+    },
+    "ago": "vor {time}",
+    "favourite": "Zu Favoriten hinzufügen",
+    "unfavourite": "Aus Favoriten entfernen",
+    "none_yet": "Noch keine Dashboards. Beginnen Sie mit einer Vorlage oder einem leeren Dashboard.",
+    "none_match": "Kein Dashboard passt.",
+    "not_found": "Dieses Dashboard gibt es nicht, oder es ist privat.",
+    "back_to_list": "Zurück zu den Dashboards",
+    "name_label": "Name des Dashboards",
+    "description_label": "Beschreibung",
+    "description_placeholder": "Beschreibung hinzufügen",
+    "edit": "Bearbeiten",
+    "edit_hint": "Zum Verschieben ziehen, zum Ändern der Größe an der Ecke ziehen",
+    "undo": "Rückgängig",
+    "done_editing": "Bearbeitung beenden",
+    "more": "Weitere Aktionen für das Dashboard",
+    "duplicate": "Duplizieren",
+    "copy_name": "{name} (Kopie)",
+    "delete": "Dashboard löschen",
+    "delete_confirm": {
+      "title": "Dashboard löschen",
+      "content": "{name} und seine Widgets löschen? Das lässt sich nicht rückgängig machen."
+    },
+    "add_widget": "Widget hinzufügen",
+    "period_label": "Zeitraum",
+    "period": {
+      "2w": "2 Wochen",
+      "6w": "6 Wochen",
+      "quarter": "Quartal"
+    },
+    "per_day": "pro Tag",
+    "per_week": "pro Woche",
+    "projects": {
+      "all": "Alle Projekte",
+      "some": "{count, plural, one {# Projekt} other {# Projekte}}"
+    },
+    "filter": {
+      "add": "Filter",
+      "hint": "Jedes Widget zählt nur die Elemente, die auch zu dieser Abfrage passen.",
+      "label": "Abfrage des Dashboards",
+      "placeholder": "PQL, z. B. module = \"W1\"",
+      "apply": "Anwenden",
+      "clear": "Leeren"
+    },
+    "back_to_saved": "Zur gespeicherten Ansicht",
+    "meta": {
+      "workspace": "Dashboard des Arbeitsbereichs · {count, plural, one {# Widget} other {# Widgets}} · Eigentümer {owner}",
+      "private": "Privates Dashboard · {count, plural, one {# Widget} other {# Widgets}} · Eigentümer {owner}"
+    },
+    "share": {
+      "button": "Teilen",
+      "who": "Wer es sieht",
+      "private_hint": "Nur Sie",
+      "workspace_hint": "Alle Mitglieder; Eigentümer und Admins bearbeiten es",
+      "copy_link": "Link kopieren",
+      "copied": "Link kopiert"
+    },
+    "empty": {
+      "title": "Noch keine Widgets",
+      "description": "Fügen Sie ein Widget hinzu: eine PQL-Abfrage und ihre Darstellung, als Zahl, als Linie über die Zeit, als Balken, Liste oder Tabelle."
+    },
+    "errors": {
+      "save": "Die Änderung konnte nicht gespeichert werden.",
+      "create": "Das Dashboard konnte nicht angelegt werden.",
+      "query": "Die Abfrage ist ungültig.",
+      "dashboard_query": "Die Abfrage des Dashboards ist ungültig: {message}"
+    },
+    "series": {
+      "created": "Erstellt",
+      "done": "Erledigt",
+      "resolved": "Gelöst",
+      "total": "Gesamt",
+      "open": "Offen",
+      "cancelled": "Abgebrochen",
+      "people": "Menschen",
+      "bots": "Bots",
+      "other": "Sonstige",
+      "none": "Keine",
+      "items": "Elemente",
+      "unassigned": "Nicht zugewiesen"
+    },
+    "state_group": {
+      "backlog": "Backlog",
+      "unstarted": "Nicht begonnen",
+      "started": "Begonnen",
+      "review": "Review",
+      "completed": "Abgeschlossen",
+      "cancelled": "Abgebrochen"
+    },
+    "priority": {
+      "urgent": "Dringend",
+      "high": "Hoch",
+      "medium": "Mittel",
+      "low": "Niedrig",
+      "none": "Keine"
+    },
+    "field": {
+      "project": "Projekt",
+      "state_group": "Statusgruppe",
+      "state": "Status",
+      "priority": "Priorität",
+      "assignee": "Zuständig",
+      "assignee_type": "Menschen oder Bots",
+      "label": "Label",
+      "module": "Modul",
+      "cycle": "Zyklus",
+      "parent": "Übergeordnet",
+      "created_by": "Erstellt von",
+      "status": "Erledigt und offen"
+    },
+    "chart": {
+      "number": "Zahl",
+      "line": "Linie",
+      "bars": "Gestapelte Balken",
+      "rows": "Balken je Zeile",
+      "list": "Liste",
+      "table": "Tabelle"
+    },
+    "widget": {
+      "items_count": "{count, plural, one {# Element} other {# Elemente}}",
+      "actions": "Aktionen für das Widget",
+      "edit": "Widget bearbeiten",
+      "duplicate": "Duplizieren",
+      "copy_query": "Abfrage kopieren",
+      "query_copied": "Abfrage kopiert",
+      "move_earlier": "Nach vorn",
+      "move_later": "Nach hinten",
+      "wider": "Breiter",
+      "narrower": "Schmaler",
+      "taller": "Höher",
+      "shorter": "Niedriger",
+      "delete": "Widget löschen",
+      "deleted": "{title} gelöscht",
+      "copy_of": "{title} (Kopie)",
+      "drag": "{title} verschieben: ziehen oder die Pfeiltasten verwenden",
+      "vs_before": "{delta} gegenüber dem Zeitraum davor",
+      "same_as_before": "wie im Zeitraum davor",
+      "ago": "vor {time}",
+      "nothing": "Nichts passt.",
+      "query_error": "Die Abfrage ist ungültig.",
+      "dashboard_query_error": "Die Abfrage des Dashboards ist ungültig."
+    },
+    "editor": {
+      "add_title": "Widget hinzufügen",
+      "edit_title": "Widget bearbeiten",
+      "position": "{name} · Widget {index} von {count}",
+      "new_position": "{name} · neues Widget",
+      "title_label": "Titel",
+      "title_placeholder": "Unbenanntes Widget",
+      "data": "Daten",
+      "query_label": "Abfrage des Widgets",
+      "query_placeholder": "Alle Arbeitselemente; mit PQL eingrenzen",
+      "ms": "{ms} ms",
+      "error_at": "{message} (an Stelle {position})",
+      "chart": "Diagramm",
+      "measure_label": "Messgröße",
+      "x_axis": "X-Achse",
+      "rows": "Zeilen",
+      "split_by": "Aufteilen nach",
+      "split_none": "Nichts",
+      "sort_label": "Sortierung",
+      "measure": {
+        "count": "Jetzt passende Elemente",
+        "created": "Im Zeitraum erstellt",
+        "done": "Im Zeitraum erledigt",
+        "resolved": "Im Zeitraum gelöst",
+        "per_bucket": "Anzahl pro Tag oder Woche",
+        "running": "Laufende Summe"
+      },
+      "axis": {
+        "created_resolved": "Erstellt und gelöst",
+        "created": "Erstellt",
+        "done": "Erledigt",
+        "resolved": "Gelöst"
+      },
+      "sort": {
+        "oldest": "Älteste zuerst",
+        "newest": "Neueste zuerst",
+        "updated": "Zuletzt aktualisiert",
+        "due": "Früheste Fälligkeit zuerst",
+        "priority": "Höchste Priorität zuerst"
+      },
+      "legend": "Legende",
+      "totals": "Summe auf jedem Balken",
+      "show_query": "Abfrage unter dem Widget zeigen",
+      "preview": "Vorschau",
+      "live": "aktualisiert sich beim Tippen",
+      "width": "Breite",
+      "three_series": "Höchstens drei Reihen. Jede weitere Aufteilung fällt unter Sonstige.",
+      "reaches_everyone": "Änderungen sehen alle, die {name} öffnen",
+      "save": "Widget speichern"
+    },
+    "templates": {
+      "heading": "Mit einer Vorlage beginnen",
+      "cycle_health": {
+        "name": "Zyklus-Zustand",
+        "hint": "Burnup, überfällig, Review",
+        "description": "Die aktiven Zyklen: Burnup, Überfälliges und was auf das Review wartet"
+      },
+      "bot_activity": {
+        "name": "Bot-Aktivität",
+        "hint": "gelöst, beansprucht, im Review",
+        "description": "Was die Bots lösen, beanspruchen und zum Review vorlegen"
+      },
+      "throughput": {
+        "name": "Durchsatz",
+        "hint": "Gesamt und gelöst über die Zeit",
+        "description": "Erstellte und gelöste Arbeit und die Gesamtzahl über die Zeit"
+      },
+      "blank": {
+        "name": "Leer",
+        "hint": "ohne Vorlage beginnen",
+        "description": ""
+      },
+      "widgets": {
+        "created": "Erstellt",
+        "resolved": "Gelöst",
+        "open_now": "Jetzt offen",
+        "in_review": "Im Review",
+        "total_and_resolved": "Gesamt und gelöst",
+        "done_people_bots": "Erledigt, Menschen und Bots",
+        "open_by_project": "Offen nach Projekt",
+        "oldest_open": "Älteste offene",
+        "open": "Offen in aktiven Zyklen",
+        "done": "Erledigt",
+        "overdue": "Überfällig",
+        "burnup": "Burnup",
+        "by_cycle": "Nach Zyklus",
+        "overdue_soonest": "Überfällig, früheste Fälligkeit zuerst",
+        "review_oldest": "Im Review, älteste zuerst",
+        "claimed_now": "Jetzt beansprucht",
+        "by_assignee": "Offen nach Zuständigen",
+        "claimed": "Von einer Session beansprucht"
+      }
+    }
+  }
+}

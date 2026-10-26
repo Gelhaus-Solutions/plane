@@ -1,0 +1,261 @@
+{
+  "dashboards": {
+    "title": "Dashboards",
+    "new": "New dashboard",
+    "untitled": "Untitled dashboard",
+    "show_label": "Show",
+    "show": {
+      "all": "All",
+      "favourites": "Favourites",
+      "mine": "Mine",
+      "shared": "Shared"
+    },
+    "search": "Search dashboards",
+    "columns": {
+      "name": "Name",
+      "widgets": "Widgets",
+      "access": "Access",
+      "owner": "Owner",
+      "updated": "Updated"
+    },
+    "widgets_count": "{count, plural, one {# widget} other {# widgets}}",
+    "access": {
+      "private": "Private",
+      "workspace": "Workspace"
+    },
+    "ago": "{time} ago",
+    "favourite": "Add to favourites",
+    "unfavourite": "Remove from favourites",
+    "none_yet": "No dashboards yet. Start from a template or a blank one.",
+    "none_match": "No dashboard matches.",
+    "not_found": "This dashboard does not exist, or it is private.",
+    "back_to_list": "Back to dashboards",
+    "name_label": "Dashboard name",
+    "description_label": "Description",
+    "description_placeholder": "Add a description",
+    "edit": "Edit",
+    "edit_hint": "Drag to move, pull a corner to resize",
+    "undo": "Undo",
+    "done_editing": "Done editing",
+    "more": "More dashboard actions",
+    "duplicate": "Duplicate",
+    "copy_name": "{name} copy",
+    "delete": "Delete dashboard",
+    "delete_confirm": {
+      "title": "Delete dashboard",
+      "content": "Delete {name} and its widgets? This cannot be undone."
+    },
+    "add_widget": "Add widget",
+    "period_label": "Period",
+    "period": {
+      "2w": "2 weeks",
+      "6w": "6 weeks",
+      "quarter": "Quarter"
+    },
+    "per_day": "per day",
+    "per_week": "per week",
+    "projects": {
+      "all": "All projects",
+      "some": "{count, plural, one {# project} other {# projects}}"
+    },
+    "filter": {
+      "add": "Filter",
+      "hint": "Every widget counts only the items that also match this query.",
+      "label": "Dashboard query",
+      "placeholder": "PQL, e.g. module = \"W1\"",
+      "apply": "Apply",
+      "clear": "Clear"
+    },
+    "back_to_saved": "Back to the saved view",
+    "meta": {
+      "workspace": "Workspace dashboard · {count, plural, one {# widget} other {# widgets}} · owner {owner}",
+      "private": "Private dashboard · {count, plural, one {# widget} other {# widgets}} · owner {owner}"
+    },
+    "share": {
+      "button": "Share",
+      "who": "Who sees it",
+      "private_hint": "Only you",
+      "workspace_hint": "Every member; its owner and admins edit it",
+      "copy_link": "Copy link",
+      "copied": "Link copied"
+    },
+    "empty": {
+      "title": "No widgets yet",
+      "description": "Add a widget: a PQL query and how to draw it, as a number, a line over time, bars, a list or a table."
+    },
+    "errors": {
+      "save": "The change could not be saved.",
+      "create": "The dashboard could not be made.",
+      "query": "The query is not valid.",
+      "dashboard_query": "The dashboard's query is not valid: {message}"
+    },
+    "series": {
+      "created": "Created",
+      "done": "Done",
+      "resolved": "Resolved",
+      "total": "Total",
+      "open": "Open",
+      "cancelled": "Cancelled",
+      "people": "People",
+      "bots": "Bots",
+      "other": "Other",
+      "none": "None",
+      "items": "Items",
+      "unassigned": "Unassigned"
+    },
+    "state_group": {
+      "backlog": "Backlog",
+      "unstarted": "Unstarted",
+      "started": "Started",
+      "review": "Review",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "priority": {
+      "urgent": "Urgent",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "none": "None"
+    },
+    "field": {
+      "project": "Project",
+      "state_group": "State group",
+      "state": "State",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "assignee_type": "People or bots",
+      "label": "Label",
+      "module": "Module",
+      "cycle": "Cycle",
+      "parent": "Parent",
+      "created_by": "Created by",
+      "status": "Done and open"
+    },
+    "chart": {
+      "number": "Number",
+      "line": "Line",
+      "bars": "Stacked bars",
+      "rows": "Bars by row",
+      "list": "List",
+      "table": "Table"
+    },
+    "widget": {
+      "items_count": "{count, plural, one {# item} other {# items}}",
+      "actions": "Widget actions",
+      "edit": "Edit widget",
+      "duplicate": "Duplicate",
+      "copy_query": "Copy the query",
+      "query_copied": "Query copied",
+      "move_earlier": "Move earlier",
+      "move_later": "Move later",
+      "wider": "Wider",
+      "narrower": "Narrower",
+      "taller": "Taller",
+      "shorter": "Shorter",
+      "delete": "Delete widget",
+      "deleted": "{title} deleted",
+      "copy_of": "{title} copy",
+      "drag": "Move {title}: drag it, or use the arrow keys",
+      "vs_before": "{delta} vs the period before",
+      "same_as_before": "same as the period before",
+      "ago": "{time} ago",
+      "nothing": "Nothing matches.",
+      "query_error": "The query is not valid.",
+      "dashboard_query_error": "The dashboard's query is not valid."
+    },
+    "editor": {
+      "add_title": "Add widget",
+      "edit_title": "Edit widget",
+      "position": "{name} · widget {index} of {count}",
+      "new_position": "{name} · new widget",
+      "title_label": "Title",
+      "title_placeholder": "Untitled widget",
+      "data": "Data",
+      "query_label": "The widget's query",
+      "query_placeholder": "Every work item; narrow it down with PQL",
+      "ms": "{ms} ms",
+      "error_at": "{message} (at {position})",
+      "chart": "Chart",
+      "measure_label": "Measure",
+      "x_axis": "X axis",
+      "rows": "Rows",
+      "split_by": "Split by",
+      "split_none": "Nothing",
+      "sort_label": "Sort",
+      "measure": {
+        "count": "Items matching now",
+        "created": "Created in the period",
+        "done": "Done in the period",
+        "resolved": "Resolved in the period",
+        "per_bucket": "Count per day or week",
+        "running": "Running total"
+      },
+      "axis": {
+        "created_resolved": "Created and resolved",
+        "created": "Created",
+        "done": "Done",
+        "resolved": "Resolved"
+      },
+      "sort": {
+        "oldest": "Oldest first",
+        "newest": "Newest first",
+        "updated": "Recently updated",
+        "due": "Due soonest",
+        "priority": "Highest priority"
+      },
+      "legend": "Legend",
+      "totals": "Total on each bar",
+      "show_query": "Show the query under the widget",
+      "preview": "Preview",
+      "live": "updates as you type",
+      "width": "Width",
+      "three_series": "Three series at most. A fourth split folds into Other.",
+      "reaches_everyone": "Changes reach everyone who opens {name}",
+      "save": "Save widget"
+    },
+    "templates": {
+      "heading": "Start from a template",
+      "cycle_health": {
+        "name": "Cycle health",
+        "hint": "burnup, overdue, review",
+        "description": "The active cycles: burnup, what is overdue and what waits for review"
+      },
+      "bot_activity": {
+        "name": "Bot activity",
+        "hint": "resolved, claimed, in review",
+        "description": "What the bots resolve, claim and leave for review"
+      },
+      "throughput": {
+        "name": "Throughput",
+        "hint": "total and resolved over time",
+        "description": "Work created and resolved, and the total over time"
+      },
+      "blank": {
+        "name": "Blank",
+        "hint": "start from nothing",
+        "description": ""
+      },
+      "widgets": {
+        "created": "Created",
+        "resolved": "Resolved",
+        "open_now": "Open now",
+        "in_review": "In review",
+        "total_and_resolved": "Total and resolved",
+        "done_people_bots": "Done, people and bots",
+        "open_by_project": "Open by project",
+        "oldest_open": "Oldest open",
+        "open": "Open in active cycles",
+        "done": "Done",
+        "overdue": "Overdue",
+        "burnup": "Burnup",
+        "by_cycle": "By cycle",
+        "overdue_soonest": "Overdue, due soonest first",
+        "review_oldest": "In review, oldest first",
+        "claimed_now": "Claimed now",
+        "by_assignee": "Open by assignee",
+        "claimed": "Claimed by a session"
+      }
+    }
+  }
+}

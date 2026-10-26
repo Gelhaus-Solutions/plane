@@ -11,6 +11,7 @@ export const NAMESPACES = [
   "automation",
   "common",
   "cycle",
+  "dashboards",
   "editor",
   "empty-state",
   "epic",

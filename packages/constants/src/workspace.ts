@@ -251,6 +251,13 @@ export const WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS: Record<string, IWorkspac
     access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
     highlight: (pathname: string, url: string) => pathname.includes(url),
   },
+  dashboards: {
+    key: "dashboards",
+    labelTranslationKey: "dashboards.title",
+    href: `/dashboards/`,
+    access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
+    highlight: (pathname: string, url: string) => pathname.includes(url),
+  },
 };
 
 export const WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS_LINKS: IWorkspaceSidebarNavigationItem[] = [
@@ -261,6 +268,7 @@ export const WORKSPACE_SIDEBAR_STATIC_PINNED_NAVIGATION_ITEMS_LINKS: IWorkspaceS
   WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["projects"],
   WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["epics"],
   WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["agents"],
+  WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["dashboards"],
 ];
 
 export const IS_FAVORITE_MENU_OPEN = "is_favorite_menu_open";
