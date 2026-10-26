@@ -256,3 +256,15 @@ from .epic.base import (
     ProjectEpicsEndpoint,
     WorkspaceEpicsEndpoint,
 )
+
+from .dashboard.base import (
+    DashboardDataEndpoint,
+    DashboardDetailEndpoint,
+    DashboardDuplicateEndpoint,
+    DashboardFavoriteEndpoint,
+    DashboardLayoutEndpoint,
+    DashboardListEndpoint,
+    DashboardPreviewEndpoint,
+    DashboardWidgetDetailEndpoint,
+    DashboardWidgetsEndpoint,
+)
