@@ -23,7 +23,9 @@ Name a work item by its key (ENG-42) with `workitem retrieve_by_identifier`. Ids
 with `project list`, `state list`, `label list` or `member list_workspace` first.
 description_html and comment HTML are stored as given: send <p>text</p>, never escaped text such as &lt;p&gt;.
 Epics are work items of the Epic type: pql `isEpic()` lists them, and `childOf("ENG-7")` lists an epic's work items
-(its sub-items). Older projects may still mark epics with an `epic` label instead."""
+(its sub-items). Older projects may still mark epics with an `epic` label instead.
+For counts and trends (how much work was created, done or resolved over time, by state, priority or assignee) use
+`dashboard chart` with a PQL query instead of paging through work items; `dashboard data` reads a saved dashboard."""
 
 
 def _version():
