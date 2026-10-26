@@ -55,13 +55,15 @@ type TChartCardProps = {
   sub?: string;
   /** The same numbers as a table; with it the card offers Chart and Table */
   table?: ReactNode;
+  /** Controls in the head, before Chart and Table */
+  actions?: ReactNode;
   children: ReactNode;
   className?: string;
 };
 
 /** A titled chart on the surface, switchable to its table */
 export function ChartCard(props: TChartCardProps) {
-  const { title, sub, table, children, className } = props;
+  const { title, sub, table, actions, children, className } = props;
   const { t } = useTranslation();
   const [view, setView] = useState<"chart" | "table">("chart");
   return (
@@ -73,6 +75,7 @@ export function ChartCard(props: TChartCardProps) {
         <span className="text-13 font-semibold text-primary">{title}</span>
         {sub && <span className="text-12 text-tertiary">{sub}</span>}
         <span className="flex-1" />
+        {actions}
         {table && (
           <Segmented
             label={t("workspace_analytics.insights.view")}

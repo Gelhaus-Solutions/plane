@@ -32,7 +32,18 @@ export type TOverviewInsights = {
     median_days_to_done: { value: number | null; previous: number | null };
     open: { value: number; projects: number };
   };
-  series: Record<"created" | "done" | "done_people" | "done_bots" | "previous_created" | "previous_done", number[]>;
+  series: Record<
+    | "created"
+    | "done"
+    | "done_people"
+    | "done_bots"
+    | "previous_created"
+    | "previous_done"
+    /** Running totals at each bucket's end: every item so far, and those done or cancelled (D47) */
+    | "total_running"
+    | "resolved_running",
+    number[]
+  >;
   projects: { id: string; name: string; identifier: string; logo_props: TLogoProps; done: number; open: number }[];
 };
 

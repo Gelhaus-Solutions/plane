@@ -11,7 +11,7 @@ import { useParams } from "next/navigation";
 import { useTranslation } from "@plane/i18n";
 import { ProjectBadge } from "@plane/blocks/project-badge";
 // local imports
-import { ChartCard, InsightsTable, percentDelta, StatTile } from "../../charts/cards";
+import { ChartCard, InsightsTable, percentDelta, Segmented, StatTile } from "../../charts/cards";
 import type { TSeries } from "../../charts/charts";
 import { BarList, ColumnChart, formatNumber, Legend, LineChart } from "../../charts/charts";
 import { useExportTable } from "../export";
@@ -25,7 +25,7 @@ const K = "workspace_analytics.insights";
 export const OverviewTab = observer(function OverviewTab() {
   const { workspaceSlug } = useParams();
   const { t } = useTranslation();
-  const { compare } = useInsightsFilters();
+  const { compare, running, update } = useInsightsFilters();
   const { data, error } = useInsights<TOverviewInsights>(workspaceSlug?.toString() ?? "", "overview");
   const { labels, per, bucketColumn } = usePeriodWords(data?.period);
 
@@ -40,6 +40,8 @@ export const OverviewTab = observer(function OverviewTab() {
               [t(`${K}.done`)]: data.series.done[i] ?? 0,
               [t(`${K}.people`)]: data.series.done_people[i] ?? 0,
               [t(`${K}.bots`)]: data.series.done_bots[i] ?? 0,
+              [t(`${K}.running_total`)]: data.series.total_running[i] ?? 0,
+              [t(`${K}.resolved`)]: data.series.resolved_running[i] ?? 0,
             })),
           }
         : null,
@@ -71,6 +73,12 @@ export const OverviewTab = observer(function OverviewTab() {
         ]
       : []),
   ];
+  // the running totals: every item so far, and those done or cancelled by then (D47)
+  const totals: TSeries[] = [
+    { name: t(`${K}.resolved`), token: "chart-1", values: series.resolved_running },
+    { name: t(`${K}.total`), token: "chart-3", values: series.total_running },
+  ];
+  const lines = running ? totals : flow;
   const bucketRows = (columns: Record<string, number[]>) =>
     labels.map((label, i) => ({
       key: period.buckets[i],
@@ -117,21 +125,48 @@ export const OverviewTab = observer(function OverviewTab() {
       </TileRow>
       <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-2">
         <ChartCard
-          title={t(`${K}.created_and_done`)}
-          sub={per}
-          table={
-            <InsightsTable
-              columns={[
-                { key: "bucket", label: bucketColumn, width: "minmax(0,1fr)" },
-                { key: "created", label: t(`${K}.created`), width: "90px", align: "right" },
-                { key: "done", label: t(`${K}.done`), width: "90px", align: "right", strong: true },
+          title={t(running ? `${K}.total_and_resolved` : `${K}.created_and_done`)}
+          sub={running ? undefined : per}
+          actions={
+            <Segmented
+              label={t(`${K}.flow_view`)}
+              options={[
+                { value: "bucket", label: t(period.bucket === "day" ? `${K}.each_day` : `${K}.each_week`) },
+                { value: "running", label: t(`${K}.running_total`) },
               ]}
-              rows={bucketRows({ created: series.created, done: series.done })}
+              value={running ? "running" : "bucket"}
+              onChange={(value) => update({ flow: value === "running" ? "running" : null })}
             />
           }
+          table={
+            running ? (
+              <InsightsTable
+                columns={[
+                  { key: "bucket", label: bucketColumn, width: "minmax(0,1fr)" },
+                  { key: "total", label: t(`${K}.total`), width: "90px", align: "right" },
+                  { key: "resolved", label: t(`${K}.resolved`), width: "90px", align: "right", strong: true },
+                  { key: "open", label: t(`${K}.open`), width: "90px", align: "right" },
+                ]}
+                rows={bucketRows({
+                  total: series.total_running,
+                  resolved: series.resolved_running,
+                  open: series.total_running.map((total, i) => total - (series.resolved_running[i] ?? 0)),
+                })}
+              />
+            ) : (
+              <InsightsTable
+                columns={[
+                  { key: "bucket", label: bucketColumn, width: "minmax(0,1fr)" },
+                  { key: "created", label: t(`${K}.created`), width: "90px", align: "right" },
+                  { key: "done", label: t(`${K}.done`), width: "90px", align: "right", strong: true },
+                ]}
+                rows={bucketRows({ created: series.created, done: series.done })}
+              />
+            )
+          }
         >
-          <Legend series={flow.map((s) => ({ name: s.name, token: s.token, line: true }))} />
-          <LineChart series={flow} labels={labels} />
+          <Legend series={lines.map((s) => ({ name: s.name, token: s.token, line: true }))} />
+          <LineChart series={lines} labels={labels} />
         </ChartCard>
         <ChartCard
           title={t(`${K}.done_by`)}

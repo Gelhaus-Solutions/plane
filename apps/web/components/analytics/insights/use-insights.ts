@@ -32,6 +32,8 @@ export function useInsightsFilters() {
   const customEnd = params.get("end");
   const projects = params.get("projects");
   const compare = params.get("compare") === "1";
+  // Created and done per bucket, or the running totals of all items and the resolved ones
+  const running = params.get("flow") === "running";
 
   const range = useMemo(() => {
     if (period === "custom" && customStart && customEnd) return { start: customStart, end: customEnd };
@@ -63,7 +65,7 @@ export function useInsightsFilters() {
     [range, projectIds]
   );
 
-  return { period, range, projectIds, compare, update, query };
+  return { period, range, projectIds, compare, running, update, query };
 }
 
 /** One tab's numbers for the filters in the address; the last answer stays on screen while the next one loads */
