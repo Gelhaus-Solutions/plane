@@ -18,6 +18,7 @@ from plane.db.models import (
     ProjectMember,
     State,
     WorkspaceMember,
+    WorkspaceStateGroup,
     IssueAssignee,
     ModuleIssue,
     IssueLabel,
@@ -128,6 +129,7 @@ def issue_on_results(
         "is_draft",
         "archived_at",
         "state__group",
+        "state__state_group_id",
     ]
 
     if group_by in FIELD_MAPPER:
@@ -194,6 +196,15 @@ def issue_group_values(
 
     if field == "state__group":
         return ["backlog", "unstarted", "started", "completed", "cancelled"]
+
+    if field == "state__state_group_id":
+        # The board's columns by the workspace's state groups (E30): every group in a workspace view, the groups a
+        # project has states in for a project's
+        groups = WorkspaceStateGroup.objects.filter(workspace__slug=slug).order_by("sequence", "created_at")
+        if project_id:
+            used = State.objects.filter(project_id=project_id, is_triage=False).values_list("state_group_id", flat=True)
+            groups = groups.filter(id__in=used)
+        return [str(group_id) for group_id in groups.values_list("id", flat=True)]
 
     if field == "target_date":
         queryset = queryset.values_list("target_date", flat=True).distinct()

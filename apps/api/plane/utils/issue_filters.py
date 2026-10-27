@@ -104,6 +104,19 @@ def filter_state_group(params, issue_filter, method, prefix=""):
     return issue_filter
 
 
+def filter_state_group_id(params, issue_filter, method, prefix=""):
+    """Items whose state sits in one of the workspace state groups named (E30): a board column's next page."""
+    if method == "GET":
+        groups = filter_valid_uuids([item for item in params.get("state_group_id").split(",") if item != "null"])
+        if len(groups) and "" not in groups:
+            issue_filter[f"{prefix}state__state_group_id__in"] = groups
+    else:
+        groups = params.get("state_group_id", None)
+        if groups and len(groups) and groups != "null":
+            issue_filter[f"{prefix}state__state_group_id__in"] = groups
+    return issue_filter
+
+
 def filter_estimate_point(params, issue_filter, method, prefix=""):
     if method == "GET":
         estimate_points = [item for item in params.get("estimate_point").split(",") if item != "null"]
@@ -431,6 +444,7 @@ def issue_filters(query_params, method, prefix=""):
     ISSUE_FILTER = {
         "state": filter_state,
         "state_group": filter_state_group,
+        "state_group_id": filter_state_group_id,
         "estimate_point": filter_estimate_point,
         "priority": filter_priority,
         "parent": filter_parent,

@@ -6,6 +6,11 @@ from django.urls import path
 
 
 from plane.app.views.workspace.priority import WorkspacePriorityDetailEndpoint, WorkspacePrioritiesEndpoint
+from plane.app.views.workspace.state_group import (
+    WorkspaceStateGroupDetailEndpoint,
+    WorkspaceStateGroupsEndpoint,
+    WorkspaceStateGroupStatesEndpoint,
+)
 from plane.app.views import (
     WorkspaceBotEndpoint,
     WorkspaceBotProjectEndpoint,
@@ -89,6 +94,18 @@ urlpatterns = [
         name="workspace-join",
     ),
     # user join workspace
+    # State groups (E30): read by everyone in the workspace, edited by admins
+    path("workspaces/<str:slug>/state-groups/", WorkspaceStateGroupsEndpoint.as_view(), name="workspace-state-groups"),
+    path(
+        "workspaces/<str:slug>/state-groups/<uuid:pk>/",
+        WorkspaceStateGroupDetailEndpoint.as_view(),
+        name="workspace-state-group",
+    ),
+    path(
+        "workspaces/<str:slug>/state-groups/<uuid:pk>/states/",
+        WorkspaceStateGroupStatesEndpoint.as_view(),
+        name="workspace-state-group-states",
+    ),
     # Priorities (E35): read by everyone in the workspace, edited by admins
     path("workspaces/<str:slug>/priorities/", WorkspacePrioritiesEndpoint.as_view(), name="workspace-priorities"),
     path(
