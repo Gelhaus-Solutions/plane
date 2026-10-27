@@ -221,7 +221,8 @@ export class AgentStore implements IAgentStore {
         const issue = this.rootStore.issue.issues.getIssueById(issueId);
         if (issue?.project_id === projectId && !listed.has(issueId)) delete this.issueRows[issueId];
       }
-      for (const row of rows) this.issueRows[row.issue_id] = { agents: row.agents, claim: row.claim };
+      for (const row of rows)
+        this.issueRows[row.issue_id] = { agents: row.agents, claim: row.claim, question: row.question ?? null };
     });
   };
 

@@ -17,6 +17,9 @@ export type TAgentSessionHold = {
   name: string;
   state_group: string | null;
   claimed_at: string;
+  /** Where the holder says the item stands (E29). */
+  status?: TAgentClaimStatus;
+  status_text?: string;
 };
 
 /** One run of an agent harness (Claude Code, Codex) working through its bot (E28). */
@@ -78,7 +81,11 @@ export type TIssueClaim = {
 export type TIssueAgentRows = {
   agents: TIssueAgent[];
   claim: TIssueClaim | null;
+  /** The item's first open question from an agent (E29), while one waits for an answer. */
+  question?: TAgentQuestionRef | null;
 };
+
+export type TAgentQuestionRef = { id: string; question: string; deadline: string | null };
 
 /** What a project's agent-rows lists per work item. */
 export type TProjectAgentRow = TIssueAgentRows & { issue_id: string };
@@ -105,6 +112,8 @@ export type TAgentSessionHandoff = {
 export type TAgentBoardSession = TAgentSession & {
   touched: (TAgentItemRef & { state_group: string | null })[];
   handoff: TAgentSessionHandoff | null;
+  /** The most pressing state of what the session holds and asks, its status line and how far its plan is (E29). */
+  agent_state?: TAgentSessionState;
 };
 
 /** A bot's queue: open items assigned or delegated to the bot alone that no session holds. */
@@ -184,4 +193,101 @@ export type TAgentPanel = TAgentBoardSession & {
   };
   inbox: TAgentPanelInboxEntry[];
   recent: TAgentPanelRecent[];
+};
+
+/* Agent steering (E29): what a session reports on its work, what it asks, and what waits for a person. */
+
+export type TAgentClaimStatus = "working" | "waiting_for_review" | "blocked";
+
+export type TAgentPlanStep = { title: string; state: "todo" | "doing" | "done" };
+
+export type TAgentPlanSummary = { done: number; total: number; current: string | null };
+
+export type TAgentSessionState = {
+  state: TAgentClaimStatus | "awaiting_input" | "away" | "ended";
+  status_text: string;
+  plan: TAgentPlanSummary | null;
+};
+
+/** The session behind a question or an activity entry; kept by name once the session is gone. */
+export type TAgentSessionOrName =
+  | TAgentSessionLite
+  | { id: null; name: string; status: "ended"; harness: null; bot: null };
+
+export type TAgentWorkItemRef = { id: string; project_id: string; identifier: string; name: string };
+
+export type TAgentQuestionStatus = "open" | "answered" | "defaulted" | "expired" | "cancelled";
+
+export type TAgentQuestion = {
+  id: string;
+  work_item: TAgentWorkItemRef;
+  session: TAgentSessionOrName | null;
+  question: string;
+  detail: string;
+  /** Numbered from 1: an answer and the default name an option by its number. */
+  options: { label: string; detail: string }[];
+  default_option: number | null;
+  deadline: string | null;
+  status: TAgentQuestionStatus;
+  asked_at: string;
+  lapsed_at: string | null;
+  answered_at: string | null;
+  answered_by: { id: string; display_name: string } | null;
+  answer_option: number | null;
+  answer_text: string;
+  answer_source: "human" | "default" | "";
+  /** A person answered after the deadline had passed. */
+  corrected: boolean;
+};
+
+export type TAgentActivityKind = "status" | "plan" | "progress" | "error" | "commit" | "pull_request" | "review";
+
+export type TAgentActivityEntry = {
+  id: string;
+  kind: TAgentActivityKind;
+  text: string;
+  data: {
+    state?: TAgentClaimStatus;
+    steps?: TAgentPlanStep[];
+    ref?: string;
+    url?: string;
+    state_id?: string;
+    moved?: boolean;
+  };
+  session: TAgentSessionOrName | null;
+  created_at: string;
+};
+
+export type TIssueAgentClaimProgress = {
+  id: string;
+  label: string;
+  session: TAgentSessionLite;
+  claimed_at: string;
+  status: TAgentClaimStatus;
+  status_text: string;
+  status_at: string | null;
+  plan: TAgentPlanStep[];
+  plan_summary: TAgentPlanSummary;
+};
+
+/** A work item's Agent tab: the claim with its status and plan, the questions (open first), and the activity. */
+export type TIssueAgentOverview = {
+  claim: TIssueAgentClaimProgress | null;
+  awaiting_input: boolean;
+  questions: TAgentQuestion[];
+  activity: TAgentActivityEntry[];
+};
+
+export type TNeedsYouReview = {
+  work_item: TAgentWorkItemRef;
+  session: TAgentSessionOrName | null;
+  summary: string;
+  at: string;
+};
+
+/** What waits for the viewer: open questions from agents and items in Review, newest first. */
+export type TNeedsYou = {
+  questions: TAgentQuestion[];
+  reviews: TNeedsYouReview[];
+  counts: { questions: number; reviews: number; total: number };
 };

@@ -8,10 +8,13 @@ import { API_BASE_URL } from "@plane/constants";
 import type {
   TAgentBoard,
   TAgentPanel,
+  TAgentQuestion,
   TAgentSession,
   TAgentSessionStatus,
   TIssueAgentAssignment,
+  TIssueAgentOverview,
   TIssueAgentRows,
+  TNeedsYou,
   TProjectAgentRow,
 } from "@plane/types";
 import { APIService } from "@/services/api.service";
@@ -111,6 +114,51 @@ export class AgentService extends APIService {
     botUserId: string
   ): Promise<TIssueAgentRows> {
     return this.delete(this.issueBase(workspaceSlug, projectId, issueId), undefined, { params: { bot: botUserId } })
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  /** Needs you (E29): the open questions from agents and the items in Review, newest first. */
+  async needsYou(workspaceSlug: string): Promise<TNeedsYou> {
+    return this.get(`/api/workspaces/${workspaceSlug}/needs-you/`)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  /** A work item's Agent tab: the claim's status and plan, the questions and the typed activity. */
+  async issueOverview(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueAgentOverview> {
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issues/${issueId}/agent-activity/`)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  private questionPath(question: TAgentQuestion, workspaceSlug: string) {
+    const { project_id, id } = question.work_item;
+    return `/api/workspaces/${workspaceSlug}/projects/${project_id}/issues/${id}/questions/${question.id}/`;
+  }
+
+  /** A person answers an agent's question: an option's number (from 1), words, or both. */
+  async answerQuestion(
+    workspaceSlug: string,
+    question: TAgentQuestion,
+    answer: { option?: number; text?: string }
+  ): Promise<TAgentQuestion> {
+    return this.post(`${this.questionPath(question, workspaceSlug)}answer/`, answer)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  /** A person withdraws an open question. */
+  async withdrawQuestion(workspaceSlug: string, question: TAgentQuestion): Promise<TAgentQuestion> {
+    return this.delete(this.questionPath(question, workspaceSlug))
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data;
