@@ -11,13 +11,16 @@ import { NewTabArrowOutline } from "@makeplane/propel/icons";
 // plane imports
 import { BotAvatar } from "@plane/blocks/bot-avatar";
 import { useTranslation } from "@plane/i18n";
-import type { TAgentBoardSession } from "@plane/types";
+import type { TAgentBoardSession, TAgentSessionHold } from "@plane/types";
+// components
+import { AgentPlanChecklist } from "@/components/agents/steering/agent-feed";
+import { useIssueAgentOverview } from "@/components/agents/steering/use-steering";
 // helpers
 import { botFaceOf, displayStatusOf } from "@/helpers/agent.helper";
 // hooks
 import { useAgent } from "@/hooks/store/use-agent";
 // local imports
-import { AgentBox, AgentHeartbeat, AgentStatusPill, BotBadge, agentByline, AgentSessionFields } from "./parts";
+import { AgentBox, AgentHeartbeat, AgentStatusPill, BotBadge, Count, agentByline, AgentSessionFields } from "./parts";
 import { AgentHoldsList, AgentInboxList, AgentRecentList } from "./sections";
 
 const REFRESH_MS = 30_000;
@@ -43,15 +46,46 @@ export const usePanel = (slug: string, sessionId: string) => {
   return { panel: agent.panelMap[sessionId], failed };
 };
 
-/** What the session is doing, in words: the item it works on, or that it is idle or quiet. */
+/** What the session is doing, in words: what it last said of its work, else the item it works on, or that it is idle or quiet. */
 export function AgentStatusLine({ session }: { session: TAgentBoardSession }) {
   const { t } = useTranslation();
   const status = displayStatusOf(session);
   const [hold] = session.holds;
+  const said = session.agent_state?.status_text;
+  if (said && status !== "away" && status !== "ended") return <>{said}</>;
   if (status === "working" && hold)
     return <>{t("agents.page.line.working", { item: `${hold.identifier} ${hold.name}` })}</>;
   return <>{t(`agents.page.line.${status}`)}</>;
 }
+
+/** The plan the session reported on an item it holds (r6-03 1C), as a checklist with how far it got. */
+const HoldPlan = observer(function HoldPlan(props: {
+  slug: string;
+  sessionId: string;
+  hold: TAgentSessionHold;
+  named: boolean;
+}) {
+  const { slug, sessionId, hold, named } = props;
+  const { t } = useTranslation();
+  const { data } = useIssueAgentOverview(slug, hold.project_id, hold.id);
+  const claim = data?.claim;
+  if (!claim || claim.session.id !== sessionId || !claim.plan.length) return null;
+  return (
+    <AgentBox
+      label={t("agents.page.plan_title")}
+      aside={
+        <>
+          {named && <span className="font-normal tracking-normal font-code normal-case">{hold.identifier}</span>}
+          <Count>
+            {claim.plan_summary.done} / {claim.plan_summary.total}
+          </Count>
+        </>
+      }
+    >
+      <AgentPlanChecklist steps={claim.plan} className="px-3 py-2.5" />
+    </AgentBox>
+  );
+});
 
 type Props = { slug: string; session: TAgentBoardSession; onOpen: () => void };
 
@@ -103,6 +137,9 @@ export const AgentSessionDetail = observer(function AgentSessionDetail({ slug, s
 
       <div className="grid grid-cols-1 items-start gap-3.5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-3.5">
+          {session.holds.map((hold) => (
+            <HoldPlan key={hold.id} slug={slug} sessionId={session.id} hold={hold} named={session.holds.length > 1} />
+          ))}
           <AgentBox label={t("agents.page.recent_title")}>
             <AgentRecentList slug={slug} recent={panel?.recent ?? []} />
           </AgentBox>
