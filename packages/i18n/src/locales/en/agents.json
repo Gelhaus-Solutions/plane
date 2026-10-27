@@ -17,6 +17,9 @@
     "status": {
       "live": "Live",
       "working": "Working",
+      "awaiting_input": "Awaiting input",
+      "waiting_for_review": "Waiting for review",
+      "blocked": "Blocked",
       "away": "Away",
       "ended": "Ended"
     },
@@ -99,6 +102,7 @@
         "delegated": "was delegated"
       },
       "session_title": "Session",
+      "plan_title": "Plan",
       "inbox_title": "Inbox",
       "inbox_none": "Nothing was sent to this session.",
       "inbox": {
@@ -147,7 +151,10 @@
         "working": "Working on {item}",
         "live": "Live, no work item held",
         "away": "No heartbeat for over 30 minutes",
-        "ended": "Ended"
+        "ended": "Ended",
+        "awaiting_input": "Waiting for an answer",
+        "waiting_for_review": "Waiting for a review",
+        "blocked": "Blocked"
       },
       "history": {
         "session": "Session",
@@ -181,6 +188,108 @@
       "token": "Token",
       "token_live": "derived from the bot key, ends with the session",
       "token_revoked": "revoked when the session ended"
+    },
+    "steering": {
+      "agent": "Agent",
+      "agent_tab": "Agent tab",
+      "claim_status": {
+        "working": "Working",
+        "waiting_for_review": "Waiting for review",
+        "blocked": "Blocked"
+      },
+      "plan_short": "Plan {done}/{total}",
+      "errors": "{count, plural, one {# error} other {# errors}}",
+      "now": "now",
+      "banner_waiting": "{who} is waiting for your answer.",
+      "default_applies": "If nobody answers, {option} applies at {time}.",
+      "decides_itself": "If nobody answers, the agent decides for itself at {time}.",
+      "no_deadline": "No deadline: the agent waits for an answer.",
+      "tomorrow_at": "{time} tomorrow",
+      "in": "in {time}",
+      "answer": "Answer",
+      "answer_label": "Your answer",
+      "answer_placeholder": "Or write an answer",
+      "correction_placeholder": "Answer anyway: the session gets it as a correction",
+      "answer_sent": "Answer sent to the session",
+      "answer_failed": "The answer could not be sent. Try again.",
+      "send": "Send",
+      "asks": "asks",
+      "asks_on": "asks on",
+      "default": "default",
+      "options": "Options",
+      "question_label": "Question from an agent",
+      "question_menu": "Question actions",
+      "withdraw": "Withdraw the question",
+      "goes_to_session": "The answer goes to the session over the agent bus.",
+      "question_status": {
+        "open": "Awaiting input",
+        "answered": "Answered",
+        "defaulted": "Default applied",
+        "expired": "Expired",
+        "cancelled": "Withdrawn",
+        "corrected": "Corrected"
+      },
+      "outcome": {
+        "answered": "Answered by {name}, {when}:",
+        "corrected": "Corrected by {name} after the deadline, {when}:",
+        "defaulted": "Nobody answered by {time}, so the default applied:",
+        "expired": "Nobody answered by {time}. There was no default, so the agent decides for itself.",
+        "cancelled": "Withdrawn."
+      },
+      "kind": {
+        "question": "Question",
+        "status": "Status",
+        "plan": "Plan",
+        "progress": "Progress",
+        "error": "Error",
+        "commit": "Commit",
+        "pull_request": "Pull request",
+        "review": "Review"
+      },
+      "review_requested": "Asked for a review",
+      "filters": "Filter the agent's activity",
+      "filter": {
+        "status": "Status",
+        "plan": "Plan",
+        "errors": "Errors",
+        "code": "Code"
+      },
+      "feed_empty": "Nothing reported here yet.",
+      "feed_note": "Comments from people are under Comments. The agent writes here through typed calls, not comments."
+    },
+    "needs_you": {
+      "title": "Needs you",
+      "subtitle": "Questions from agents and work they finished. Agents never close items: you do.",
+      "show_label": "Show",
+      "show": {
+        "all": "All",
+        "questions": "Questions",
+        "reviews": "Reviews"
+      },
+      "kind": {
+        "question": "Question",
+        "review": "Review"
+      },
+      "list_label": "What needs you",
+      "questions_heading": "Questions · {count}",
+      "reviews_heading": "Reviews · {count}",
+      "failed": "Needs you could not be loaded. Try again in a moment.",
+      "empty_title": "Nothing needs you",
+      "empty_description": "Questions from agents and the items they finish into Review show up here.",
+      "back": "Back",
+      "open_item": "Open item",
+      "plan_of": "Plan of {session}",
+      "review_label": "Review",
+      "finished_into_review": "finished it into Review",
+      "close": "Close",
+      "closed": "Closed {item}",
+      "send_back": "Send back",
+      "send_back_title": "Send back to {state} with a comment",
+      "send_back_label": "What still needs doing",
+      "send_back_placeholder": "What still needs doing? The comment reaches the session.",
+      "send_back_note": "The comment goes on the item first, then it moves back.",
+      "sent_back": "Sent {item} back to {state}",
+      "action_failed": "That did not go through. Try again."
     }
   }
 }

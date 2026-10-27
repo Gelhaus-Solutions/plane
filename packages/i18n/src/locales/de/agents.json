@@ -12,11 +12,14 @@
       "assignee_footer": "Ein Bot allein ist eine Warteschlange. Eine Session ist ein einzelner laufender Durchgang.",
       "delegate_footer": "{name} bleibt zuständig und ist verantwortlich.",
       "delegate_footer_nobody": "Die zuständige Person bleibt verantwortlich.",
-      "failed": "Der Agent konnte nicht geändert werden. Versuche es noch einmal."
+      "failed": "Der Agent konnte nicht geändert werden. Versuchen Sie es noch einmal."
     },
     "status": {
       "live": "Live",
       "working": "Arbeitet",
+      "awaiting_input": "Wartet auf Antwort",
+      "waiting_for_review": "Wartet auf Review",
+      "blocked": "Blockiert",
       "away": "Abwesend",
       "ended": "Beendet"
     },
@@ -79,12 +82,12 @@
       },
       "queues": "Warteschlangen",
       "queue": "Warteschlange",
-      "queue_hidden": "{count, plural, one {# Eintrag in der Warteschlange ist ausgeblendet.} other {# Einträge in der Warteschlange sind ausgeblendet.}} Schalte Warteschlangen ein, um sie zu sehen.",
+      "queue_hidden": "{count, plural, one {# Eintrag in der Warteschlange ist ausgeblendet.} other {# Einträge in der Warteschlange sind ausgeblendet.}} Schalten Sie Warteschlangen ein, um sie zu sehen.",
       "delegated": "Delegiert: die zuständige Person bleibt verantwortlich",
       "search": "Session oder Arbeitselement suchen",
-      "failed": "Die Agenten konnten nicht geladen werden. Versuche es gleich noch einmal.",
+      "failed": "Die Agenten konnten nicht geladen werden. Versuchen Sie es gleich noch einmal.",
       "none_live": "Keine Agenten-Session ist live. Eine Session erscheint hier, sobald sich ein Agent mit seinem Bot-Schlüssel anmeldet.",
-      "none_selected": "Wähle links eine Session, um zu sehen, was sie gerade tut.",
+      "none_selected": "Wählen Sie links eine Session, um zu sehen, was sie gerade tut.",
       "recent_title": "Zuletzt",
       "recent_none": "Noch nichts.",
       "recent": {
@@ -99,6 +102,7 @@
         "delegated": "delegiert bekommen"
       },
       "session_title": "Session",
+      "plan_title": "Plan",
       "inbox_title": "Posteingang",
       "inbox_none": "An diese Session wurde nichts geschickt.",
       "inbox": {
@@ -147,7 +151,10 @@
         "working": "Arbeitet an {item}",
         "live": "Live, hält kein Arbeitselement",
         "away": "Seit über 30 Minuten kein Lebenszeichen",
-        "ended": "Beendet"
+        "ended": "Beendet",
+        "awaiting_input": "Wartet auf eine Antwort",
+        "waiting_for_review": "Wartet auf ein Review",
+        "blocked": "Blockiert"
       },
       "history": {
         "session": "Session",
@@ -181,6 +188,108 @@
       "token": "Token",
       "token_live": "vom Bot-Schlüssel abgeleitet, endet mit der Session",
       "token_revoked": "beim Ende der Session widerrufen"
+    },
+    "steering": {
+      "agent": "Agent",
+      "agent_tab": "Agent-Tab",
+      "claim_status": {
+        "working": "Arbeitet",
+        "waiting_for_review": "Wartet auf Review",
+        "blocked": "Blockiert"
+      },
+      "plan_short": "Plan {done}/{total}",
+      "errors": "{count, plural, one {# Fehler} other {# Fehler}}",
+      "now": "jetzt",
+      "banner_waiting": "{who} wartet auf Ihre Antwort.",
+      "default_applies": "Antwortet niemand, gilt ab {time}: {option}.",
+      "decides_itself": "Antwortet niemand, entscheidet der Agent ab {time} selbst.",
+      "no_deadline": "Keine Frist: Der Agent wartet auf eine Antwort.",
+      "tomorrow_at": "morgen {time}",
+      "in": "in {time}",
+      "answer": "Antworten",
+      "answer_label": "Ihre Antwort",
+      "answer_placeholder": "Oder eine eigene Antwort schreiben",
+      "correction_placeholder": "Trotzdem antworten: Die Session erhält es als Korrektur",
+      "answer_sent": "Antwort an die Session gesendet",
+      "answer_failed": "Die Antwort konnte nicht gesendet werden. Versuchen Sie es noch einmal.",
+      "send": "Senden",
+      "asks": "fragt",
+      "asks_on": "fragt bei",
+      "default": "Standard",
+      "options": "Optionen",
+      "question_label": "Frage eines Agenten",
+      "question_menu": "Aktionen zur Frage",
+      "withdraw": "Frage zurückziehen",
+      "goes_to_session": "Die Antwort geht über den Agent-Bus an die Session.",
+      "question_status": {
+        "open": "Wartet auf Antwort",
+        "answered": "Beantwortet",
+        "defaulted": "Standard angewendet",
+        "expired": "Abgelaufen",
+        "cancelled": "Zurückgezogen",
+        "corrected": "Korrigiert"
+      },
+      "outcome": {
+        "answered": "Beantwortet von {name}, {when}:",
+        "corrected": "Nach der Frist korrigiert von {name}, {when}:",
+        "defaulted": "Bis {time} hat niemand geantwortet, daher gilt der Standard:",
+        "expired": "Bis {time} hat niemand geantwortet. Es gab keinen Standard, daher entscheidet der Agent selbst.",
+        "cancelled": "Zurückgezogen."
+      },
+      "kind": {
+        "question": "Frage",
+        "status": "Status",
+        "plan": "Plan",
+        "progress": "Fortschritt",
+        "error": "Fehler",
+        "commit": "Commit",
+        "pull_request": "Pull Request",
+        "review": "Review"
+      },
+      "review_requested": "Review angefordert",
+      "filters": "Aktivität des Agenten filtern",
+      "filter": {
+        "status": "Status",
+        "plan": "Plan",
+        "errors": "Fehler",
+        "code": "Code"
+      },
+      "feed_empty": "Hier wurde noch nichts berichtet.",
+      "feed_note": "Kommentare von Personen stehen unter Kommentare. Der Agent schreibt hier über typisierte Aufrufe, nicht über Kommentare."
+    },
+    "needs_you": {
+      "title": "Wartet auf Sie",
+      "subtitle": "Fragen von Agenten und Arbeit, die sie abgeschlossen haben. Agenten schließen nie selbst: Das machen Sie.",
+      "show_label": "Anzeigen",
+      "show": {
+        "all": "Alle",
+        "questions": "Fragen",
+        "reviews": "Reviews"
+      },
+      "kind": {
+        "question": "Frage",
+        "review": "Review"
+      },
+      "list_label": "Was auf Sie wartet",
+      "questions_heading": "Fragen · {count}",
+      "reviews_heading": "Reviews · {count}",
+      "failed": "„Wartet auf Sie“ konnte nicht geladen werden. Versuchen Sie es gleich noch einmal.",
+      "empty_title": "Nichts wartet auf Sie",
+      "empty_description": "Hier erscheinen Fragen von Agenten und die Elemente, die sie fertig in Review geben.",
+      "back": "Zurück",
+      "open_item": "Element öffnen",
+      "plan_of": "Plan von {session}",
+      "review_label": "Review",
+      "finished_into_review": "hat es fertig in Review gegeben",
+      "close": "Schließen",
+      "closed": "{item} geschlossen",
+      "send_back": "Zurückgeben",
+      "send_back_title": "Mit einem Kommentar zurück nach {state}",
+      "send_back_label": "Was noch zu tun ist",
+      "send_back_placeholder": "Was ist noch zu tun? Der Kommentar erreicht die Session.",
+      "send_back_note": "Erst kommt der Kommentar an das Element, dann geht es zurück.",
+      "sent_back": "{item} zurück nach {state} gegeben",
+      "action_failed": "Das hat nicht geklappt. Versuchen Sie es noch einmal."
     }
   }
 }
