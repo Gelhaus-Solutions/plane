@@ -94,6 +94,20 @@ class TestDashboardTool:
         assert error and "Nothing to change" in message
 
     @pytest.mark.django_db
+    def test_a_project_lens(self, bot_client, project, workspace, create_user):
+        other = Project.objects.create(name="Other", identifier="OTH", workspace=workspace, created_by=create_user)
+        _, dashboard = tool(bot_client, action="create", name="Dash board", project_ids=str(project.id))
+        _, widget = tool(bot_client, action="add_widget", dashboard_id=dashboard["id"], title="All", chart="number")
+        _, listed = tool(bot_client, action="list", project_id=str(project.id))
+        assert [d["name"] for d in listed] == ["Dash board"]
+        _, listed = tool(bot_client, action="list", project_id=str(other.id))
+        assert listed == []
+        _, data = tool(bot_client, action="data", dashboard_id=dashboard["id"], project_id=str(project.id))
+        assert data["widgets"][widget["id"]]["value"] == 3
+        error, message = tool(bot_client, action="data", dashboard_id=dashboard["id"], project_id=str(other.id))
+        assert error and "does not count" in message
+
+    @pytest.mark.django_db
     def test_a_bad_query_comes_back_as_the_widget_error(self, bot_client):
         error, data = tool(bot_client, action="chart", chart="number", pql="priority = ")
         assert not error

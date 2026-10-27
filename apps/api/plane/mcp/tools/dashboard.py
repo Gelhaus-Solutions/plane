@@ -23,7 +23,8 @@ def _projects(args):
 
 
 def list_dashboards(ctx, args):
-    return api(ctx, "GET", _dashboards(ctx))
+    query = {"project": args["project_id"]} if args.get("project_id") else None
+    return api(ctx, "GET", _dashboards(ctx), query)
 
 
 def retrieve(ctx, args):
@@ -35,6 +36,8 @@ def data(ctx, args):
     projects = _projects(args)
     if projects is not None:
         query["project_ids"] = ",".join(projects)
+    if args.get("project_id"):
+        query["project"] = args["project_id"]
     return api(ctx, "GET", _dashboards(ctx, f"{args['dashboard_id']}/data/"), query)
 
 
@@ -107,10 +110,12 @@ Tool(
 Actions:
   chart (chart; optional pql, measure, x_axis, split_by, sort, period, project_ids) -- one chart's numbers without a
       dashboard: the quickest way to answer "how much work was created and resolved over time";
-  list -- the dashboards you can open: shared ones and your own private ones;
+  list (optional project_id) -- the dashboards you can open: shared ones and your own private ones; with project_id,
+      the ones that count that project (its projects include it, or it has none);
   retrieve (dashboard_id) -- a dashboard with its widgets;
-  data (dashboard_id; optional period, project_ids, pql) -- every widget's numbers; period, project_ids and pql try
-      other values than the dashboard's without saving them;
+  data (dashboard_id; optional period, project_ids, project_id, pql) -- every widget's numbers; period, project_ids
+      and pql try other values than the dashboard's without saving them; project_id counts that one project alone,
+      as the dashboard does opened from the project, and is refused when the dashboard does not count it;
   create (name; optional description, access, period, project_ids, pql);
   update (dashboard_id; optional name, description, access, period, project_ids, pql);
   duplicate (dashboard_id; optional name) -- a private copy for you;
@@ -143,6 +148,7 @@ are columns of twelve, heights rows of 40 px.""",
         "name": text(),
         "period": text(),
         "pql": text(),
+        "project_id": text(),
         "project_ids": text(),
         "sort": text(),
         "split_by": text(),
