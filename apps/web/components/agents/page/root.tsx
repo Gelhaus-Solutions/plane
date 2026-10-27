@@ -35,7 +35,14 @@ import { AgentSessionPanel } from "./session-panel";
 export type TAgentBot = { id: string; name: string; harness: TAgentHarness };
 
 type TTab = "live" | "history";
-const LIVE_STATUSES: TAgentDisplayStatus[] = ["working", "live", "away"];
+const LIVE_STATUSES: TAgentDisplayStatus[] = [
+  "working",
+  "awaiting_input",
+  "waiting_for_review",
+  "blocked",
+  "live",
+  "away",
+];
 const REFRESH_MS = 30_000;
 
 const matches = (session: TAgentBoardSession, query: string) => {

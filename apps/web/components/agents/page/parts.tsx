@@ -18,6 +18,9 @@ import { harnessLabelKey, shortDir } from "@/helpers/agent.helper";
 
 export const STATUS_COLOR: Record<TAgentDisplayStatus, string> = {
   working: "var(--activity-primary)",
+  awaiting_input: "var(--txt-warning-primary)",
+  waiting_for_review: "var(--state-started-2)",
+  blocked: "var(--txt-danger-primary)",
   live: "var(--txt-success-primary)",
   away: "var(--txt-tertiary)",
   ended: "var(--txt-tertiary)",

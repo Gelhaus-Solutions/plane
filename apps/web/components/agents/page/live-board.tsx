@@ -122,7 +122,10 @@ export const AgentsLiveBoard = observer(function AgentsLiveBoard(props: Props) {
                         {hold ? (
                           <>
                             <span className="shrink-0 font-code text-11">{hold.identifier}</span>
-                            <span className="min-w-0 truncate">{hold.name}</span>
+                            <span className="min-w-0 truncate">
+                              {/* the step its plan is at, when the plan can only be about this item */}
+                              {(session.holds.length === 1 && session.agent_state?.plan?.current) || hold.name}
+                            </span>
                           </>
                         ) : (
                           <span className="min-w-0 truncate text-tertiary">

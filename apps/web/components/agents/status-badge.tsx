@@ -10,12 +10,15 @@ import type { TAgentDisplayStatus } from "@/helpers/agent.helper";
 
 const VARIANT = {
   working: "success",
+  awaiting_input: "warning",
+  waiting_for_review: "indigo",
+  blocked: "danger",
   live: "success",
   away: "grey",
   ended: "grey",
 } as const;
 
-/** A session's standing as a small badge: Working and Live in green, Away and Ended grey. */
+/** A session's standing as a small badge: Working and Live in green, Away and Ended grey, the steering states in their own tones. */
 export function AgentStatusBadge({ status }: { status: TAgentDisplayStatus }) {
   const { t } = useTranslation();
   return (
