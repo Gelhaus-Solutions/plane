@@ -4,13 +4,19 @@
  * See the LICENSE file for details.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { Avatar } from "@makeplane/propel/components/avatar";
 import { HistoryOutline } from "@makeplane/propel/icons";
 // plane package imports
 import type { TActivityFilters } from "@plane/constants";
-import { E_SORT_ORDER, EActivityFilterType, defaultActivityFilters } from "@plane/constants";
+import {
+  E_SORT_ORDER,
+  EActivityFilterType,
+  EUserPermissions,
+  EUserPermissionsLevel,
+  defaultActivityFilters,
+} from "@plane/constants";
 import { useLocalStorage } from "@plane/hooks";
 // i18n
 import { useTranslation } from "@plane/i18n";
@@ -18,10 +24,14 @@ import { useTranslation } from "@plane/i18n";
 import type { TFileSignedURLResponse, TIssueComment } from "@plane/types";
 import { cn, getFileURL } from "@plane/utils";
 // components
+import { AgentActivityFeed } from "@/components/agents/steering/agent-feed";
+import { AGENT_TAB_HASH } from "@/components/agents/steering/issue-banners";
+import { AgentQuestionCard } from "@/components/agents/steering/question-card";
+import { useIssueAgentOverview } from "@/components/agents/steering/use-steering";
 import { CommentCreate } from "@/components/comments/comment-create";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-import { useUser } from "@/hooks/store/user";
+import { useUser, useUserPermissions } from "@/hooks/store/user";
 // local imports
 import { IssueSubscription } from "../subscription";
 import { IssueActivityCommentRoot } from "./activity-comment-root";
@@ -68,13 +78,48 @@ export const IssueActivity = observer(function IssueActivity(props: TIssueActivi
 
   const { getProjectById } = useProject();
   const { data: currentUser } = useUser();
+  const { allowPermissions } = useUserPermissions();
+  // what the agents report on the item (E29): the Agent tab, and open questions to answer in place
+  const { data: agentOverview } = useIssueAgentOverview(workspaceSlug, projectId, issueId);
+  const [agentView, setAgentView] = useState(() => window.location.hash === AGENT_TAB_HASH);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const view = toView(selectedFilters ?? defaultActivityFilters);
+  const agentCount = (agentOverview?.activity.length ?? 0) + (agentOverview?.questions.length ?? 0);
+  const openQuestions = agentOverview?.questions.filter((question) => question.status === "open") ?? [];
+  const canAnswer =
+    !disabled &&
+    allowPermissions(
+      [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
+      EUserPermissionsLevel.PROJECT,
+      workspaceSlug,
+      projectId
+    );
+
+  // the strip's Agent tab button and a link ending in #agent open the tab
+  useEffect(() => {
+    const onHash = () => {
+      if (window.location.hash !== AGENT_TAB_HASH) return;
+      setAgentView(true);
+      sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
   // helper hooks
   const activityOperations = useWorkItemCommentOperations(workspaceSlug, projectId, issueId);
 
   const project = getProjectById(projectId);
+
+  // a page opened by a link ending in #agent scrolls to the tab once, when what the agents report has arrived
+  const linkScrolled = useRef(false);
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (linkScrolled.current || !section || !agentOverview || window.location.hash !== AGENT_TAB_HASH) return;
+    linkScrolled.current = true;
+    section.scrollIntoView({ block: "start" });
+  }, [agentOverview, project]);
   const renderCommentCreationBox = useMemo(
     () => (
       <div className="flex gap-2.5">
@@ -100,7 +145,7 @@ export const IssueActivity = observer(function IssueActivity(props: TIssueActivi
   if (!project) return <></>;
 
   return (
-    <section aria-label={t("work_item_detail.activity")} className="flex flex-col gap-3">
+    <section ref={sectionRef} aria-label={t("work_item_detail.activity")} className="flex scroll-mt-4 flex-col gap-3">
       <div className="flex h-[30px] items-center gap-2">
         <HistoryOutline className="size-3.5 shrink-0 text-secondary" aria-hidden="true" />
         <h2 className="text-[13.5px] font-semibold text-primary">{t("work_item_detail.activity")}</h2>
@@ -111,33 +156,67 @@ export const IssueActivity = observer(function IssueActivity(props: TIssueActivi
             <button
               key={option}
               type="button"
-              aria-pressed={view === option}
-              onClick={() => setFilterValue(VIEW_FILTERS[option])}
+              aria-pressed={!agentView && view === option}
+              onClick={() => {
+                setAgentView(false);
+                setFilterValue(VIEW_FILTERS[option]);
+              }}
               className={cn(
                 "flex h-6 items-center rounded-md px-[9px] text-secondary transition-colors duration-[120ms] outline-none focus-visible:ring-2 focus-visible:ring-accent-strong",
-                { "bg-surface-1 font-semibold text-primary shadow-e1 ring-1 ring-(--border-strong)": view === option }
+                {
+                  "bg-surface-1 font-semibold text-primary shadow-e1 ring-1 ring-(--border-strong)":
+                    !agentView && view === option,
+                }
               )}
             >
               {t(`work_item_detail.activity_${option}`)}
             </button>
           ))}
+          {agentCount > 0 && (
+            <button
+              type="button"
+              aria-pressed={agentView}
+              onClick={() => setAgentView(true)}
+              className={cn(
+                "flex h-6 items-center gap-1 rounded-md px-[9px] text-secondary transition-colors duration-[120ms] outline-none focus-visible:ring-2 focus-visible:ring-accent-strong",
+                { "bg-surface-1 font-semibold text-primary shadow-e1 ring-1 ring-(--border-strong)": agentView }
+              )}
+            >
+              {t("agents.steering.agent")}
+              <span className="text-tertiary tabular-nums">{agentCount}</span>
+            </button>
+          )}
         </div>
         <span className="flex-1" />
         {currentUser && !disabled && !isIntakeIssue && (
           <IssueSubscription workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} compact />
         )}
       </div>
-      <IssueActivityCommentRoot
-        projectId={projectId}
-        workspaceSlug={workspaceSlug}
-        isIntakeIssue={isIntakeIssue}
-        issueId={issueId}
-        selectedFilters={selectedFilters || defaultActivityFilters}
-        activityOperations={activityOperations}
-        showAccessSpecifier={!!project.anchor}
-        disabled={disabled}
-        sortOrder={E_SORT_ORDER.ASC}
-      />
+      {agentView && agentOverview ? (
+        <AgentActivityFeed workspaceSlug={workspaceSlug} overview={agentOverview} canAnswer={canAnswer} />
+      ) : (
+        <>
+          <IssueActivityCommentRoot
+            projectId={projectId}
+            workspaceSlug={workspaceSlug}
+            isIntakeIssue={isIntakeIssue}
+            issueId={issueId}
+            selectedFilters={selectedFilters || defaultActivityFilters}
+            activityOperations={activityOperations}
+            showAccessSpecifier={!!project.anchor}
+            disabled={disabled}
+            sortOrder={E_SORT_ORDER.ASC}
+          />
+          {openQuestions.map((question) => (
+            <AgentQuestionCard
+              key={question.id}
+              workspaceSlug={workspaceSlug}
+              question={question}
+              canAnswer={canAnswer}
+            />
+          ))}
+        </>
+      )}
       {!disabled && renderCommentCreationBox}
     </section>
   );

@@ -13,6 +13,7 @@ import type { TNameDescriptionLoader } from "@plane/types";
 import { EFileAssetType, EIssueServiceType } from "@plane/types";
 // components
 import { IssueClaimPill } from "@/components/agents/claim-pill";
+import { IssueAwaitingInputBadge } from "@/components/agents/steering/issue-banners";
 import { DescriptionVersionsRoot } from "@/components/core/description-versions";
 import { DescriptionInput } from "@/components/editor/rich-text/description-input";
 import { IssueTypeSwitcher } from "@/components/issues/issue-type-switcher";
@@ -82,6 +83,7 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
         <div className="flex min-h-6 flex-wrap items-center gap-2">
           <IssueTypeSwitcher issueId={issueId} disabled={isArchived || !isEditable} />
           {issue.parent_id && <IssueParentDetail workspaceSlug={workspaceSlug} issue={issue} />}
+          <IssueAwaitingInputBadge workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} />
           <IssueClaimPill issueId={issueId} />
           <span className="flex-1" />
           <NameDescriptionUpdateStatus isSubmitting={isSubmitting} />
