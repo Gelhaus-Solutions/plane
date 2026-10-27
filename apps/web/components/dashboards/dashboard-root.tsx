@@ -54,6 +54,7 @@ import { useUser } from "@/hooks/store/user";
 import { DashboardGrid } from "./grid";
 import { HeadButton, Kbd } from "./parts";
 import { PQLCode } from "./pql-code";
+import { DashboardPresence } from "./presence";
 import type { TDashboard, TDashboardPeriod, TDashboardWidget, TWidgetDraft } from "./types";
 import {
   PERIODS,
@@ -415,6 +416,7 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
             />
           )}
           <span className="flex-1" />
+          <DashboardPresence workspaceSlug={workspaceSlug} dashboardId={dashboardId} />
           {isEditing ? (
             <>
               <span className="hidden text-12 text-secondary md:inline">{t("dashboards.edit_hint")}</span>

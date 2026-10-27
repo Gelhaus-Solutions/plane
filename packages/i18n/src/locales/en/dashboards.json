@@ -86,6 +86,11 @@
         "open": "Open it for the workspace"
       }
     },
+    "presence": {
+      "label": "Who has it open",
+      "here": "{name}, here",
+      "more": "{count, plural, one {# more person here} other {# more people here}}"
+    },
     "meta": {
       "workspace": "Workspace dashboard · {count, plural, one {# widget} other {# widgets}} · owner {owner}",
       "private": "Private dashboard · {count, plural, one {# widget} other {# widgets}} · owner {owner}"

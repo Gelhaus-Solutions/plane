@@ -25,6 +25,7 @@
     "@fontsource-variable/geist": "catalog:",
     "@fontsource-variable/geist-mono": "catalog:",
     "@fontsource/material-symbols-rounded": "catalog:",
+    "@hocuspocus/provider": "catalog:",
     "@makeplane/propel": "catalog:",
     "@plane/blocks": "workspace:*",
     "@plane/constants": "workspace:*",

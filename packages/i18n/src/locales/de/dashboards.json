@@ -86,6 +86,11 @@
         "open": "Für den Arbeitsbereich öffnen"
       }
     },
+    "presence": {
+      "label": "Wer es geöffnet hat",
+      "here": "{name} ist hier",
+      "more": "{count, plural, one {# weitere Person hier} other {# weitere Personen hier}}"
+    },
     "meta": {
       "workspace": "Dashboard des Arbeitsbereichs · {count, plural, one {# Widget} other {# Widgets}} · Eigentümer {owner}",
       "private": "Privates Dashboard · {count, plural, one {# Widget} other {# Widgets}} · Eigentümer {owner}"
