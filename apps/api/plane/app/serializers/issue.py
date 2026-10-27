@@ -40,8 +40,10 @@ from plane.db.models import (
     State,
     IssueVersion,
     IssueDescriptionVersion,
+    Project,
     ProjectMember,
     EstimatePoint,
+    WorkspacePriority,
 )
 from plane.utils import agent_assignments
 from plane.utils.agent_sessions import session_lite
@@ -88,6 +90,10 @@ class IssueCreateSerializer(BaseSerializer):
     )
     parent_id = serializers.PrimaryKeyRelatedField(
         source="parent", queryset=Issue.objects.all(), required=False, allow_null=True
+    )
+    # One of the workspace's priorities (E35); the item takes its level
+    priority_option_id = serializers.PrimaryKeyRelatedField(
+        source="priority_option", queryset=WorkspacePriority.objects.all(), required=False, allow_null=True
     )
     label_ids = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(queryset=Label.objects.all()),
@@ -186,6 +192,14 @@ class IssueCreateSerializer(BaseSerializer):
             ).exists()
         ):
             raise serializers.ValidationError("Parent is not valid issue_id please pass a valid issue_id")
+
+        if (
+            attrs.get("priority_option")
+            and not Project.objects.filter(
+                pk=self.context.get("project_id"), workspace_id=attrs["priority_option"].workspace_id
+            ).exists()
+        ):
+            raise serializers.ValidationError("Priority is not valid please pass a priority of this workspace")
 
         if (
             attrs.get("estimate_point")
@@ -792,6 +806,7 @@ class IssueSerializer(DynamicBaseSerializer):
             "completed_at",
             "estimate_point",
             "priority",
+            "priority_option_id",
             "start_date",
             "target_date",
             "sequence_id",
@@ -853,6 +868,7 @@ class IssueListDetailSerializer(serializers.Serializer):
             "completed_at": instance.completed_at,
             "estimate_point": instance.estimate_point_id,
             "priority": instance.priority,
+            "priority_option_id": instance.priority_option_id,
             "start_date": instance.start_date,
             "target_date": instance.target_date,
             "sequence_id": instance.sequence_id,

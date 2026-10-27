@@ -31,6 +31,7 @@ from plane.db.models import (
     State,
     User,
     EstimatePoint,
+    WorkspacePriority,
 )
 from plane.utils.exception_logger import log_exception
 from plane.utils.issue_relation_mapper import get_inverse_relation
@@ -168,6 +169,8 @@ def track_priority(
     issue_activities,
     epoch,
 ):
+    if "priority_option_id" in requested_data:
+        return  # the web names the priority too: track_priority_option logs it once, by name
     if current_instance.get("priority") != requested_data.get("priority"):
         issue_activities.append(
             IssueActivity(
@@ -183,6 +186,53 @@ def track_priority(
                 epoch=epoch,
             )
         )
+
+
+def _priority_label(level, option_id):
+    """A workspace's own priority by its name (E35); the level of a built-in one, as before."""
+    if option_id:
+        priority = WorkspacePriority.objects.filter(pk=option_id).only("name", "is_builtin").first()
+        if priority is not None and not priority.is_builtin:
+            return priority.name
+    return level
+
+
+# Track changes of the workspace priority a work item names (E35)
+def track_priority_option(
+    requested_data,
+    current_instance,
+    issue_id,
+    project_id,
+    workspace_id,
+    actor_id,
+    issue_activities,
+    epoch,
+):
+    option_id = requested_data.get("priority_option_id") or None
+    level = requested_data.get("priority") or current_instance.get("priority")
+    if option_id:
+        level = WorkspacePriority.objects.filter(pk=option_id).values_list("level", flat=True).first() or level
+    old = (current_instance.get("priority"), str(current_instance.get("priority_option_id") or "") or None)
+    new = (level, str(option_id) if option_id else None)
+    if old == new:
+        return
+    old_value, new_value = _priority_label(*old), _priority_label(*new)
+    if old_value == new_value:
+        return
+    issue_activities.append(
+        IssueActivity(
+            issue_id=issue_id,
+            actor_id=actor_id,
+            verb="updated",
+            old_value=old_value,
+            new_value=new_value,
+            field="priority",
+            project_id=project_id,
+            workspace_id=workspace_id,
+            comment="updated the priority to",
+            epoch=epoch,
+        )
+    )
 
 
 # Track changes in state of the issue
@@ -605,6 +655,7 @@ def update_issue_activity(
         "name": track_name,
         "parent_id": track_parent,
         "priority": track_priority,
+        "priority_option_id": track_priority_option,
         "state_id": track_state,
         "description_html": track_description,
         "target_date": track_target_date,

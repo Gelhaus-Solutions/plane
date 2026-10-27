@@ -5,6 +5,7 @@
 from django.urls import path
 
 
+from plane.app.views.workspace.priority import WorkspacePriorityDetailEndpoint, WorkspacePrioritiesEndpoint
 from plane.app.views import (
     WorkspaceBotEndpoint,
     WorkspaceBotProjectEndpoint,
@@ -88,6 +89,13 @@ urlpatterns = [
         name="workspace-join",
     ),
     # user join workspace
+    # Priorities (E35): read by everyone in the workspace, edited by admins
+    path("workspaces/<str:slug>/priorities/", WorkspacePrioritiesEndpoint.as_view(), name="workspace-priorities"),
+    path(
+        "workspaces/<str:slug>/priorities/<uuid:pk>/",
+        WorkspacePriorityDetailEndpoint.as_view(),
+        name="workspace-priority",
+    ),
     path(
         "workspaces/<str:slug>/bots/",
         WorkspaceBotEndpoint.as_view(http_method_names=["get", "post"]),

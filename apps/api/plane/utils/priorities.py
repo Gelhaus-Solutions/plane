@@ -7,9 +7,9 @@
 import uuid
 
 from django.db import IntegrityError, transaction
-from django.db.models import Case, F, FloatField, Q, Value, When
+from django.db.models import Case, Count, F, FloatField, Q, Value, When
 
-from plane.db.models import BUILTIN_PRIORITIES, PRIORITY_LEVELS, WorkspacePriority
+from plane.db.models import BUILTIN_PRIORITIES, PRIORITY_LEVELS, Issue, WorkspacePriority
 
 LEVELS = tuple(level for level, _ in PRIORITY_LEVELS)
 
@@ -56,3 +56,21 @@ def priority_rank(levels=LEVELS):
         default=F("priority_option__sequence"),
         output_field=FloatField(),
     )
+
+
+def item_counts(workspace_id):
+    """How many work items show each of the workspace's priorities, by id: a custom one counts the items that name
+    it, a built-in one also the items at its level that name none."""
+    items = Issue.issue_objects.filter(workspace_id=workspace_id)
+    named = {
+        row["priority_option_id"]: row["count"]
+        for row in items.filter(priority_option__isnull=False).values("priority_option_id").annotate(count=Count("id"))
+    }
+    plain = {
+        row["priority"]: row["count"]
+        for row in items.filter(priority_option__isnull=True).values("priority").annotate(count=Count("id"))
+    }
+    counts = {}
+    for row in WorkspacePriority.objects.filter(workspace_id=workspace_id):
+        counts[row.id] = named.get(row.id, 0) + (plain.get(row.level, 0) if row.is_builtin else 0)
+    return counts
