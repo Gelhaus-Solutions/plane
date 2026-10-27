@@ -41,3 +41,5 @@ export { IntakeStateGroupIcon } from "./state/intake-state-group-icon";
 export { StartedGroupIcon } from "./state/started-group-icon";
 export { StateGroupIcon } from "./state/state-group-icon";
 export { UnstartedGroupIcon } from "./state/unstarted-group-icon";
+export { WorkspaceStateGroupIcon } from "./state/workspace-state-group-icon";
+export type { WorkspaceStateGroupIconProps } from "./state/workspace-state-group-icon";

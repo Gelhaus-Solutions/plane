@@ -35,6 +35,8 @@ import type { IEpicStore } from "./epic.store";
 import { EpicStore } from "./epic.store";
 import type { IPriorityStore } from "./priority.store";
 import { PriorityStore } from "./priority.store";
+import type { IStateGroupStore } from "./state-group.store";
+import { StateGroupStore } from "./state-group.store";
 import { EditorAssetStore } from "./editor/asset.store";
 import type { IProjectEstimateStore } from "./estimates/project-estimate.store";
 import { ProjectEstimateStore } from "./estimates/project-estimate.store";
@@ -88,6 +90,7 @@ export class CoreRootStore {
   moduleFilter: IModuleFilterStore;
   epic: IEpicStore;
   priority: IPriorityStore;
+  stateGroup: IStateGroupStore;
   agent: IAgentStore;
   projectView: IProjectViewStore;
   globalView: IGlobalViewStore;
@@ -128,6 +131,7 @@ export class CoreRootStore {
     this.moduleFilter = new ModuleFilterStore(this);
     this.epic = new EpicStore();
     this.priority = new PriorityStore();
+    this.stateGroup = new StateGroupStore();
     this.agent = new AgentStore(this);
     this.projectView = new ProjectViewStore(this);
     this.globalView = new GlobalViewStore(this);
@@ -166,6 +170,7 @@ export class CoreRootStore {
     this.moduleFilter = new ModuleFilterStore(this);
     this.epic = new EpicStore();
     this.priority = new PriorityStore();
+    this.stateGroup = new StateGroupStore();
     this.agent = new AgentStore(this);
     this.projectView = new ProjectViewStore(this);
     this.globalView = new GlobalViewStore(this);
