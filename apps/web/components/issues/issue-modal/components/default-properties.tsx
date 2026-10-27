@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
+import { useController } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { Icon as PropelIcon } from "@makeplane/propel/components/icon";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@makeplane/propel/components/menu";
@@ -65,6 +66,8 @@ export const IssueDefaultProperties = observer(function IssueDefaultProperties(p
     handleFormChange,
     setSelectedParentIssue,
   } = props;
+  // the custom priority (E35) rides beside the level the priority field keeps
+  const { field: priorityOption } = useController({ control, name: "priority_option_id" });
   // states
   const [parentIssueListModalOpen, setParentIssueListModalOpen] = useState(false);
   // store hooks
@@ -112,8 +115,10 @@ export const IssueDefaultProperties = observer(function IssueDefaultProperties(p
           <PrioritySelect
             testId="create-work-item-priority-select"
             value={value}
-            onChange={(priority) => {
+            optionId={priorityOption.value}
+            onChange={(priority, optionId) => {
               onChange(priority);
+              priorityOption.onChange(optionId);
               handleFormChange();
             }}
             variant="pill-md"

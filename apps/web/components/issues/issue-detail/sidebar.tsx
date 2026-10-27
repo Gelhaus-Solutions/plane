@@ -93,7 +93,13 @@ export const IssueDetailsSidebar = observer(function IssueDetailsSidebar(props: 
             <PrioritySelect
               testId="work-item-priority-select"
               value={issue?.priority}
-              onChange={(val) => issueOperations.update(workspaceSlug, projectId, issueId, { priority: val })}
+              optionId={issue?.priority_option_id}
+              onChange={(val, optionId) =>
+                issueOperations.update(workspaceSlug, projectId, issueId, {
+                  priority: val,
+                  priority_option_id: optionId,
+                })
+              }
               disabled={!isEditable}
               variant="select-ghost-md"
               tooltip

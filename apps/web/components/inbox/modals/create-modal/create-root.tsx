@@ -83,15 +83,13 @@ export const InboxIssueCreateRoot = observer(function InboxIssueCreateRoot(props
   const [createMore, setCreateMore] = useState<boolean>(false);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<TIssue>>(defaultIssueData);
-  const handleFormData = useCallback(
-    <T extends keyof Partial<TIssue>>(issueKey: T, issueValue: Partial<TIssue>[T]) => {
-      setFormData({
-        ...formData,
-        [issueKey]: issueValue,
-      });
-    },
-    [formData]
-  );
+  const handleFormData = useCallback(<T extends keyof Partial<TIssue>>(issueKey: T, issueValue: Partial<TIssue>[T]) => {
+    // functional, so two fields set in one pick (a priority and its level) both land
+    setFormData((previous) => ({
+      ...previous,
+      [issueKey]: issueValue,
+    }));
+  }, []);
 
   const { getIndex } = getTabIndex(ETabIndices.INTAKE_ISSUE_FORM, isMobile);
 

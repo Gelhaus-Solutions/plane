@@ -26,12 +26,13 @@ import {
 import { EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
-import type { ICycle, IIssueLabel, IModule, TIssue, TIssueAgentAssignment, TIssuePriorities } from "@plane/types";
+import type { ICycle, IIssueLabel, IModule, TIssue, TIssueAgentAssignment } from "@plane/types";
 import { EIssueServiceType, EUserPermissions } from "@plane/types";
 import { copyTextToClipboard } from "@plane/utils";
 // components
 import { useProjectBotIds } from "@/components/agents/use-project-bots";
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
+import type { TPowerKPriorityPick } from "@/components/power-k/ui/pages/context-based/work-item/priorities-menu";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useAgent } from "@/hooks/store/use-agent";
@@ -257,10 +258,11 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       type: "change-page",
       page: "update-work-item-priority",
       onSelect: (data) => {
-        const priority = data as TIssuePriorities;
-        if (entityDetails?.priority === priority) return;
+        const { priority, optionId } = data as TPowerKPriorityPick;
+        if (entityDetails?.priority === priority && (entityDetails?.priority_option_id ?? null) === optionId) return;
         handleUpdateEntity({
           priority,
+          priority_option_id: optionId,
         });
       },
       shortcut: "p",

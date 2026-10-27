@@ -205,10 +205,12 @@ export const SubIssuesListItem = observer(function SubIssuesListItem(props: Prop
             >
               <PrioritySelect
                 value={issue.priority}
-                onChange={(val) =>
+                optionId={issue.priority_option_id}
+                onChange={(val, optionId) =>
                   issue.project_id &&
                   subIssueOperations.updateSubIssue(workspaceSlug, issue.project_id, parentIssueId, issueId, {
                     priority: val,
+                    priority_option_id: optionId,
                   })
                 }
                 disabled={!canEdit}

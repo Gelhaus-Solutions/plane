@@ -73,7 +73,11 @@ export const InboxIssueProperties = observer(function InboxIssueProperties(props
       {/* priority */}
       <PrioritySelect
         value={data?.priority}
-        onChange={(priority) => handleData("priority", priority)}
+        optionId={data?.priority_option_id}
+        onChange={(priority, optionId) => {
+          handleData("priority", priority);
+          handleData("priority_option_id", optionId);
+        }}
         variant="pill-md"
         tabIndex={getIndex("priority")}
       />

@@ -110,8 +110,8 @@ export const IssueProperties = observer(function IssueProperties(props: IIssuePr
     if (updateIssue) await updateIssue(issue.project_id, issue.id, { state_id: stateId });
   };
 
-  const handlePriority = async (value: TIssuePriorities) => {
-    if (updateIssue) await updateIssue(issue.project_id, issue.id, { priority: value });
+  const handlePriority = async (value: TIssuePriorities, optionId: string | null) => {
+    if (updateIssue) await updateIssue(issue.project_id, issue.id, { priority: value, priority_option_id: optionId });
   };
 
   const handleLabel = async (ids: string[]) => {
@@ -227,6 +227,7 @@ export const IssueProperties = observer(function IssueProperties(props: IIssuePr
         <div className="h-5" onFocus={handleEventPropagation} onClick={handleEventPropagation}>
           <PrioritySelect
             value={issue?.priority}
+            optionId={issue?.priority_option_id}
             onChange={handlePriority}
             disabled={isReadOnly}
             variant="pill-sm"

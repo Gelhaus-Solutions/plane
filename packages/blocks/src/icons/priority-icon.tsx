@@ -5,6 +5,14 @@
  */
 
 import * as React from "react";
+import {
+  BlockingOutline,
+  ClockOutline,
+  FastForwardOutline,
+  FlagOutline,
+  MoonOutline,
+  WarningTriangleOutline,
+} from "@makeplane/propel/icons";
 import { cn } from "@plane/utils";
 
 export type IssuePriority = "urgent" | "high" | "medium" | "low" | "none";
@@ -15,6 +23,8 @@ export type TIssuePriorities = IssuePriority;
 export type PriorityIconProps = {
   className?: string;
   priority: IssuePriority | undefined | null;
+  /** A custom priority's colour in place of the level's (E35). */
+  color?: string;
 };
 
 /** @deprecated Use PriorityIconProps instead. */
@@ -38,7 +48,7 @@ const BARS = [
 
 /** Priority in the Pulse design: three bars (one, two or three lit), and urgent as an orange square. */
 export function PriorityIcon(props: PriorityIconProps) {
-  const { priority, className = "size-3.5" } = props;
+  const { priority, className = "size-3.5", color } = props;
   const level = priority ?? "none";
 
   return (
@@ -47,6 +57,7 @@ export function PriorityIcon(props: PriorityIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
       className={cn("shrink-0", PRIORITY_COLOR[level], className)}
+      style={color ? { color } : undefined}
     >
       {level === "urgent" ? (
         <>
@@ -74,5 +85,46 @@ export function PriorityIcon(props: PriorityIconProps) {
         ))
       )}
     </svg>
+  );
+}
+
+/** The icons a custom priority can take (E35, r15-01), by the key its row keeps. */
+export const PRIORITY_ROW_ICONS = {
+  blocking: BlockingOutline,
+  warning: WarningTriangleOutline,
+  flag: FlagOutline,
+  fast: FastForwardOutline,
+  moon: MoonOutline,
+  clock: ClockOutline,
+} as const;
+
+export type PriorityRowIconKey = keyof typeof PRIORITY_ROW_ICONS;
+
+export type PriorityRowIconProps = {
+  /** A workspace priority, or what of one the icon needs. */
+  priority: { level: IssuePriority; icon?: string; color?: string; is_builtin?: boolean } | null | undefined;
+  className?: string;
+};
+
+/** A workspace priority (E35): a built-in one as its level's bars, a custom one in its own icon and colour. */
+export function PriorityRowIcon(props: PriorityRowIconProps) {
+  const { priority, className = "size-3.5" } = props;
+  if (!priority) return <PriorityIcon priority="none" className={className} />;
+  const custom = !priority.is_builtin;
+  const Icon = custom && priority.icon ? PRIORITY_ROW_ICONS[priority.icon as PriorityRowIconKey] : undefined;
+  if (Icon)
+    return (
+      <Icon
+        aria-hidden="true"
+        className={cn("shrink-0", className)}
+        style={{ color: priority.color || "var(--txt-secondary)" }}
+      />
+    );
+  return (
+    <PriorityIcon
+      priority={priority.level}
+      className={className}
+      color={custom && priority.color ? priority.color : undefined}
+    />
   );
 }

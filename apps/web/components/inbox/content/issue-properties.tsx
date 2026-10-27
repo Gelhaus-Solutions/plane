@@ -129,9 +129,13 @@ export const InboxIssueContentProperties = observer(function InboxIssueContentPr
               <div className="w-3/5 flex-grow">
                 <PrioritySelect
                   value={issue?.priority}
-                  onChange={(val) => {
+                  optionId={issue?.priority_option_id}
+                  onChange={(val, optionId) => {
                     if (!issue?.id) return;
-                    void issueOperations.update(workspaceSlug, projectId, issue.id, { priority: val });
+                    void issueOperations.update(workspaceSlug, projectId, issue.id, {
+                      priority: val,
+                      priority_option_id: optionId,
+                    });
                   }}
                   disabled={!isEditable}
                   variant="select-ghost-md"

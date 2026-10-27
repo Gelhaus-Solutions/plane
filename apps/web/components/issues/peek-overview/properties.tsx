@@ -83,7 +83,10 @@ export const PeekOverviewProperties = observer(function PeekOverviewProperties(p
           <PrioritySelect
             testId="work-item-priority-select"
             value={issue?.priority}
-            onChange={(val) => issueOperations.update(workspaceSlug, projectId, issueId, { priority: val })}
+            optionId={issue?.priority_option_id}
+            onChange={(val, optionId) =>
+              issueOperations.update(workspaceSlug, projectId, issueId, { priority: val, priority_option_id: optionId })
+            }
             disabled={disabled}
             variant="select-ghost-md"
             tooltip

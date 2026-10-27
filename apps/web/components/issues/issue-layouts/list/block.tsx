@@ -246,7 +246,10 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
           <span role="presentation" className="grid place-items-center" onClick={swallow}>
             <PrioritySelect
               value={issue.priority}
-              onChange={(val) => void updateIssue?.(issue.project_id, issue.id, { priority: val })}
+              optionId={issue.priority_option_id}
+              onChange={(val, optionId) =>
+                void updateIssue?.(issue.project_id, issue.id, { priority: val, priority_option_id: optionId })
+              }
               disabled={!canEditIssueProperties}
               variant="icon-sm"
               tooltip

@@ -50,6 +50,8 @@ export type TBaseIssue = {
 
   state_id: string | null;
   priority: TIssuePriorities | null;
+  /** One of the workspace's priorities (E35), when the item names a custom one; it shows its level's otherwise. */
+  priority_option_id?: string | null;
   label_ids: string[];
   assignee_ids: string[];
   estimate_point: string | null;
