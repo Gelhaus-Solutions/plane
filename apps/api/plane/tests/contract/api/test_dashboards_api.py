@@ -76,5 +76,18 @@ class TestDashboardsAPI:
         assert [d["name"] for d in api_key_client.get(url(workspace)).data] == ["Ops"]
 
     @pytest.mark.django_db
+    def test_a_project_lens_on_dashboards(self, api_key_client, workspace, project, create_user):
+        other = Project.objects.create(name="Other", identifier="OTH", workspace=workspace, created_by=create_user)
+        ProjectMember.objects.create(project=other, member=create_user, role=20, is_active=True)
+        mine = api_key_client.post(url(workspace), {"name": "Dash", "project_ids": [str(project.id)]}, format="json")
+        api_key_client.post(url(workspace), {"name": "Other", "project_ids": [str(other.id)]}, format="json")
+        listed = api_key_client.get(url(workspace), {"project": str(project.id)}).data
+        assert [(d["name"], d["project_ids"]) for d in listed] == [("Dash", [str(project.id)])]
+
+        data = url(workspace, mine.data["id"], "data")
+        assert api_key_client.get(data, {"project": str(project.id)}).status_code == status.HTTP_200_OK
+        assert api_key_client.get(data, {"project": str(other.id)}).status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.django_db
     def test_no_key_no_dashboards(self, workspace):
         assert APIClient().get(url(workspace)).status_code == status.HTTP_401_UNAUTHORIZED

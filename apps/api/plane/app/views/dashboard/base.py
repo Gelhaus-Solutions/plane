@@ -3,7 +3,8 @@
 # See the LICENSE file for details.
 
 """Dashboards (E23): workspace pages of PQL widgets. A private dashboard is its owner's; a workspace dashboard every
-member sees and can duplicate, and its owner and the workspace's admins edit it (D47)."""
+member sees and can duplicate, and its owner and the workspace's admins edit it (D47). A project shows the dashboards
+that count it, and one opened from there counts that project alone (D48)."""
 
 import uuid
 
@@ -31,6 +32,14 @@ from plane.utils.pql.compiler import PQLContext
 from .. import BaseAPIView
 
 MAX_WIDGETS = 40
+NOT_COUNTED = {"error": "This dashboard does not count that project"}
+
+
+def as_uuid(value):
+    try:
+        return uuid.UUID(str(value).strip())
+    except ValueError:
+        return None
 
 
 class WidgetSerializer(serializers.Serializer):
@@ -119,13 +128,23 @@ class DashboardBase(BaseAPIView):
             archived_at__isnull=True,
         ).values_list("id", flat=True)
 
+    def counts(self, dashboard, project_id):
+        """Whether the dashboard counts the project: its projects include it, or it has none."""
+        return not dashboard.project_ids or str(project_id) in dashboard.project_ids
+
     def scope(self, slug, dashboard, params):
         """What the dashboard's widgets count for this viewer; the request may try another period, projects or query
-        without saving them."""
+        without saving them, or open it from a project to count that one alone. None when the dashboard does not
+        count that project."""
         period_key = params.get("period") if params.get("period") in PERIOD_DAYS else dashboard.period
         wanted = params.get("project_ids")
         if wanted is None:
             wanted = dashboard.project_ids
+        if params.get("project"):
+            project_id = as_uuid(params.get("project"))
+            if project_id is None or not self.counts(dashboard, project_id):
+                return None
+            wanted = [project_id]
         pql = params.get("pql") if params.get("pql") is not None else dashboard.pql
         return self.scope_of(slug, period_key, wanted, pql)
 
@@ -133,12 +152,7 @@ class DashboardBase(BaseAPIView):
         """The viewer's projects, narrowed to project_ids (a list, or ids separated by commas) when given."""
         if isinstance(project_ids, str):
             project_ids = project_ids.split(",")
-        wanted = []
-        for value in project_ids or []:
-            try:
-                wanted.append(uuid.UUID(str(value).strip()))
-            except ValueError:
-                continue
+        wanted = [project_id for project_id in map(as_uuid, project_ids or []) if project_id]
         projects = self.member_projects(slug)
         if wanted:
             projects = projects.filter(id__in=wanted)
@@ -172,15 +186,18 @@ class DashboardBase(BaseAPIView):
 class DashboardListEndpoint(DashboardBase):
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug):
+        """The dashboards the viewer may open; with a project, the ones that count it."""
         admin = self.is_admin(slug)
-        dashboards = (
-            self.visible(slug)
-            .annotate(
-                widget_count=Count("widgets", filter=Q(widgets__deleted_at__isnull=True)),
-                is_favorite=Exists(DashboardFavorite.objects.filter(dashboard_id=OuterRef("pk"), user=request.user)),
-            )
-            .order_by("-updated_at")
-        )
+        dashboards = self.visible(slug)
+        if request.GET.get("project"):
+            project_id = as_uuid(request.GET["project"])
+            if project_id is None:
+                return Response({"error": "project must be a project id"}, status=status.HTTP_400_BAD_REQUEST)
+            dashboards = dashboards.filter(Q(project_ids=[]) | Q(project_ids__contains=[str(project_id)]))
+        dashboards = dashboards.annotate(
+            widget_count=Count("widgets", filter=Q(widgets__deleted_at__isnull=True)),
+            is_favorite=Exists(DashboardFavorite.objects.filter(dashboard_id=OuterRef("pk"), user=request.user)),
+        ).order_by("-updated_at")
         return Response(
             [
                 {
@@ -189,6 +206,7 @@ class DashboardListEndpoint(DashboardBase):
                     "description": d.description,
                     "access": d.access,
                     "owner_id": str(d.owner_id),
+                    "project_ids": [str(p) for p in d.project_ids],
                     "widget_count": d.widget_count,
                     "is_favorite": d.is_favorite,
                     "updated_at": d.updated_at,
@@ -433,11 +451,14 @@ class DashboardLayoutEndpoint(DashboardBase):
 class DashboardDataEndpoint(DashboardBase):
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
     def get(self, request, slug, pk):
-        """Every widget's numbers, for the dashboard's period, projects and query or the ones the address tries."""
+        """Every widget's numbers, for the dashboard's period, projects and query or the ones the address tries; with a
+        project it counts that project alone."""
         dashboard = self.get_dashboard(slug, pk)
         if dashboard is None:
             return Response({"error": "Dashboard not found"}, status=status.HTTP_404_NOT_FOUND)
         scope = self.scope(slug, dashboard, request.GET)
+        if scope is None:
+            return Response(NOT_COUNTED, status=status.HTTP_400_BAD_REQUEST)
         return Response(
             {
                 "period": scope.period.as_dict(),
@@ -459,6 +480,8 @@ class DashboardPreviewEndpoint(DashboardBase):
         if chart not in dict(WIDGET_CHARTS):
             return Response({"error": "Unknown chart"}, status=status.HTTP_400_BAD_REQUEST)
         scope = self.scope(slug, dashboard, request.data.get("scope") or {})
+        if scope is None:
+            return Response(NOT_COUNTED, status=status.HTTP_400_BAD_REQUEST)
         data = widget_data(scope, chart, str(request.data.get("pql") or ""), request.data.get("config") or {})
         return Response(
             {"period": scope.period.as_dict(), "config": clean_config(chart, request.data.get("config")), **data},

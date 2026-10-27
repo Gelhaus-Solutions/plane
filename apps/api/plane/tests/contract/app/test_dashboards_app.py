@@ -275,3 +275,49 @@ class TestDashboards:
             pql="cycle IN activeCycle()",
             widgets=[{"title": q, "chart": "number", "pql": q} for q in queries],
         )
+
+    @pytest.mark.django_db
+    def test_a_project_shows_the_dashboards_that_count_it(self, session_client, workspace, items):
+        elsewhere = Project.objects.get(identifier="ELS")
+        create(session_client, workspace, name="Dash only", project_ids=[str(items.id)])
+        create(session_client, workspace, name="Elsewhere only", project_ids=[str(elsewhere.id)])
+        create(session_client, workspace, name="Every project")
+
+        listed = session_client.get(url(workspace), {"project": str(items.id)}).data
+        assert sorted(d["name"] for d in listed) == ["Dash only", "Every project"]
+        assert {d["name"]: d["project_ids"] for d in listed}["Dash only"] == [str(items.id)]
+        assert len(session_client.get(url(workspace)).data) == 3
+        assert session_client.get(url(workspace), {"project": "nope"}).status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.django_db
+    def test_opened_from_a_project_it_counts_that_project_alone(self, session_client, workspace, items, create_user):
+        elsewhere = Project.objects.get(identifier="ELS")
+        ProjectMember.objects.create(project=elsewhere, member=create_user, role=20, is_active=True)
+        every = create(session_client, workspace, widgets=[{"title": "Items", "chart": "number"}])
+        widget = every["widgets"][0]["id"]
+
+        def counted(dashboard, **params):
+            response = session_client.get(url(workspace, dashboard["id"], "data"), params)
+            assert response.status_code == status.HTTP_200_OK, response.data
+            return response.data["widgets"][widget]["value"]
+
+        assert counted(every) == 5
+        assert counted(every, project=str(items.id)) == 4
+        # the project wins over projects the address tries
+        assert counted(every, project=str(elsewhere.id), project_ids=str(items.id)) == 1
+
+        # a dashboard that does not count the project is refused, for its numbers and for the editor's preview
+        dash_only = create(session_client, workspace, project_ids=[str(items.id)])
+        refused = session_client.get(url(workspace, dash_only["id"], "data"), {"project": str(elsewhere.id)})
+        assert refused.status_code == status.HTTP_400_BAD_REQUEST
+        assert "does not count" in refused.data["error"]
+
+        def preview(project):
+            return session_client.post(
+                url(workspace, dash_only["id"], "preview"),
+                {"chart": "number", "scope": {"project": project}},
+                format="json",
+            )
+
+        assert preview(str(elsewhere.id)).status_code == status.HTTP_400_BAD_REQUEST
+        assert preview(str(items.id)).data["value"] == 4
