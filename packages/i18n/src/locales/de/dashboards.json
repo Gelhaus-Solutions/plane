@@ -13,6 +13,7 @@
     "search": "Dashboards durchsuchen",
     "columns": {
       "name": "Name",
+      "counts": "Zählt",
       "widgets": "Widgets",
       "access": "Zugriff",
       "owner": "Eigentümer",
@@ -58,6 +59,7 @@
       "all": "Alle Projekte",
       "some": "{count, plural, one {# Projekt} other {# Projekte}}"
     },
+    "every_project": "Alle Projekte",
     "filter": {
       "add": "Filter",
       "hint": "Jedes Widget zählt nur die Elemente, die auch zu dieser Abfrage passen.",
@@ -67,6 +69,23 @@
       "clear": "Leeren"
     },
     "back_to_saved": "Zur gespeicherten Ansicht",
+    "lens": {
+      "new": "Neues Dashboard für {project}",
+      "note": "Dashboards des Arbeitsbereichs, die {project} zählen. Von hier geöffnet, zählen sie nur {project}.",
+      "templates_heading": "Eins für {project} beginnen: ein Dashboard des Arbeitsbereichs mit {project} als Projekt",
+      "none_yet": "Noch kein Dashboard des Arbeitsbereichs zählt {project}. Beginnen Sie mit einer Vorlage oder einem leeren Dashboard.",
+      "footer": "{count, plural, one {Eine Art Dashboard. Dasselbe erscheint unter Dashboards für den ganzen Arbeitsbereich; hier ist es das, das {project} zählt.} other {Eine Art Dashboard. Dieselben # erscheinen unter Dashboards für den ganzen Arbeitsbereich; hier sind es die, die {project} zählen.}}",
+      "counting": "Zählt nur {project}, weil Sie es aus {project} geöffnet haben.",
+      "count_projects": "{projects} zählen",
+      "count_many": "{count, plural, one {# Projekt zählen} other {Alle # Projekte zählen}}",
+      "count_every": "Alle Projekte zählen",
+      "not_counted": "Von hier aus nicht gezählt",
+      "refused": {
+        "title": "{name} zählt {project} nicht",
+        "description": "Seine Projekte lassen {project} aus, hier gibt es also nichts zu zählen. Öffnen Sie es für den Arbeitsbereich, um seine Zahlen zu sehen.",
+        "open": "Für den Arbeitsbereich öffnen"
+      }
+    },
     "meta": {
       "workspace": "Dashboard des Arbeitsbereichs · {count, plural, one {# Widget} other {# Widgets}} · Eigentümer {owner}",
       "private": "Privates Dashboard · {count, plural, one {# Widget} other {# Widgets}} · Eigentümer {owner}"

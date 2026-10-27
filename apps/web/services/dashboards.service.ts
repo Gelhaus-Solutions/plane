@@ -41,8 +41,10 @@ export class DashboardsService extends APIService {
       });
   }
 
-  list(workspaceSlug: string) {
-    return this.send<TDashboardSummary[]>(this.get(this.url(workspaceSlug)));
+  /** Every dashboard you can open, or with a project only those that count it */
+  list(workspaceSlug: string, projectId?: string) {
+    const params = projectId ? { project: projectId } : {};
+    return this.send<TDashboardSummary[]>(this.get(this.url(workspaceSlug), { params }));
   }
 
   create(workspaceSlug: string, data: Partial<Omit<TDashboard, "widgets">> & { widgets?: TWidgetDraft[] }) {
@@ -89,7 +91,9 @@ export class DashboardsService extends APIService {
   data(workspaceSlug: string, dashboardId: string, scope: TDashboardScope) {
     const params: Record<string, string> = {};
     if (scope.period) params.period = scope.period;
-    if (scope.project_ids) params.project_ids = scope.project_ids.join(",");
+    // a project lens counts that project alone, so the projects tried in the address do not apply
+    if (scope.project) params.project = scope.project;
+    else if (scope.project_ids) params.project_ids = scope.project_ids.join(",");
     if (scope.pql !== undefined) params.pql = scope.pql;
     return this.send<TDashboardData>(this.get(this.url(workspaceSlug, dashboardId, "data"), { params }));
   }

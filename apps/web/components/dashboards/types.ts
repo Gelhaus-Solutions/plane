@@ -60,11 +60,12 @@ export type TDashboardSummary = {
   is_favorite: boolean;
   updated_at: string;
   can_edit: boolean;
+  /** The projects it counts; none counts every project */
+  project_ids: string[];
 };
 
 export type TDashboard = TDashboardSummary & {
   period: TDashboardPeriod;
-  project_ids: string[];
   pql: string;
   created_at: string;
   widgets: TDashboardWidget[];
@@ -110,7 +111,10 @@ export type TDashboardData = {
   widgets: Record<string, TWidgetData>;
 };
 
-/** What the address may try on a dashboard without saving it */
-export type TDashboardScope = { period?: TDashboardPeriod; project_ids?: string[]; pql?: string };
+/**
+ * What the address may try on a dashboard without saving it. `project` is the project lens (PLANE-296): opened from a
+ * project, the dashboard counts that project alone and `project_ids` does not apply.
+ */
+export type TDashboardScope = { period?: TDashboardPeriod; project_ids?: string[]; pql?: string; project?: string };
 
 export type TWidgetDraft = Omit<TDashboardWidget, "id" | "sort_order"> & { sort_order?: number };

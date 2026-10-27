@@ -16,12 +16,14 @@ export const dashboardsService = new DashboardsService();
 
 export const PERIODS: TDashboardPeriod[] = ["2w", "6w", "quarter"];
 
-const listKey = (workspaceSlug: string) => ["dashboards", workspaceSlug];
+// the workspace's list and each project's are cached apart
+const listKey = (workspaceSlug: string, projectId?: string) => ["dashboards", workspaceSlug, projectId ?? ""];
 const dashboardKey = (workspaceSlug: string, dashboardId: string) => ["dashboard", workspaceSlug, dashboardId];
 
-export function useDashboards(workspaceSlug: string) {
-  return useSWR<TDashboardSummary[]>(workspaceSlug ? listKey(workspaceSlug) : null, () =>
-    dashboardsService.list(workspaceSlug)
+/** Every dashboard you can open, or with a project the ones that count it */
+export function useDashboards(workspaceSlug: string, projectId?: string) {
+  return useSWR<TDashboardSummary[]>(workspaceSlug ? listKey(workspaceSlug, projectId) : null, () =>
+    dashboardsService.list(workspaceSlug, projectId)
   );
 }
 
@@ -33,31 +35,37 @@ export function useDashboard(workspaceSlug: string, dashboardId: string) {
   );
 }
 
-/** The list follows changes made on a dashboard */
-export const refreshDashboards = (workspaceSlug: string) => mutate(listKey(workspaceSlug));
+/** The lists follow changes made on a dashboard: the workspace's and every project's */
+export const refreshDashboards = (workspaceSlug: string) =>
+  mutate((key) => Array.isArray(key) && key[0] === "dashboards" && key[1] === workspaceSlug);
 
 /**
  * What the address tries on a dashboard: another period, other projects or another query, without saving them, so a
- * view of the numbers is a link. Without them the dashboard's own apply.
+ * view of the numbers is a link. Without them the dashboard's own apply. Opened from a project (the lens), it counts
+ * that project alone and the projects in the address do not apply.
  */
-export function useDashboardScope(dashboard: TDashboard | undefined) {
+export function useDashboardScope(dashboard: TDashboard | undefined, projectId?: string) {
   const [params, setParams] = useSearchParams();
   const period = params.get("period");
-  const projects = params.get("projects");
+  const projects = projectId ? null : params.get("projects");
   const pql = params.get("pql");
 
-  const scope = useMemo<TDashboardScope>(() => {
+  const fromAddress = useMemo<TDashboardScope>(() => {
     const out: TDashboardScope = {};
     if (period && (PERIODS as string[]).includes(period)) out.period = period as TDashboardPeriod;
     if (projects !== null) out.project_ids = projects.split(",").filter(Boolean);
     if (pql !== null) out.pql = pql;
     return out;
   }, [period, projects, pql]);
+  const scope = useMemo<TDashboardScope>(
+    () => (projectId ? { ...fromAddress, project: projectId } : fromAddress),
+    [fromAddress, projectId]
+  );
 
   const effective = {
-    period: scope.period ?? dashboard?.period ?? "6w",
-    project_ids: scope.project_ids ?? dashboard?.project_ids ?? [],
-    pql: scope.pql ?? dashboard?.pql ?? "",
+    period: fromAddress.period ?? dashboard?.period ?? "6w",
+    project_ids: fromAddress.project_ids ?? dashboard?.project_ids ?? [],
+    pql: fromAddress.pql ?? dashboard?.pql ?? "",
   };
 
   const update = useCallback(
@@ -88,15 +96,23 @@ export function useDashboardScope(dashboard: TDashboard | undefined) {
     [setParams]
   );
 
-  return { scope, effective, update, reset, tried: Object.keys(scope).length > 0 };
+  return { scope, effective, update, reset, tried: Object.keys(fromAddress).length > 0 };
 }
+
+/** Whether a dashboard counts a project: its projects include it, or it has none and counts every project */
+export const countsProject = (dashboard: Pick<TDashboard, "project_ids">, projectId: string) =>
+  !dashboard.project_ids.length || dashboard.project_ids.includes(projectId);
 
 export function useDashboardData(workspaceSlug: string, dashboard: TDashboard | undefined, scope: TDashboardScope) {
   // the widgets' place and size do not change their numbers, everything else does
   const widgets = dashboard?.widgets.map((w) => `${w.id}:${w.chart}:${w.pql}:${JSON.stringify(w.config)}`).join("|");
   const saved = dashboard ? `${dashboard.period}:${dashboard.project_ids.join(",")}:${dashboard.pql}` : "";
+  // a lens on a project the dashboard does not count is refused, so it is not asked
+  const refused = !!dashboard && !!scope.project && !countsProject(dashboard, scope.project);
   return useSWR<TDashboardData>(
-    dashboard ? ["dashboard-data", workspaceSlug, dashboard.id, JSON.stringify(scope), saved, widgets] : null,
+    dashboard && !refused
+      ? ["dashboard-data", workspaceSlug, dashboard.id, JSON.stringify(scope), saved, widgets]
+      : null,
     () => dashboardsService.data(workspaceSlug, dashboard?.id ?? "", scope),
     { keepPreviousData: true, revalidateOnFocus: false }
   );

@@ -27,9 +27,11 @@ import {
   EditOutline,
   FilterOutline,
   GlobeOutline,
+  LayerStackOutline,
   LinkOutline,
   LockOutline,
   MoreHorizontalOutline,
+  ShowOutline,
   UndoOutline,
 } from "@makeplane/propel/icons";
 import { FavoriteStar } from "@plane/blocks/common";
@@ -55,6 +57,7 @@ import { PQLCode } from "./pql-code";
 import type { TDashboard, TDashboardPeriod, TDashboardWidget, TWidgetDraft } from "./types";
 import {
   PERIODS,
+  countsProject,
   dashboardsService,
   refreshDashboards,
   useDashboard,
@@ -89,12 +92,18 @@ const byOrder = (widgets: TDashboardWidget[]) =>
 
 const anOverlayIsOpen = () => !!document.querySelector("[role=dialog], [role=alertdialog], [role=menu]");
 
-type Props = { workspaceSlug: string; dashboardId: string };
+type Props = { workspaceSlug: string; dashboardId: string; projectId?: string };
 
-/** A dashboard (r5-21): the head, the period, projects and query, and its widgets; E edits them in place */
+const SCOPE_CHIP =
+  "flex h-[26px] items-center gap-1.5 rounded-full border border-strong bg-layer-1 px-2.5 text-12 text-primary";
+
+/**
+ * A dashboard (r5-21): the head, the period, projects and query, and its widgets; E edits them in place. Opened from a
+ * project (the lens, r16-2b), it counts that project alone and offers to count all of its projects on the workspace.
+ */
 export const DashboardRoot = observer(function DashboardRoot(props: Props) {
-  const { workspaceSlug, dashboardId } = props;
-  const { t } = useTranslation();
+  const { workspaceSlug, dashboardId, projectId } = props;
+  const { t, currentLocale } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // store hooks
@@ -105,8 +114,8 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
   const { data: currentUser } = useUser();
   // data
   const { data: dashboard, error, mutate } = useDashboard(workspaceSlug, dashboardId);
-  const { scope, effective, update, reset, tried } = useDashboardScope(dashboard);
-  const { data } = useDashboardData(workspaceSlug, dashboard, scope);
+  const { scope, effective, update, reset, tried } = useDashboardScope(dashboard, projectId);
+  const { data, error: dataError } = useDashboardData(workspaceSlug, dashboard, scope);
   // states
   const [editing, setEditing] = useState(searchParams.get("edit") === "1");
   const [editor, setEditor] = useState<{ open: boolean; widget: TDashboardWidget | null }>({
@@ -120,6 +129,8 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
 
   const canEdit = !!dashboard?.can_edit;
   const isEditing = editing && canEdit;
+  // the lists the crumbs, a copy and a delete go back to: the project's under a lens, else the workspace's
+  const base = projectId ? `/${workspaceSlug}/projects/${projectId}/dashboards` : `/${workspaceSlug}/dashboards`;
 
   // a new dashboard opens in edit mode once; the address then forgets it
   useEffect(() => {
@@ -295,7 +306,7 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
     return (
       <div className="flex size-full flex-col items-center justify-center gap-2 p-6 text-center">
         <p className="text-14 font-medium text-primary">{t("dashboards.not_found")}</p>
-        <Link to={`/${workspaceSlug}/dashboards/`} className="text-13 text-accent-primary hover:underline">
+        <Link to={`${base}/`} className="text-13 text-accent-primary hover:underline">
           {t("dashboards.back_to_list")}
         </Link>
       </div>
@@ -325,6 +336,36 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
 
   const crumbClass = "truncate text-secondary hover:text-primary";
 
+  // the lens: a dashboard that does not count the project (a stale link) is refused rather than drawn empty
+  const lensProject = getProjectById(projectId);
+  const lensName = lensProject?.name ?? "";
+  const refused =
+    !!projectId &&
+    !!dashboard &&
+    (!countsProject(dashboard, projectId) || typeof (dataError as { error?: unknown } | undefined)?.error === "string");
+  // its other projects, which the lens leaves out; all of them when refused
+  const otherProjects = (dashboard?.project_ids ?? [])
+    .filter((id) => refused || id !== projectId)
+    .map((id) => getProjectById(id))
+    .filter((project) => project !== undefined);
+  // the same dashboard on the workspace, with the period and query tried here
+  const workspaceParams = new URLSearchParams();
+  ["period", "pql"].forEach((key) => {
+    const value = searchParams.get(key);
+    if (value !== null) workspaceParams.set(key, value);
+  });
+  const workspaceQuery = workspaceParams.toString();
+  const workspaceHref = `/${workspaceSlug}/dashboards/${dashboardId}/${workspaceQuery ? `?${workspaceQuery}` : ""}`;
+  const countAllLabel = () => {
+    const ids = dashboard?.project_ids ?? [];
+    if (!ids.length) return t("dashboards.lens.count_every");
+    const names = [lensProject, ...otherProjects].filter((project) => project !== undefined).map((p) => p.name);
+    if (names.length !== ids.length || names.length > 3) return t("dashboards.lens.count_many", { count: ids.length });
+    return t("dashboards.lens.count_projects", {
+      projects: new Intl.ListFormat(currentLocale, { type: "conjunction" }).format(names),
+    });
+  };
+
   return (
     <div className="flex size-full flex-col overflow-hidden">
       <header className="flex shrink-0 flex-col gap-2.5 border-b border-strong px-[18px] py-3">
@@ -334,9 +375,9 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
             aria-label={t("aria_labels.breadcrumb.trail")}
             className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-secondary"
           >
-            <span className="truncate">{currentWorkspace?.name}</span>
+            <span className="truncate">{projectId ? lensName : currentWorkspace?.name}</span>
             <ChevronRightOutline className="size-3 shrink-0 text-tertiary" />
-            <Link to={`/${workspaceSlug}/dashboards/`} className={crumbClass}>
+            <Link to={`${base}/`} className={crumbClass}>
               {t("dashboards.title")}
             </Link>
             <ChevronRightOutline className="size-3 shrink-0 text-tertiary" />
@@ -441,7 +482,7 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
                           .duplicate(workspaceSlug, dashboard.id, t("dashboards.copy_name", { name: dashboard.name }))
                           .then((copy) => {
                             void refreshDashboards(workspaceSlug);
-                            return navigate(`/${workspaceSlug}/dashboards/${copy.id}/`);
+                            return navigate(`${base}/${copy.id}/`);
                           })
                           .catch(failed)
                       }
@@ -467,57 +508,84 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
             value={effective.period}
             onChange={(period) => setScope({ period })}
           />
-          <Menu>
-            <MenuTrigger
-              render={
-                <button
-                  type="button"
-                  className="flex h-[26px] items-center gap-1.5 rounded-full border border-strong bg-layer-1 px-2.5 text-12 text-primary hover:bg-layer-1-hover"
+          {projectId && !isEditing ? (
+            <>
+              {lensProject && !refused && (
+                <span className={cn(SCOPE_CHIP, "border-accent-strong")}>
+                  <ProjectBadge name={lensProject.name} seed={lensProject.id} logo={lensProject.logo_props} size={14} />
+                  {lensProject.name}
+                </span>
+              )}
+              {otherProjects.map((project) => (
+                <span
+                  key={project.id}
+                  title={refused ? undefined : t("dashboards.lens.not_counted")}
+                  className={cn(SCOPE_CHIP, !refused && "line-through opacity-55")}
                 >
-                  {projectIds.slice(0, 3).map((id) => {
-                    const project = getProjectById(id);
-                    return project ? (
-                      <ProjectBadge
-                        key={id}
-                        name={project.name}
-                        seed={project.id}
-                        logo={project.logo_props}
-                        size={14}
-                      />
-                    ) : null;
-                  })}
-                  {projectIds.length === 1
-                    ? (getProjectById(projectIds[0])?.name ?? t("dashboards.projects.some", { count: 1 }))
-                    : projectIds.length
-                      ? t("dashboards.projects.some", { count: projectIds.length })
-                      : t("dashboards.projects.all")}
-                  <ChevronDownOutline className="size-3 text-secondary" />
-                </button>
-              }
-            />
-            <MenuContent side="bottom" align="start">
-              <MenuItem
-                label={t("dashboards.projects.all")}
-                selected={!projectIds.length}
-                onClick={() => setScope({ project_ids: [] })}
+                  <ProjectBadge name={project.name} seed={project.id} logo={project.logo_props} size={14} />
+                  {project.name}
+                </span>
+              ))}
+              {dashboard && !dashboard.project_ids.length && (
+                <span
+                  title={refused ? undefined : t("dashboards.lens.not_counted")}
+                  className={cn(SCOPE_CHIP, !refused && "line-through opacity-55")}
+                >
+                  <LayerStackOutline className="size-3 text-secondary" />
+                  {t("dashboards.every_project")}
+                </span>
+              )}
+            </>
+          ) : (
+            <Menu>
+              <MenuTrigger
+                render={
+                  <button type="button" className={cn(SCOPE_CHIP, "hover:bg-layer-1-hover")}>
+                    {projectIds.slice(0, 3).map((id) => {
+                      const project = getProjectById(id);
+                      return project ? (
+                        <ProjectBadge
+                          key={id}
+                          name={project.name}
+                          seed={project.id}
+                          logo={project.logo_props}
+                          size={14}
+                        />
+                      ) : null;
+                    })}
+                    {projectIds.length === 1
+                      ? (getProjectById(projectIds[0])?.name ?? t("dashboards.projects.some", { count: 1 }))
+                      : projectIds.length
+                        ? t("dashboards.projects.some", { count: projectIds.length })
+                        : t("dashboards.projects.all")}
+                    <ChevronDownOutline className="size-3 text-secondary" />
+                  </button>
+                }
               />
-              <MenuGroup>
-                {(joinedProjectIds ?? []).map((id) => {
-                  const project = getProjectById(id);
-                  if (!project) return null;
-                  return (
-                    <MenuCheckboxItem
-                      key={id}
-                      label={project.name}
-                      icon={<ProjectBadge name={project.name} seed={project.id} logo={project.logo_props} />}
-                      checked={projectIds.includes(id)}
-                      onCheckedChange={(checked) => toggleProject(id, checked)}
-                    />
-                  );
-                })}
-              </MenuGroup>
-            </MenuContent>
-          </Menu>
+              <MenuContent side="bottom" align="start">
+                <MenuItem
+                  label={t("dashboards.projects.all")}
+                  selected={!projectIds.length}
+                  onClick={() => setScope({ project_ids: [] })}
+                />
+                <MenuGroup>
+                  {(joinedProjectIds ?? []).map((id) => {
+                    const project = getProjectById(id);
+                    if (!project) return null;
+                    return (
+                      <MenuCheckboxItem
+                        key={id}
+                        label={project.name}
+                        icon={<ProjectBadge name={project.name} seed={project.id} logo={project.logo_props} />}
+                        checked={projectIds.includes(id)}
+                        onCheckedChange={(checked) => toggleProject(id, checked)}
+                      />
+                    );
+                  })}
+                </MenuGroup>
+              </MenuContent>
+            </Menu>
+          )}
           <Popover onOpenChange={(open) => open && setFilterDraft(effective.pql)}>
             <PopoverTrigger
               render={
@@ -589,12 +657,25 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
             </span>
           )}
         </div>
-        {data?.error && (
+        {data?.error && !refused && (
           <p role="alert" className="text-12 text-danger-primary">
             {t("dashboards.errors.dashboard_query", { message: data.error.message })}
           </p>
         )}
       </header>
+      {projectId && dashboard && !refused && (
+        <div className="flex shrink-0 items-center gap-2 border-b border-strong bg-accent-row px-[18px] py-2 text-[12.5px] text-primary">
+          <ShowOutline className="size-3.5 shrink-0 text-accent-primary" aria-hidden="true" />
+          <span className="min-w-0">{t("dashboards.lens.counting", { project: lensName })}</span>
+          <span className="flex-1" />
+          <Link
+            to={workspaceHref}
+            className="flex h-6 shrink-0 items-center rounded-[7px] border border-strong bg-layer-1 px-2 text-12 font-medium whitespace-nowrap text-primary shadow-e1 outline-none hover:bg-layer-1-hover focus-visible:ring-2 focus-visible:ring-accent-strong"
+          >
+            {countAllLabel()}
+          </Link>
+        </div>
+      )}
 
       <div className="min-h-0 flex-1 overflow-auto px-[18px] pt-3.5 pb-6">
         {isEditing && dashboard && (
@@ -620,6 +701,18 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
                 style={{ gridColumn: `span ${[3, 3, 3, 3, 7, 5][i]}` }}
               />
             ))}
+          </div>
+        ) : refused ? (
+          <div className="flex flex-col items-center gap-2 py-16 text-center">
+            <p className="text-14 font-medium text-primary">
+              {t("dashboards.lens.refused.title", { name: dashboard.name, project: lensName })}
+            </p>
+            <p className="max-w-[420px] text-13 text-secondary">
+              {t("dashboards.lens.refused.description", { project: lensName })}
+            </p>
+            <Link to={workspaceHref} className="mt-1 text-13 text-accent-primary hover:underline">
+              {t("dashboards.lens.refused.open")}
+            </Link>
           </div>
         ) : dashboard.widgets.length === 0 && !isEditing ? (
           <div className="flex flex-col items-center gap-2 py-16 text-center">
@@ -653,7 +746,7 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
             onDelete={(widget) => void deleteWidget(widget)}
           />
         )}
-        {isEditing && (
+        {isEditing && !refused && (
           <button
             type="button"
             onClick={() => openEditor(null)}
@@ -688,7 +781,7 @@ export const DashboardRoot = observer(function DashboardRoot(props: Props) {
             try {
               await dashboardsService.remove(workspaceSlug, dashboard.id);
               void refreshDashboards(workspaceSlug);
-              void navigate(`/${workspaceSlug}/dashboards/`);
+              void navigate(`${base}/`);
             } catch {
               failed();
             } finally {

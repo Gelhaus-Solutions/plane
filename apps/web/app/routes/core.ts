@@ -213,6 +213,16 @@ export const coreRoutes: RouteConfigEntry[] = [
             ),
           ]),
 
+          // Dashboards that count the project, opened for it alone (PLANE-296)
+          route(
+            ":workspaceSlug/projects/:projectId/dashboards",
+            "./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/dashboards/(list)/page.tsx"
+          ),
+          route(
+            ":workspaceSlug/projects/:projectId/dashboards/:dashboardId",
+            "./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/dashboards/(detail)/[dashboardId]/page.tsx"
+          ),
+
           // Page Detail
           layout("./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/pages/(detail)/layout.tsx", [
             route(

@@ -13,6 +13,7 @@
     "search": "Search dashboards",
     "columns": {
       "name": "Name",
+      "counts": "Counts",
       "widgets": "Widgets",
       "access": "Access",
       "owner": "Owner",
@@ -58,6 +59,7 @@
       "all": "All projects",
       "some": "{count, plural, one {# project} other {# projects}}"
     },
+    "every_project": "Every project",
     "filter": {
       "add": "Filter",
       "hint": "Every widget counts only the items that also match this query.",
@@ -67,6 +69,23 @@
       "clear": "Clear"
     },
     "back_to_saved": "Back to the saved view",
+    "lens": {
+      "new": "New dashboard for {project}",
+      "note": "Workspace dashboards that count {project}. Opened from here, they count {project} only.",
+      "templates_heading": "Start one for {project}: a workspace dashboard with {project} as its project",
+      "none_yet": "No workspace dashboard counts {project} yet. Start one from a template or a blank one.",
+      "footer": "{count, plural, one {One kind of dashboard. The same one shows in Dashboards for the whole workspace; here it is the one that counts {project}.} other {One kind of dashboard. The same # show in Dashboards for the whole workspace; here they are the ones that count {project}.}}",
+      "counting": "Counting {project} only, because you opened it from {project}.",
+      "count_projects": "Count {projects}",
+      "count_many": "{count, plural, one {Count its # project} other {Count its # projects}}",
+      "count_every": "Count every project",
+      "not_counted": "Not counted from here",
+      "refused": {
+        "title": "{name} does not count {project}",
+        "description": "Its projects leave {project} out, so there is nothing to count from here. Open it for the workspace to see its numbers.",
+        "open": "Open it for the workspace"
+      }
+    },
     "meta": {
       "workspace": "Workspace dashboard · {count, plural, one {# widget} other {# widgets}} · owner {owner}",
       "private": "Private dashboard · {count, plural, one {# widget} other {# widgets}} · owner {owner}"

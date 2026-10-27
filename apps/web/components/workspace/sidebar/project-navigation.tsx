@@ -12,6 +12,7 @@ import { EUserPermissionsLevel, EUserPermissions } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import {
   CyclesOutline,
+  DashboardsOutline,
   EpicOutline,
   IntakeOutline,
   ModuleOutline,
@@ -128,6 +129,17 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
         shouldRender: project?.issue_views_view ?? false,
         sortOrder: 4,
+      },
+      {
+        i18n_key: "dashboards.title",
+        key: "dashboards",
+        name: "Dashboards",
+        href: `/${slug}/projects/${id}/dashboards`,
+        icon: DashboardsOutline,
+        // the workspace dashboards that count the project (PLANE-296); members and admins see dashboards
+        access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
+        shouldRender: true,
+        sortOrder: 4.5,
       },
       {
         i18n_key: "sidebar.pages",
