@@ -7,7 +7,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { observer } from "mobx-react";
 // plane imports
-import { LIVE_BASE_PATH, LIVE_BASE_URL } from "@plane/constants";
 import { CollaborativeDocumentEditorWithRef } from "@plane/editor";
 import type {
   CollaborationState,
@@ -25,6 +24,8 @@ import { ERowVariant, Row } from "@plane/blocks/layout";
 import { cn, generateRandomColor, hslToHex } from "@plane/utils";
 // components
 import { EditorMentionsRoot } from "@/components/editor/embeds/mentions";
+// helpers
+import { liveCollaborationURL } from "@/helpers/live.helper";
 // hooks
 import { useEditorMention, useMentionedEntityDetails } from "@/hooks/editor";
 import { useMember } from "@/hooks/store/use-member";
@@ -80,29 +81,8 @@ type Props = {
  * render already gets the config instead of switching to it after mount.
  */
 function buildRealtimeConfig(webhookConnectionParams: TWebhookConnectionQueryParams): TRealtimeConfig | undefined {
-  // Construct the WebSocket Collaboration URL
-  try {
-    const LIVE_SERVER_BASE_URL = LIVE_BASE_URL?.trim() || window.location.origin;
-    const WS_LIVE_URL = new URL(LIVE_SERVER_BASE_URL);
-    const isSecureEnvironment = window.location.protocol === "https:";
-    WS_LIVE_URL.protocol = isSecureEnvironment ? "wss" : "ws";
-    WS_LIVE_URL.pathname = `${LIVE_BASE_PATH}/collaboration`;
-
-    // Append query parameters to the URL
-    Object.entries(webhookConnectionParams)
-      .filter(([_, value]) => value !== undefined && value !== null)
-      .forEach(([key, value]) => {
-        WS_LIVE_URL.searchParams.set(key, String(value));
-      });
-
-    // Construct realtime config
-    return {
-      url: WS_LIVE_URL.toString(),
-    };
-  } catch (error) {
-    console.error("Error creating realtime config", error);
-    return undefined;
-  }
+  const url = liveCollaborationURL(webhookConnectionParams);
+  return url ? { url } : undefined;
 }
 
 export const PageEditorBody = observer(function PageEditorBody(props: Props) {
