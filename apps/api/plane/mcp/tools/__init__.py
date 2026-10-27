@@ -110,6 +110,7 @@ from plane.mcp.tools import (  # noqa: E402,F401
     inbox,
     intake,
     project,
+    steering,
     workitem,
     workitem_parts,
 )
