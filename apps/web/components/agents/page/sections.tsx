@@ -215,16 +215,18 @@ export function AgentClaimsList(props: {
               : t("agents.page.claim_open", { when: agentWhen(t, claim.claimed_at) })}
           </span>
           {!claim.ended_at && onRelease && (
-            <Button
-              variant="secondary"
-              size="sm"
-              stretch="auto"
-              className="ml-auto shrink-0"
-              loading={releasing === claim.item.id}
-              disabled={releasing !== null}
-              onClick={() => release(claim.item)}
-              label={t("agents.page.release")}
-            />
+            // the propel Button takes no className, so its place in the row is the wrapper's
+            <span className="ml-auto shrink-0">
+              <Button
+                variant="secondary"
+                size="sm"
+                stretch="auto"
+                loading={releasing === claim.item.id}
+                disabled={releasing !== null}
+                onClick={() => release(claim.item)}
+                label={t("agents.page.release")}
+              />
+            </span>
           )}
         </div>
       ))}

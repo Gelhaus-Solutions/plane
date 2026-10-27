@@ -55,8 +55,8 @@ export const AgentSessionPanel = observer(function AgentSessionPanel({ slug, ses
 
   const releaseClaim = (item: TAgentItemRef) =>
     agent.releaseClaim(slug, item.project_id, item.id, sessionId).then(
-      () => setToast({ type: "success", title: t("agents.panel.released", { item: item.identifier }) }),
-      () => setToast({ type: "error", title: t("agents.panel.release_failed", { item: item.identifier }) })
+      () => void setToast({ type: "success", title: t("agents.panel.released", { item: item.identifier }) }),
+      () => void setToast({ type: "error", title: t("agents.panel.release_failed", { item: item.identifier }) })
     );
 
   const shell = (children: ReactNode) => (
