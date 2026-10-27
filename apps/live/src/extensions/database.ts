@@ -14,6 +14,7 @@ import type { TDocumentPayload } from "@plane/types";
 import { logger } from "@plane/logger";
 // lib
 import { AppError } from "@/lib/errors";
+import { isPresenceRoom } from "@/lib/presence";
 // services
 import { getPageService } from "@/services/page/handler";
 // type
@@ -24,6 +25,8 @@ import { broadcastError } from "@/utils/broadcast-error";
 import { forceCloseDocumentAcrossServers } from "./force-close-handler";
 
 const fetchDocument = async ({ context, documentName: pageId, instance }: FetchPayloadWithContext) => {
+  // a presence room has nothing to load
+  if (isPresenceRoom(pageId)) return null;
   try {
     const service = getPageService(context.documentType, context);
     // fetch details
@@ -75,6 +78,8 @@ const storeDocument = async ({
   documentName: pageId,
   instance,
 }: StorePayloadWithContext) => {
+  // nor anything to save
+  if (isPresenceRoom(pageId)) return;
   try {
     const service = getPageService(context.documentType, context);
     // convert binary data to all formats

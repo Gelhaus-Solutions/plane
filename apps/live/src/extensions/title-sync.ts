@@ -18,6 +18,7 @@ import {
 } from "@plane/editor";
 import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
+import { isPresenceRoom } from "@/lib/presence";
 // helpers
 import { getPageService } from "@/services/page/handler";
 import type { HocusPocusServerContext, OnLoadDocumentPayloadWithContext } from "@/types";
@@ -46,6 +47,8 @@ export class TitleSyncExtension implements Extension {
    * Handle document loading - migrate old titles if needed
    */
   async onLoadDocument({ context, document, documentName }: OnLoadDocumentPayloadWithContext) {
+    // a presence room has no title
+    if (isPresenceRoom(documentName)) return;
     try {
       // initially for on demand migration of old titles to a new title field
       // in the yjs binary
@@ -79,6 +82,7 @@ export class TitleSyncExtension implements Extension {
     context: HocusPocusServerContext;
     instance: Hocuspocus;
   }) {
+    if (isPresenceRoom(documentName)) return;
     // Create a title update manager for this document
     const updateManager = new TitleUpdateManager(documentName, context);
 

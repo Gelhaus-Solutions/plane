@@ -9,6 +9,7 @@ import type { IncomingHttpHeaders } from "http";
 import type { TUserDetails } from "@plane/editor";
 import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
+import { authorizePresence, isPresenceRoom } from "@/lib/presence";
 // services
 import { UserService } from "@/services/user.service";
 // types
@@ -19,6 +20,8 @@ import type { HocusPocusServerContext, TDocumentTypes } from "@/types";
  * @param requestHeaders - The request headers
  * @param context - The context
  * @param token - The token
+ * @param documentName - The document, or a presence room (read-only, for the viewers it lets in)
+ * @param connection - The connection's settings
  * @returns The authenticated user
  */
 export const onAuthenticate = async ({
@@ -26,11 +29,15 @@ export const onAuthenticate = async ({
   requestParameters,
   context,
   token,
+  documentName,
+  connection,
 }: {
   requestHeaders: IncomingHttpHeaders;
   context: HocusPocusServerContext;
   requestParameters: URLSearchParams;
   token: string;
+  documentName: string;
+  connection: { readOnly: boolean };
 }) => {
   let cookie: string | undefined = undefined;
   let userId: string | undefined = undefined;
@@ -66,10 +73,17 @@ export const onAuthenticate = async ({
   context.userId = userId;
   context.workspaceSlug = requestParameters.get("workspaceSlug");
 
-  return await handleAuthentication({
+  const authenticated = await handleAuthentication({
     cookie: context.cookie,
     userId: context.userId,
   });
+
+  if (isPresenceRoom(documentName)) {
+    await authorizePresence({ documentName, workspaceSlug: context.workspaceSlug, cookie: context.cookie });
+    connection.readOnly = true;
+  }
+
+  return authenticated;
 };
 
 export const handleAuthentication = async ({ cookie, userId }: { cookie: string; userId: string }) => {
