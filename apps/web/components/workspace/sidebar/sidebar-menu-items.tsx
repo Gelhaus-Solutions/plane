@@ -17,6 +17,7 @@ import {
 import { useTranslation } from "@plane/i18n";
 // components
 import { SidebarInboxCount } from "@/components/sidebar/sidebar-inbox-count";
+import { SidebarNeedsYouCount } from "@/components/sidebar/sidebar-needs-you-count";
 // store hooks
 import useLocalStorage from "@/hooks/use-local-storage";
 import {
@@ -25,10 +26,13 @@ import {
 } from "@/hooks/use-navigation-preferences";
 import { SidebarItemBase } from "./sidebar-item";
 
-const ADDITIONAL_STATIC_ITEMS = ["inbox"];
+const ADDITIONAL_STATIC_ITEMS = ["inbox", "needs_you"];
 
-const renderInboxCount = (itemKey: string, workspaceSlug: string) =>
-  itemKey === "inbox" ? <SidebarInboxCount workspaceSlug={workspaceSlug} /> : null;
+const renderCount = (itemKey: string, workspaceSlug: string) => {
+  if (itemKey === "inbox") return <SidebarInboxCount workspaceSlug={workspaceSlug} />;
+  if (itemKey === "needs_you") return <SidebarNeedsYouCount workspaceSlug={workspaceSlug} />;
+  return null;
+};
 
 export const SidebarMenuItems = observer(function SidebarMenuItems() {
   // routers
@@ -51,7 +55,13 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
   // Filter static navigation items based on personal preferences
   const filteredStaticNavigationItems = useMemo(() => {
     const inboxItem = WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["inbox"];
-    const items = [...WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS_LINKS, ...(inboxItem ? [inboxItem] : [])];
+    // what agents ask and the work they finished into Review, under Inbox (E29)
+    const needsYouItem = WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["needs-you"];
+    const items = [
+      ...WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS_LINKS,
+      ...(inboxItem ? [inboxItem] : []),
+      ...(needsYouItem ? [needsYouItem] : []),
+    ];
     const personalItems: Array<(typeof items)[0] & { sort_order: number }> = [];
 
     // Add personal items based on preferences with their sort_order
@@ -103,7 +113,7 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
             key={`static_${item.key}`}
             item={item}
             additionalStaticItems={ADDITIONAL_STATIC_ITEMS}
-            additionalRender={renderInboxCount}
+            additionalRender={renderCount}
           />
         ))}
       </div>

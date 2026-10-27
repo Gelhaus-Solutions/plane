@@ -82,6 +82,8 @@ export const coreRoutes: RouteConfigEntry[] = [
 
         // Agents: live sessions by bot, their queues and history (E28, D46)
         route(":workspaceSlug/agents", "./(all)/[workspaceSlug]/(projects)/agents/page.tsx"),
+        // Questions from agents and items in Review (E29)
+        route(":workspaceSlug/needs-you", "./(all)/[workspaceSlug]/(projects)/needs-you/page.tsx"),
 
         // Dashboards of PQL widgets (E23)
         route(":workspaceSlug/dashboards", "./(all)/[workspaceSlug]/(projects)/dashboards/page.tsx"),
