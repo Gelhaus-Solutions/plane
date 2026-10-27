@@ -13,6 +13,13 @@ from plane.app.views.agent.base import (
     WorkspaceAgentSessionsEndpoint,
 )
 
+from plane.app.views.agent.steering import (
+    WorkItemAgentActivityEndpoint,
+    WorkItemQuestionAnswerEndpoint,
+    WorkItemQuestionEndpoint,
+    WorkspaceNeedsYouEndpoint,
+)
+
 urlpatterns = [
     path("workspaces/<str:slug>/agent-sessions/", WorkspaceAgentSessionsEndpoint.as_view(), name="agent-sessions"),
     path(
@@ -39,5 +46,21 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/claim/",
         WorkItemClaimEndpoint.as_view(),
         name="work-item-claim",
+    ),
+    path("workspaces/<str:slug>/needs-you/", WorkspaceNeedsYouEndpoint.as_view(), name="needs-you"),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/agent-activity/",
+        WorkItemAgentActivityEndpoint.as_view(),
+        name="work-item-agent-activity",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/questions/<uuid:pk>/",
+        WorkItemQuestionEndpoint.as_view(),
+        name="work-item-question",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/questions/<uuid:pk>/answer/",
+        WorkItemQuestionAnswerEndpoint.as_view(),
+        name="work-item-question-answer",
     ),
 ]

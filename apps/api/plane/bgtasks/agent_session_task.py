@@ -7,6 +7,7 @@ import logging
 from celery import shared_task
 
 from plane.utils.agent_sessions import sweep
+from plane.utils.agent_steering import sweep_questions
 
 logger = logging.getLogger("plane.worker")
 
@@ -17,3 +18,11 @@ def sweep_agent_sessions():
     away, ended = sweep()
     if away or ended:
         logger.info("agent sessions swept", extra={"away": away, "ended": ended})
+
+
+@shared_task
+def apply_question_deadlines():
+    """An agent's question whose deadline passed unanswered gets its default, and the session is told."""
+    changed = sweep_questions()
+    if changed:
+        logger.info("agent question deadlines applied", extra={"count": changed})

@@ -11,9 +11,10 @@ from rest_framework.response import Response
 
 from plane.app.permissions import ProjectEntityPermission, WorkspaceUserPermission
 from plane.db.models import AgentSession, Issue, Workspace, WorkspaceMember
-from plane.utils import agent_assignments, agent_inbox, agent_sessions
-from plane.utils.agent_sessions import ClaimConflict, SessionError, session_data, sessions_in
+from plane.utils import agent_assignments, agent_inbox, agent_sessions, agent_steering
+from plane.utils.agent_sessions import ClaimConflict, SessionError, claim_progress, session_data, sessions_in
 
+from .agent_steering import failure
 from .base import BaseAPIView
 
 PAGE_SIZE = 100
@@ -115,6 +116,7 @@ def claim_data(claim):
         "claimed_at": claim.claimed_at,
         "ended_at": claim.ended_at,
         "end_reason": claim.end_reason,
+        **claim_progress(claim),
     }
 
 
@@ -147,6 +149,24 @@ class WorkItemClaimAPIEndpoint(BaseAPIView):
         except SessionError as error:
             return Response({"error": str(error)}, status=status.HTTP_403_FORBIDDEN)
         return Response({"claim": claim_data(claim)}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+    def patch(self, request, slug, project_id, issue_id):
+        """The holder keeps its status line and plan current (E29): ``status`` (working, waiting_for_review, blocked),
+        ``status_text``, and ``plan`` (steps, with ``plan_current`` the number of the step in progress)."""
+        issue = self._issue(slug, project_id, issue_id)
+        body = request.data if isinstance(request.data, dict) else {}
+        session = getattr(request, "agent_session", None)
+        if not any(key in body for key in ("status", "status_text", "plan")):
+            return Response({"error": "Send status, status_text or plan"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            claim = agent_steering.held_claim(issue, session)
+            if "plan" in body:
+                claim = agent_steering.set_plan(issue, session, body["plan"], body.get("plan_current"))
+            if "status" in body or "status_text" in body:
+                claim = agent_steering.set_status(issue, session, body.get("status"), body.get("status_text"))
+        except SessionError as error:
+            return failure(error)
+        return Response({"claim": claim_data(claim)}, status=status.HTTP_200_OK)
 
     def delete(self, request, slug, project_id, issue_id):
         issue = self._issue(slug, project_id, issue_id)

@@ -306,6 +306,24 @@ def release(issue, session=None):
     return current
 
 
+def plan_summary(plan):
+    """``{"done", "total", "current"}``: how far a plan is, and the title of the step being worked on."""
+    plan = plan or []
+    doing = next((step["title"] for step in plan if step.get("state") == "doing"), None)
+    return {"done": sum(1 for step in plan if step.get("state") == "done"), "total": len(plan), "current": doing}
+
+
+def claim_progress(claim):
+    """The claim's status line and plan (E29), as the APIs show them."""
+    return {
+        "status": claim.status,
+        "status_text": claim.status_text,
+        "status_at": claim.status_at,
+        "plan": claim.plan or [],
+        "plan_summary": plan_summary(claim.plan),
+    }
+
+
 # Payloads shared by the public API and the app
 def session_data(session):
     bot_user = session.bot.user

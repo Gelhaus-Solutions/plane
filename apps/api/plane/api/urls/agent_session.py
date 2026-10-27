@@ -4,6 +4,12 @@
 
 from django.urls import path
 
+from plane.api.views.agent_steering import (
+    WorkItemAgentActivityAPIEndpoint,
+    WorkItemQuestionAPIEndpoint,
+    WorkItemQuestionListAPIEndpoint,
+    WorkItemReviewAPIEndpoint,
+)
 from plane.api.views.agent_session import (
     AgentSessionDetailAPIEndpoint,
     AgentSessionEndAPIEndpoint,
@@ -59,7 +65,27 @@ urlpatterns = [
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/claim/",
-        WorkItemClaimAPIEndpoint.as_view(http_method_names=["get", "post", "delete"]),
+        WorkItemClaimAPIEndpoint.as_view(http_method_names=["get", "post", "patch", "delete"]),
         name="work-item-claim",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/agent-activity/",
+        WorkItemAgentActivityAPIEndpoint.as_view(http_method_names=["get", "post"]),
+        name="work-item-agent-activity",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/review/",
+        WorkItemReviewAPIEndpoint.as_view(http_method_names=["post"]),
+        name="work-item-review",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/questions/",
+        WorkItemQuestionListAPIEndpoint.as_view(http_method_names=["get", "post"]),
+        name="work-item-questions",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:issue_id>/questions/<uuid:pk>/",
+        WorkItemQuestionAPIEndpoint.as_view(http_method_names=["get", "delete"]),
+        name="work-item-question",
     ),
 ]

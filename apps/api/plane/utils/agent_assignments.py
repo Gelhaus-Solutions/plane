@@ -18,7 +18,7 @@ from plane.db.models import (
     WorkspaceBot,
 )
 from plane.utils import agent_inbox
-from plane.utils.agent_sessions import SessionError
+from plane.utils.agent_sessions import SessionError, claim_progress
 
 CLOSED_GROUPS = ("completed", "cancelled")
 
@@ -178,4 +178,5 @@ def claim_data(claim):
             "bot": {"id": str(bot_user.id), "display_name": bot_user.display_name},
         },
         "claimed_at": claim.claimed_at,
+        **claim_progress(claim),
     }

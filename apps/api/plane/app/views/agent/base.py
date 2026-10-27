@@ -12,7 +12,7 @@ from rest_framework.response import Response
 
 from plane.app.permissions import ROLE, allow_permission
 from plane.db.models import AgentSession, Issue, IssueAssignee, WorkItemClaim
-from plane.utils import agent_assignments, agent_board, agent_sessions
+from plane.utils import agent_assignments, agent_board, agent_sessions, agent_steering
 from plane.utils.agent_sessions import SessionError, session_data, sessions_in
 
 from .. import BaseAPIView
@@ -42,9 +42,12 @@ def _with_holds(sessions, visible, board=False):
                 **agent_board.item_ref(claim.issue),
                 "state_group": agent_board.state_group(claim.issue),
                 "claimed_at": claim.claimed_at,
+                "status": claim.status,
+                "status_text": claim.status_text,
             }
         )
     if board:
+        states = agent_steering.session_states(sessions)
         touched = agent_board.touched([session.id for session in sessions], visible)
         handoffs = agent_board.handoffs(sessions, visible)
     results = []
@@ -55,6 +58,7 @@ def _with_holds(sessions, visible, board=False):
         if board:
             data["touched"] = touched.get(session.id, [])
             data["handoff"] = handoffs.get(session.id)
+            data["agent_state"] = states[session.id]
         results.append(data)
     return results
 
@@ -142,6 +146,15 @@ class ProjectAgentRowsEndpoint(BaseAPIView):
                 str(claim.issue_id), {"issue_id": str(claim.issue_id), "agents": [], "claim": None}
             )
             entry["claim"] = agent_assignments.claim_data(claim)
+        # An item that waits for an answer shows it even when no agent is assigned or holds it
+        open_questions = agent_steering.awaiting_input(
+            workspace__slug=slug, project_id=project_id, issue__deleted_at__isnull=True
+        )
+        for issue_id, question in open_questions.items():
+            entry = by_issue.setdefault(issue_id, {"issue_id": issue_id, "agents": [], "claim": None})
+            entry["question"] = question
+        for entry in by_issue.values():
+            entry.setdefault("question", None)
         return Response({"results": list(by_issue.values())}, status=status.HTTP_200_OK)
 
 
@@ -156,6 +169,7 @@ def _item_agents(issue):
     return {
         "agents": [agent_assignments.row_data(row, state) for row, state in agent_assignments.rows_for(issue)],
         "claim": agent_assignments.claim_data(claim) if claim else None,
+        "question": agent_steering.awaiting_input(issue=issue).get(str(issue.id)),
     }
 
 
