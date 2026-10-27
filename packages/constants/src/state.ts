@@ -7,7 +7,8 @@
 import type { TStateGroups } from "@plane/types";
 
 export type TDraggableData = {
-  groupKey: TStateGroups;
+  /** The group a dragged state sits in: a workspace state group's id (E30). */
+  groupKey: string;
   id: string;
 };
 

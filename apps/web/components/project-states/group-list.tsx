@@ -7,13 +7,17 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
-import type { IState, TStateGroups, TStateOperationsCallbacks } from "@plane/types";
+import type { IState, TStateOperationsCallbacks, TWorkspaceStateGroup } from "@plane/types";
 import { cn } from "@plane/utils";
 // components
 import { GroupItem } from "@/components/project-states";
 
 type TGroupList = {
+  /** The project's states by workspace state group id. */
   groupedStates: Record<string, IState[]>;
+  /** The workspace's state groups, in board order (E30). */
+  stateGroups: TWorkspaceStateGroup[];
+  projectName: string;
   stateOperationsCallbacks: TStateOperationsCallbacks;
   isEditable: boolean;
   groupListClassName?: string;
@@ -24,59 +28,35 @@ type TGroupList = {
 export const GroupList = observer(function GroupList(props: TGroupList) {
   const {
     groupedStates,
+    stateGroups,
+    projectName,
     stateOperationsCallbacks,
     isEditable,
     groupListClassName,
     groupItemClassName,
     stateItemClassName,
   } = props;
-  // states
-  const [groupsExpanded, setGroupsExpanded] = useState<Partial<TStateGroups>[]>([
-    "backlog",
-    "unstarted",
-    "started",
-    "completed",
-    "cancelled",
-  ]);
+  // states: the groups folded away, so a group added later opens expanded
+  const [collapsed, setCollapsed] = useState<string[]>([]);
 
-  const handleGroupCollapse = (groupKey: TStateGroups) => {
-    setGroupsExpanded((prev) => {
-      if (prev.includes(groupKey)) {
-        return prev.filter((key) => key !== groupKey);
-      }
-      return prev;
-    });
-  };
-
-  const handleExpand = (groupKey: TStateGroups) => {
-    setGroupsExpanded((prev) => {
-      if (prev.includes(groupKey)) {
-        return prev;
-      }
-      return [...prev, groupKey];
-    });
-  };
   return (
     <div className={cn("space-y-5", groupListClassName)}>
-      {Object.entries(groupedStates).map(([key, value]) => {
-        const groupKey = key as TStateGroups;
-        const groupStates = value;
-        return (
-          <GroupItem
-            key={groupKey}
-            groupKey={groupKey}
-            states={groupStates}
-            groupedStates={groupedStates}
-            groupsExpanded={groupsExpanded}
-            stateOperationsCallbacks={stateOperationsCallbacks}
-            isEditable={isEditable}
-            handleGroupCollapse={handleGroupCollapse}
-            handleExpand={handleExpand}
-            groupItemClassName={groupItemClassName}
-            stateItemClassName={stateItemClassName}
-          />
-        );
-      })}
+      {stateGroups.map((group) => (
+        <GroupItem
+          key={group.id}
+          group={group}
+          states={groupedStates[group.id] ?? []}
+          groupedStates={groupedStates}
+          projectName={projectName}
+          expanded={!collapsed.includes(group.id)}
+          stateOperationsCallbacks={stateOperationsCallbacks}
+          isEditable={isEditable}
+          handleGroupCollapse={() => setCollapsed((prev) => (prev.includes(group.id) ? prev : [...prev, group.id]))}
+          handleExpand={() => setCollapsed((prev) => prev.filter((id) => id !== group.id))}
+          groupItemClassName={groupItemClassName}
+          stateItemClassName={stateItemClassName}
+        />
+      ))}
     </div>
   );
 });

@@ -12,33 +12,35 @@ import { Icon } from "@makeplane/propel/components/icon";
 import { IconButton } from "@makeplane/propel/components/icon-button";
 import { AddOutline, ChevronDownOutline } from "@makeplane/propel/icons";
 // plane imports
-import { StateGroupIcon } from "@plane/blocks/icons";
-import { EIconSize } from "@plane/constants";
+import { WorkspaceStateGroupIcon } from "@plane/blocks/icons";
 import { useTranslation } from "@plane/i18n";
-import type { IState, TStateGroups, TStateOperationsCallbacks } from "@plane/types";
+import type { IState, TStateOperationsCallbacks, TWorkspaceStateGroup } from "@plane/types";
 import { cn } from "@plane/utils";
 // components
 import { StateList, StateCreate } from "@/components/project-states";
 
 type TGroupItem = {
-  groupKey: TStateGroups;
-  groupsExpanded: Partial<TStateGroups>[];
+  /** The workspace state group (E30); its id keys `groupedStates`. */
+  group: TWorkspaceStateGroup;
+  expanded: boolean;
+  projectName: string;
   groupedStates: Record<string, IState[]>;
   states: IState[];
   stateOperationsCallbacks: TStateOperationsCallbacks;
   isEditable: boolean;
   groupItemClassName?: string;
   stateItemClassName?: string;
-  handleGroupCollapse: (groupKey: TStateGroups) => void;
-  handleExpand: (groupKey: TStateGroups) => void;
+  handleGroupCollapse: () => void;
+  handleExpand: () => void;
 };
 
 export const GroupItem = observer(function GroupItem(props: TGroupItem) {
   const {
-    groupKey,
+    group,
     groupedStates,
     states,
-    groupsExpanded,
+    expanded,
+    projectName,
     isEditable,
     stateOperationsCallbacks,
     groupItemClassName,
@@ -53,8 +55,10 @@ export const GroupItem = observer(function GroupItem(props: TGroupItem) {
   // state
   const [createState, setCreateState] = useState(false);
   // derived values
-  const currentStateExpanded = groupsExpanded.includes(groupKey);
-  const shouldShowEmptyState = states.length === 0 && currentStateExpanded && !createState;
+  const currentStateExpanded = expanded;
+  // a group the project has no state in: it is not used here until a state is added
+  const unused = states.length === 0 && !createState;
+  const shouldShowEmptyState = unused && currentStateExpanded;
 
   const isCreateDisabled = !isEditable || createState;
 
@@ -65,7 +69,7 @@ export const GroupItem = observer(function GroupItem(props: TGroupItem) {
     >
       <Collapsible
         open={currentStateExpanded}
-        onOpenChange={(open) => (open ? handleExpand(groupKey) : handleGroupCollapse(groupKey))}
+        onOpenChange={(open) => (open ? handleExpand() : handleGroupCollapse())}
         indicator={false}
         icon={
           <Icon
@@ -80,9 +84,14 @@ export const GroupItem = observer(function GroupItem(props: TGroupItem) {
           />
         }
         trigger={
-          <span className="flex w-full items-center gap-1">
-            <StateGroupIcon stateGroup={groupKey} size={EIconSize.XL} className="shrink-0" />
-            <span className="px-1 text-14 font-medium text-secondary capitalize">{groupKey}</span>
+          <span className="flex w-full min-w-0 items-center gap-1">
+            <WorkspaceStateGroupIcon group={group} className="size-[15px] shrink-0" />
+            <span className="truncate px-1 text-14 font-medium text-secondary">{group.name}</span>
+            {unused && (
+              <span className="inline-flex h-5 shrink-0 items-center rounded-md border border-strong px-1.5 text-11 text-secondary">
+                {t("project_settings.states.not_used", { project: projectName })}
+              </span>
+            )}
           </span>
         }
         trailing={
@@ -94,7 +103,7 @@ export const GroupItem = observer(function GroupItem(props: TGroupItem) {
             disabled={isCreateDisabled}
             onClick={() => {
               if (!createState) {
-                handleExpand(groupKey);
+                handleExpand();
                 setCreateState(true);
               }
             }}
@@ -107,15 +116,22 @@ export const GroupItem = observer(function GroupItem(props: TGroupItem) {
         }
       >
         {shouldShowEmptyState && (
-          <div className="flex h-full flex-col items-center justify-center py-4 text-13 text-tertiary">
-            <div>{t("project_settings.states.empty_state.title", { groupKey })}</div>
-            {isEditable && <div>{t("project_settings.states.empty_state.description")}</div>}
+          <div className="px-4 py-2.5 text-12 text-tertiary">
+            {group.state_count
+              ? t("project_settings.states.unused_note", {
+                  group: group.name,
+                  projects: group.project_count ?? 0,
+                  states: group.state_count,
+                })
+              : t("project_settings.states.unused_nowhere", { group: group.name })}{" "}
+            {isEditable && t("project_settings.states.unused_add", { project: projectName })}
           </div>
         )}
 
         <div id="group-droppable-container">
           <StateList
-            groupKey={groupKey}
+            groupKey={group.id}
+            review={group.key === "review"}
             groupedStates={groupedStates}
             states={states}
             disabled={!isEditable}
@@ -130,7 +146,7 @@ export const GroupItem = observer(function GroupItem(props: TGroupItem) {
       {isEditable && createState && (
         <div className="mt-1">
           <StateCreate
-            groupKey={groupKey}
+            group={group}
             handleClose={() => setCreateState(false)}
             createStateCallback={stateOperationsCallbacks.createState}
           />

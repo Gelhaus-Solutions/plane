@@ -9,12 +9,30 @@ import { observer } from "mobx-react";
 import useSWR from "swr";
 // components
 import { EUserPermissionsLevel } from "@plane/constants";
-import type { IState, TStateOperationsCallbacks } from "@plane/types";
+import type { IState, TStateOperationsCallbacks, TWorkspaceStateGroup } from "@plane/types";
 import { EUserProjectRoles } from "@plane/types";
 import { ProjectStateLoader, GroupList } from "@/components/project-states";
 // hooks
+import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
+import { useStateGroup } from "@/hooks/store/use-state-group";
 import { useUserPermissions } from "@/hooks/store/user";
+
+/**
+ * A project's states by workspace state group (E30), in the workspace's group order with every group present. A state
+ * not yet in a group sits in the built-in group of its category.
+ */
+const groupStates = (states: IState[], groups: TWorkspaceStateGroup[]) => {
+  const grouped: Record<string, IState[]> = Object.fromEntries(groups.map((group) => [group.id, []]));
+  for (const state of states) {
+    const id =
+      state.state_group && grouped[state.state_group]
+        ? state.state_group
+        : groups.find((group) => group.is_builtin && group.key === state.group)?.id;
+    if (id) grouped[id].push(state);
+  }
+  return grouped;
+};
 
 type TProjectState = {
   workspaceSlug: string;
@@ -25,7 +43,7 @@ export const ProjectStateRoot = observer(function ProjectStateRoot(props: TProje
   const { workspaceSlug, projectId } = props;
   // hooks
   const {
-    groupedProjectStates,
+    getProjectStates,
     fetchProjectStates,
     createState,
     moveStatePosition,
@@ -33,6 +51,8 @@ export const ProjectStateRoot = observer(function ProjectStateRoot(props: TProje
     deleteState,
     markStateAsDefault,
   } = useProjectState();
+  const { getStateGroups, fetchStateGroups } = useStateGroup();
+  const { getProjectById } = useProject();
   const { allowPermissions } = useUserPermissions();
   // derived values
   const isEditable = allowPermissions(
@@ -47,6 +67,15 @@ export const ProjectStateRoot = observer(function ProjectStateRoot(props: TProje
     workspaceSlug && projectId ? `PROJECT_STATES_${workspaceSlug}_${projectId}` : null,
     workspaceSlug && projectId ? () => fetchProjectStates(workspaceSlug.toString(), projectId.toString()) : null,
     { revalidateIfStale: false, revalidateOnFocus: false }
+  );
+  // the workspace's groups, asked again on each visit so a group added in workspace settings shows
+  useSWR(
+    workspaceSlug ? `WORKSPACE_STATE_GROUPS_${workspaceSlug}` : null,
+    () => fetchStateGroups(workspaceSlug, true),
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+    }
   );
 
   // State operations callbacks
@@ -63,12 +92,17 @@ export const ProjectStateRoot = observer(function ProjectStateRoot(props: TProje
     [workspaceSlug, projectId, createState, moveStatePosition, updateState, deleteState, markStateAsDefault]
   );
 
+  const stateGroups = getStateGroups(workspaceSlug);
+  const projectStates = getProjectStates(projectId);
+
   // Loader
-  if (!groupedProjectStates) return <ProjectStateLoader />;
+  if (!stateGroups || !projectStates) return <ProjectStateLoader />;
 
   return (
     <GroupList
-      groupedStates={groupedProjectStates}
+      groupedStates={groupStates(projectStates, stateGroups)}
+      stateGroups={stateGroups}
+      projectName={getProjectById(projectId)?.name ?? ""}
       stateOperationsCallbacks={stateOperationsCallbacks}
       isEditable={isEditable}
     />

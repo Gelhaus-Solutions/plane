@@ -8,18 +8,19 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { STATE_GROUPS } from "@plane/constants";
 import { setToast } from "@plane/blocks/toast";
-import type { IState, TStateGroups, TStateOperationsCallbacks } from "@plane/types";
+import type { IState, TStateOperationsCallbacks, TWorkspaceStateGroup } from "@plane/types";
 // components
 import { StateForm } from "@/components/project-states";
 
 type TStateCreate = {
-  groupKey: TStateGroups;
+  /** The workspace state group the new state goes into (E30). */
+  group: TWorkspaceStateGroup;
   createStateCallback: TStateOperationsCallbacks["createState"];
   handleClose: () => void;
 };
 
 export const StateCreate = observer(function StateCreate(props: TStateCreate) {
-  const { groupKey, createStateCallback, handleClose } = props;
+  const { group, createStateCallback, handleClose } = props;
 
   // states
   const [loader, setLoader] = useState(false);
@@ -30,10 +31,10 @@ export const StateCreate = observer(function StateCreate(props: TStateCreate) {
   };
 
   const onSubmit = async (formData: Partial<IState>) => {
-    if (!groupKey) return { status: "error" };
+    if (!group) return { status: "error" };
 
     try {
-      await createStateCallback({ ...formData, group: groupKey });
+      await createStateCallback({ ...formData, group: group.category, state_group: group.id });
 
       setToast({
         type: "success",
@@ -64,7 +65,7 @@ export const StateCreate = observer(function StateCreate(props: TStateCreate) {
 
   return (
     <StateForm
-      data={{ name: "", description: "", color: STATE_GROUPS[groupKey].color }}
+      data={{ name: "", description: "", color: STATE_GROUPS[group.category].color }}
       onSubmit={onSubmit}
       onCancel={onCancel}
       buttonDisabled={loader}

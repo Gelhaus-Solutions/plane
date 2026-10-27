@@ -11,14 +11,16 @@ import { attachClosestEdge, extractClosestEdge } from "@atlaskit/pragmatic-drag-
 import { observer } from "mobx-react";
 // Plane
 import type { TDraggableData } from "@plane/constants";
-import type { IState, TStateGroups, TStateOperationsCallbacks } from "@plane/types";
+import type { IState, TStateOperationsCallbacks } from "@plane/types";
 import { DropIndicator } from "@plane/blocks/common";
 import { cn, getCurrentStateSequence } from "@plane/utils";
 // components
 import { StateItemTitle, StateUpdate } from "@/components/project-states";
 // helpers
 type TStateItem = {
-  groupKey: TStateGroups;
+  /** The workspace state group the state sits in (E30). */
+  groupKey: string;
+  review?: boolean;
   groupedStates: Record<string, IState[]>;
   totalStates: number;
   state: IState;
@@ -30,6 +32,7 @@ type TStateItem = {
 export const StateItem = observer(function StateItem(props: TStateItem) {
   const {
     groupKey,
+    review,
     groupedStates,
     totalStates,
     state,
@@ -45,10 +48,11 @@ export const StateItem = observer(function StateItem(props: TStateItem) {
   const [isDraggedOver, setIsDraggedOver] = useState(false);
   const [closestEdge, setClosestEdge] = useState<string | null>(null);
   // derived values
-  const isDraggable = totalStates === 1 ? false : true;
+  const isDraggable = totalStates !== 1;
   const commonStateItemListProps = {
     stateCount: totalStates,
     state: state,
+    review,
     setUpdateStateModal: setUpdateStateModal,
   };
 
@@ -101,11 +105,14 @@ export const StateItem = observer(function StateItem(props: TStateItem) {
 
             if (sourceData && destinationData && sourceData.id) {
               const destinationGroupKey = destinationData.groupKey;
+              const destinationStates = groupedStates[destinationGroupKey] ?? [];
               const edge = extractClosestEdge(destinationData) || undefined;
+              // into the state group dropped on; the state takes its category, as the server does
               const payload: Partial<IState> = {
                 id: sourceData.id,
-                group: destinationGroupKey,
-                sequence: getCurrentStateSequence(groupedStates[destinationGroupKey], destinationData, edge),
+                state_group: destinationGroupKey,
+                ...(destinationStates[0] ? { group: destinationStates[0].group } : {}),
+                sequence: getCurrentStateSequence(destinationStates, destinationData, edge),
               };
               handleStateSequence(payload);
             }

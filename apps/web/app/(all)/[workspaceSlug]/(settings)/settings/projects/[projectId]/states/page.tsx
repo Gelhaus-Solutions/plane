@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import Link from "next/link";
 import { observer } from "mobx-react";
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
@@ -46,11 +47,21 @@ function StatesSettingsPage({ params }: Route.ComponentProps) {
       <div className="w-full">
         <SettingsHeading
           title={t("project_settings.states.heading")}
-          description={t("project_settings.states.description")}
+          description={t("project_settings.states.description", { project: currentProjectDetails?.name ?? "" })}
         />
         <div className="mt-6">
           <ProjectStateRoot workspaceSlug={workspaceSlug} projectId={projectId} />
         </div>
+        <p className="mt-4 text-12 leading-relaxed text-tertiary">
+          {t("project_settings.states.footer")}{" "}
+          <Link
+            href={`/${workspaceSlug}/settings/state-groups`}
+            className="rounded-sm text-accent-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent-strong"
+          >
+            {t("project_settings.states.footer_link")}
+          </Link>
+          .
+        </p>
       </div>
     </SettingsContentWrapper>
   );

@@ -38,12 +38,18 @@
     },
     "states": {
       "heading": "States",
-      "description": "Define and customize workflow states to track the progress of your work items.",
+      "description": "{project}'s states, inside the workspace's state groups.",
       "describe_this_state_for_your_members": "Describe this state for your members.",
       "empty_state": {
         "title": "No states available for the {groupKey} group",
         "description": "Please create a new state"
-      }
+      },
+      "not_used": "not used in {project}",
+      "unused_note": "{projects, plural, one {# project uses} other {# projects use}} {group} with {states, plural, one {# state} other {# states}}.",
+      "unused_nowhere": "No project uses {group} yet.",
+      "unused_add": "Add a state to use it in {project}.",
+      "footer": "The board shows one column per group in use, with the states inside it. The groups themselves are set for the whole workspace in",
+      "footer_link": "State groups"
     },
     "labels": {
       "heading": "Labels",

@@ -21,6 +21,8 @@ import { StateDelete, StateMarksAsDefault } from "./options";
 type TBaseStateItemTitleProps = {
   stateCount: number;
   state: IState;
+  /** The state sits in the built-in Review group (E30). */
+  review?: boolean;
   shouldShowDescription?: boolean;
   setUpdateStateModal: (value: SetStateAction<boolean>) => void;
 };
@@ -37,7 +39,7 @@ type TDisabledStateItemTitleProps = TBaseStateItemTitleProps & {
 export type TStateItemTitleProps = TEnabledStateItemTitleProps | TDisabledStateItemTitleProps;
 
 export const StateItemTitle = observer(function StateItemTitle(props: TStateItemTitleProps) {
-  const { stateCount, setUpdateStateModal, disabled, state, shouldShowDescription = true } = props;
+  const { stateCount, setUpdateStateModal, disabled, state, review, shouldShowDescription = true } = props;
   // plane hooks
   const { t } = useTranslation();
   // store hooks
@@ -57,7 +59,13 @@ export const StateItemTitle = observer(function StateItemTitle(props: TStateItem
         )}
         {/* state icon */}
         <div className="flex-shrink-0">
-          <StateGroupIcon stateGroup={state.group} color={state.color} size={EIconSize.XL} percentage={percentage} />
+          <StateGroupIcon
+            stateGroup={state.group}
+            color={state.color}
+            size={EIconSize.XL}
+            percentage={percentage}
+            review={review}
+          />
         </div>
         {/* state title and description */}
         <div className="min-h-5 px-2 text-13">
@@ -71,7 +79,7 @@ export const StateItemTitle = observer(function StateItemTitle(props: TStateItem
           <div className="flex-shrink-0 text-11 transition-all">
             <StateMarksAsDefault
               stateId={state.id}
-              isDefault={state.default ? true : false}
+              isDefault={!!state.default}
               markStateAsDefaultCallback={props.stateOperationsCallbacks.markStateAsDefault}
             />
           </div>

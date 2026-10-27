@@ -38,12 +38,18 @@
     },
     "states": {
       "heading": "Status",
-      "description": "Definieren und passen Sie Workflow-Status an, um den Fortschritt Ihrer Arbeitselemente zu verfolgen.",
+      "description": "Die Status von {project}, in den Statusgruppen des Arbeitsbereichs.",
       "describe_this_state_for_your_members": "Beschreiben Sie diesen Status für Ihre Mitglieder.",
       "empty_state": {
         "title": "Keine Status für die Gruppe {groupKey}",
         "description": "Erstellen Sie einen neuen Status"
-      }
+      },
+      "not_used": "in {project} nicht genutzt",
+      "unused_note": "{projects, plural, one {# Projekt nutzt} other {# Projekte nutzen}} {group} mit {states, plural, one {# Status} other {# Status}}.",
+      "unused_nowhere": "Noch kein Projekt nutzt {group}.",
+      "unused_add": "Fügen Sie einen Status hinzu, um die Gruppe in {project} zu nutzen.",
+      "footer": "Das Board zeigt eine Spalte je genutzter Gruppe, mit den Status darin. Die Gruppen selbst legen Sie für den ganzen Arbeitsbereich fest unter",
+      "footer_link": "Statusgruppen"
     },
     "labels": {
       "heading": "Labels",
