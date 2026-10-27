@@ -63,6 +63,7 @@ export type TIssueExtraOptions = "show_empty_groups" | "sub_issue";
 export type TIssueParams =
   | "priority"
   | "state_group"
+  | "state_group_id"
   | "state"
   | "assignees"
   | "mentions"

@@ -28,14 +28,16 @@ export enum EIssueGroupByToServerOptions {
   "state" = "state_id",
   "priority" = "priority",
   "labels" = "labels__id",
-  "state_detail.group" = "state__group",
+  // the workspace's state groups (E30), not the five categories
+  "state_detail.group" = "state__state_group_id",
   "assignees" = "assignees__id",
   "cycle" = "cycle_id",
   "module" = "issue_module__module_id",
   "target_date" = "target_date",
+  // team_project groups by project as well; oxlint reports the first of the two
+  // oxlint-disable-next-line typescript/no-duplicate-enum-values
   "project" = "project_id",
   "created_by" = "created_by",
-  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   "team_project" = "project_id",
 }
 
@@ -44,6 +46,7 @@ export enum EIssueGroupBYServerToProperty {
   "priority" = "priority",
   "labels__id" = "label_ids",
   "state__group" = "state__group",
+  "state__state_group_id" = "state__state_group_id",
   "assignees__id" = "assignee_ids",
   "cycle_id" = "cycle_id",
   "issue_module__module_id" = "module_ids",

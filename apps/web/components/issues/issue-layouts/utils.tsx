@@ -27,10 +27,10 @@ import {
 } from "@makeplane/propel/icons";
 // plane types
 import { Avatar } from "@makeplane/propel/components/avatar";
-import { EIconSize, ISSUE_PRIORITIES, STATE_GROUPS } from "@plane/constants";
+import { EIconSize, ISSUE_PRIORITIES } from "@plane/constants";
 import { Logo } from "@plane/blocks/emoji-icon-picker";
 import type { ISvgIcons } from "@plane/blocks/icons";
-import { CycleGroupIcon, PriorityIcon, StateGroupIcon } from "@plane/blocks/icons";
+import { CycleGroupIcon, PriorityIcon, StateGroupIcon, WorkspaceStateGroupIcon } from "@plane/blocks/icons";
 import type {
   GroupByColumnTypes,
   IGroupByColumn,
@@ -256,19 +256,26 @@ const getStateColumns = ({ projectId }: TGetColumns): IGroupByColumn[] | undefin
   }));
 };
 
-const getStateGroupColumns = (): IGroupByColumn[] => {
-  const stateGroups = STATE_GROUPS;
-  // map state groups to group by columns
-  return Object.values(stateGroups).map((stateGroup) => ({
-    id: stateGroup.key,
-    name: stateGroup.label,
-    icon: (
-      <div className="size-4 rounded-full">
-        <StateGroupIcon stateGroup={stateGroup.key} size={EIconSize.LG} />
-      </div>
-    ),
-    payload: {},
-  }));
+/**
+ * The workspace's state groups (E30) as columns, in their order: every group in a workspace view, the groups the
+ * project has states in for a project's board, as the server groups them.
+ */
+const getStateGroupColumns = ({ projectId }: TGetColumns): IGroupByColumn[] => {
+  const groups = store.stateGroup.getStateGroups(store.router.workspaceSlug ?? "") ?? [];
+  const projectStates = projectId ? store.state.getProjectStates(projectId) : undefined;
+  const used = projectStates ? new Set(projectStates.map((state) => state.state_group)) : undefined;
+  return groups
+    .filter((group) => !used || used.has(group.id))
+    .map((group) => ({
+      id: group.id,
+      name: group.name,
+      icon: (
+        <div className="size-4 rounded-full">
+          <WorkspaceStateGroupIcon group={group} size={EIconSize.LG} />
+        </div>
+      ),
+      payload: {},
+    }));
 };
 
 const getPriorityColumns = (): IGroupByColumn[] => {

@@ -131,7 +131,7 @@ export const ISSUE_FILTER_DEFAULT_DATA: Record<TIssueDisplayFilterOptions, keyof
   cycle: "cycle_id",
   module: "module_ids",
   state: "state_id",
-  "state_detail.group": "state__group", // state_detail.group is only being used for state_group display,
+  "state_detail.group": "state__state_group_id", // the state's workspace state group (E30), for display only
   priority: "priority",
   labels: "label_ids",
   created_by: "created_by",
@@ -1667,7 +1667,12 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
   ): string[] => {
     // Handle special case for state group
     if (groupByKey === "state_detail.group") {
-      return [this.rootIssueStore.rootStore.state.stateMap?.[value]?.group ?? issueObject.state__group];
+      // the state's workspace state group (E30)
+      return [
+        this.rootIssueStore.rootStore.state.stateMap?.[value]?.state_group ??
+          issueObject.state__state_group_id ??
+          "None",
+      ];
     }
 
     return [value];

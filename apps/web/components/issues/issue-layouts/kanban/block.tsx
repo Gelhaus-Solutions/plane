@@ -119,8 +119,8 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
   const parent = issue.parent_id ? getIssueById(issue.parent_id) : undefined;
   const dueDate = getDate(issue.target_date);
   const subIssuesCount = issue.sub_issues_count ?? 0;
-  // a column already says which state its cards are in
-  const showState = on("state") && groupBy !== "state" && groupBy !== "state_detail.group";
+  // a state column already says which state its cards are in; a state group column holds several (E30)
+  const showState = on("state") && groupBy !== "state";
   const showFoot = !!parent || (subIssuesCount > 0 && on("sub_issue_count")) || (!!dueDate && on("due_date"));
 
   // The 3A card: ID and assignee, the title, priority and labels, then the parent, sub-items and due date

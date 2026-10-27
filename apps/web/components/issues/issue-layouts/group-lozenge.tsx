@@ -12,6 +12,8 @@ import type { TIssueGroupByOptions } from "@plane/types";
 import { cn } from "@plane/utils";
 // hooks
 import { useProjectState } from "@/hooks/store/use-project-state";
+import { useStateGroup } from "@/hooks/store/use-state-group";
+import { useRouterParams } from "@/hooks/store/use-router-params";
 
 /** The lozenge colours per state group; review is a started state in a Review group, so it falls under started */
 const LOZENGE: Record<string, string> = {
@@ -37,8 +39,15 @@ type Props = {
 export const GroupLozenge = observer(function GroupLozenge(props: Props) {
   const { groupBy, groupId, icon, title, className } = props;
   const { getStateById } = useProjectState();
+  const { getStateGroupById } = useStateGroup();
+  const { workspaceSlug } = useRouterParams();
+  // a column of a workspace state group (E30) is coloured by the group's category
   const stateGroup =
-    groupBy === "state" ? getStateById(groupId)?.group : groupBy === "state_detail.group" ? groupId : undefined;
+    groupBy === "state"
+      ? getStateById(groupId)?.group
+      : groupBy === "state_detail.group"
+        ? getStateGroupById(workspaceSlug ?? "", groupId)?.category
+        : undefined;
 
   return (
     <span

@@ -36,6 +36,7 @@ import { useFavorite } from "@/hooks/store/use-favorite";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
+import { useStateGroup } from "@/hooks/store/use-state-group";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -61,6 +62,7 @@ export const WorkspaceAuthWrapper = observer(function WorkspaceAuthWrapper(props
   const { loader, workspaceInfoBySlug, fetchUserWorkspaceInfo, fetchUserProjectPermissions, allowPermissions } =
     useUserPermissions();
   const { fetchWorkspaceStates } = useProjectState();
+  const { fetchStateGroups } = useStateGroup();
   // derived values
   const canPerformWorkspaceMemberActions = allowPermissions(
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
@@ -109,6 +111,13 @@ export const WorkspaceAuthWrapper = observer(function WorkspaceAuthWrapper(props
   useSWR(
     workspaceSlug ? WORKSPACE_STATES(workspaceSlug.toString()) : null,
     workspaceSlug ? () => fetchWorkspaceStates(workspaceSlug.toString()) : null,
+    { revalidateIfStale: false, revalidateOnFocus: false }
+  );
+
+  // fetch workspace state groups (E30): board columns, the project states page and pickers read them
+  useSWR(
+    workspaceSlug ? `WORKSPACE_STATE_GROUPS_${workspaceSlug.toString()}` : null,
+    workspaceSlug ? () => fetchStateGroups(workspaceSlug.toString()) : null,
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
 
