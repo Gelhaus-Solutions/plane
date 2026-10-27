@@ -9,6 +9,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .base import BaseModel
+from .project import ProjectBaseModel
 
 
 class AgentSession(BaseModel):
@@ -75,6 +76,11 @@ class WorkItemClaim(BaseModel):
     ends or goes away; the holder or a person can release it. Ended claims stay, as the item's claim history.
     """
 
+    class Status(models.TextChoices):
+        WORKING = "working", "Working"
+        WAITING_FOR_REVIEW = "waiting_for_review", "Waiting for review"
+        BLOCKED = "blocked", "Blocked"
+
     class EndReason(models.TextChoices):
         RELEASED = "released", "Released by the session"
         RELEASED_BY_PERSON = "released_by_person", "Released by a person"
@@ -88,6 +94,12 @@ class WorkItemClaim(BaseModel):
     claimed_at = models.DateTimeField()
     ended_at = models.DateTimeField(null=True, blank=True)
     end_reason = models.CharField(max_length=32, choices=EndReason.choices, blank=True)
+    # Where the holder says it stands (E29): the live status line and the plan checklist it keeps current
+    status = models.CharField(max_length=24, choices=Status.choices, default=Status.WORKING)
+    status_text = models.CharField(max_length=200, blank=True)
+    status_at = models.DateTimeField(null=True, blank=True)
+    # A list of {"title", "state"} steps, state being todo, doing or done
+    plan = models.JSONField(default=list, blank=True)
 
     class Meta:
         verbose_name = "Work Item Claim"
@@ -156,6 +168,92 @@ class AgentInboxMessage(BaseModel):
 
     def __str__(self):
         return f"{self.kind} #{self.seq} for {self.session_id or self.bot_id}"
+
+
+class AgentActivity(ProjectBaseModel):
+    """What an agent session says about its work on an item, apart from the comments (E29): a status line, the plan,
+    progress, errors, and links to its commits and pull requests. History only: the live status and plan are on the
+    claim. The session is kept as a name once it is gone, so the entry outlives it."""
+
+    class Kind(models.TextChoices):
+        STATUS = "status", "Status"
+        PLAN = "plan", "Plan"
+        PROGRESS = "progress", "Progress"
+        ERROR = "error", "Error"
+        COMMIT = "commit", "Commit"
+        PULL_REQUEST = "pull_request", "Pull request"
+        REVIEW = "review", "Review requested"
+
+    issue = models.ForeignKey("db.Issue", on_delete=models.CASCADE, related_name="agent_activities")
+    session = models.ForeignKey(AgentSession, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    session_name = models.CharField(max_length=255, blank=True)
+    kind = models.CharField(max_length=16, choices=Kind.choices)
+    text = models.CharField(max_length=500, blank=True)
+    data = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        verbose_name = "Agent Activity"
+        verbose_name_plural = "Agent Activities"
+        db_table = "agent_activities"
+        ordering = ("-created_at",)
+        indexes = [models.Index(fields=["issue", "created_at"], name="agent_activity_issue_idx")]
+
+    def __str__(self):
+        return f"{self.kind} on {self.issue_id}"
+
+
+class AgentQuestion(ProjectBaseModel):
+    """A question an agent session asks on a work item and waits to have answered (E29).
+
+    It lists options (numbered from 1), may name one as the default and may carry a deadline: when the deadline passes
+    unanswered, the default applies and the session is told, and a later answer still reaches it as a correction. The
+    answer is delivered to the asking session's inbox (to its bot's queue once the session has ended).
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Waiting for an answer"
+        ANSWERED = "answered", "Answered"
+        DEFAULTED = "defaulted", "The default applied"
+        EXPIRED = "expired", "The deadline passed with no default"
+        CANCELLED = "cancelled", "Withdrawn"
+
+    class Source(models.TextChoices):
+        HUMAN = "human", "A person"
+        DEFAULT = "default", "The default"
+
+    issue = models.ForeignKey("db.Issue", on_delete=models.CASCADE, related_name="agent_questions")
+    session = models.ForeignKey(
+        AgentSession, on_delete=models.SET_NULL, null=True, blank=True, related_name="questions"
+    )
+    session_name = models.CharField(max_length=255, blank=True)
+    bot = models.ForeignKey("db.WorkspaceBot", on_delete=models.CASCADE, related_name="questions")
+    question = models.TextField()
+    detail = models.TextField(blank=True)
+    # A list of {"label", "detail"}; an answer and the default name an option by its number, from 1
+    options = models.JSONField(default=list, blank=True)
+    default_option = models.PositiveSmallIntegerField(null=True, blank=True)
+    deadline = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
+    lapsed_at = models.DateTimeField(null=True, blank=True)
+    answered_at = models.DateTimeField(null=True, blank=True)
+    answered_by = models.ForeignKey("db.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    answer_option = models.PositiveSmallIntegerField(null=True, blank=True)
+    answer_text = models.TextField(blank=True)
+    answer_source = models.CharField(max_length=16, choices=Source.choices, blank=True)
+
+    class Meta:
+        verbose_name = "Agent Question"
+        verbose_name_plural = "Agent Questions"
+        db_table = "agent_questions"
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["workspace", "status", "created_at"], name="agent_question_status_idx"),
+            models.Index(fields=["issue", "status"], name="agent_question_issue_idx"),
+            models.Index(fields=["status", "deadline"], name="agent_question_deadline_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.status}: {self.question[:40]}"
 
 
 @receiver(post_save, sender="db.IssueComment")
