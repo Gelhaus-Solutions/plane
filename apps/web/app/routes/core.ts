@@ -301,6 +301,11 @@ export const coreRoutes: RouteConfigEntry[] = [
             ":workspaceSlug/settings/exports",
             "./(all)/[workspaceSlug]/(settings)/settings/(workspace)/exports/page.tsx"
           ),
+          // State groups (E30, r9-17)
+          route(
+            ":workspaceSlug/settings/state-groups",
+            "./(all)/[workspaceSlug]/(settings)/settings/(workspace)/state-groups/page.tsx"
+          ),
           // Priorities (E35, r15-01)
           route(
             ":workspaceSlug/settings/priorities",

@@ -48,6 +48,13 @@ export const WORKSPACE_SETTINGS: Record<TWorkspaceSettingsTabs, TWorkspaceSettin
     access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
     highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/settings/exports/`,
   },
+  state_groups: {
+    key: "state_groups",
+    i18n_label: "workspace_settings.settings.state_groups.title",
+    href: `/settings/state-groups`,
+    access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
+    highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/settings/state-groups/`,
+  },
   priorities: {
     key: "priorities",
     i18n_label: "workspace_settings.settings.priorities.title",
@@ -74,6 +81,6 @@ export const GROUPED_WORKSPACE_SETTINGS: Record<WORKSPACE_SETTINGS_CATEGORY, TWo
     WORKSPACE_SETTINGS["members"],
     WORKSPACE_SETTINGS["export"],
   ],
-  [WORKSPACE_SETTINGS_CATEGORY.FEATURES]: [WORKSPACE_SETTINGS["priorities"]],
+  [WORKSPACE_SETTINGS_CATEGORY.FEATURES]: [WORKSPACE_SETTINGS["state_groups"], WORKSPACE_SETTINGS["priorities"]],
   [WORKSPACE_SETTINGS_CATEGORY.DEVELOPER]: [WORKSPACE_SETTINGS["webhooks"]],
 };
