@@ -1,6 +1,6 @@
 # Security policy
 
-This policy covers this repository, the Gelhaus Solutions hard fork of Plane, and the images built from it (`ghcr.io/gelhaus-solutions/plane-*`).
+This policy covers this repository, the Gelhaus Solutions fork of Plane, and the images built from it (`ghcr.io/gelhaus-solutions/plane-*`).
 
 ## Reporting a vulnerability
 

@@ -1,6 +1,6 @@
 # Contributing
 
-This is the Gelhaus Solutions hard fork of Plane (see the [README](README.md)). Work happens here only: upstream changes are not pulled in, and changes made here are not sent upstream. Do not open issues or pull requests about this fork on any `makeplane` repository.
+This is the Gelhaus Solutions fork of Plane (see the [README](README.md)). Work happens here only: upstream's `preview` branch is merged in from time to time, and changes made here are not sent upstream. Do not open issues or pull requests about this fork on any `makeplane` repository.
 
 Work is tracked in Plane, not in GitHub issues. Branch from `main`, name the branch after the work item (`<type>/<work-item-id>-<short-description>`, e.g. `feat/web-1234-board-filters`), and open the pull request against `main`.
 

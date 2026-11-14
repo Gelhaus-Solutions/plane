@@ -9,7 +9,7 @@ when both are enabled. One URL (OTLP_ENDPOINT) is enough: same as traces
 
 There is no default collector: when OTLP_ENDPOINT is unset, nothing is
 exported. Upstream defaulted to Plane Software's telemetry.plane.so, which a
-hard fork has no business reporting to.
+fork has no business reporting to.
 """
 
 import os
