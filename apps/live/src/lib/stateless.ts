@@ -13,11 +13,12 @@ import { isPresenceRoom } from "@/lib/presence";
  * Broadcast the client event to all the clients so that they can update their state
  * @param param0
  */
-export const onStateless = async ({ payload, document }: onStatelessPayload) => {
+export const onStateless = async ({ payload, document, connection }: onStatelessPayload) => {
   // presence rooms carry awareness only
   if (isPresenceRoom(document.name)) return;
   const response = DocumentCollaborativeEvents[payload as TDocumentEventsServer]?.client;
-  if (response) {
+  // A read-only connection may not announce page events to the other clients.
+  if (response && !connection.readOnly) {
     document.broadcastStateless(response);
   }
 };

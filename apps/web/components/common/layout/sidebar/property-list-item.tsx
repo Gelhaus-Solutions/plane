@@ -8,6 +8,8 @@ import type { ReactNode } from "react";
 import { cn } from "@plane/utils";
 
 type TSidebarPropertyListItemProps = {
+  /** Accepted for callers; the 4A rows draw no icon. */
+  icon?: React.FC<{ className?: string }>;
   label: string;
   children: ReactNode;
   appendElement?: ReactNode;

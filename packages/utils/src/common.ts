@@ -15,7 +15,7 @@ export const getSupportEmail = (defaultEmail: string = ""): string => defaultEma
 // Custom typography classes: text-h1-semibold, text-body-md-regular, text-caption-xs-medium, etc. They set the size
 // and line height, so they share the font-size group.
 const isTypography = (value: string) =>
-  /^(h[1-6]|body-(xs|sm|md)|caption-(xs|sm|md))-(regular|medium|semibold|bold)$/.test(value);
+  /^(h[1-6]|body-(2xs|xs|sm|md)|caption-(3xs|2xs|xs|sm|md))-(regular|medium|semibold|bold)$/.test(value);
 
 // The numeric sizes of propel and Pulse: text-9 to text-40, text-10-5, text-22, text-26
 const isCustomFontSize = (value: string) => /^(9|10|10-5|11|12|13|14|16|18|20|22|24|26|28|32|40)$/.test(value);
@@ -26,10 +26,21 @@ const isNamedFontSize = (value: string) => /^(xs|sm|base|lg|xl|[2-9]xl)$/.test(v
 const isArbitraryFontSize = (value: string) =>
   /^\[(length:)?[\d.]+(px|rem|em)\]$/.test(value) || /^\[length:.+\]$/.test(value) || /^\(length:.+\)$/.test(value);
 
+// Propel's named border and outline widths (`--border-width-sm`, `--outline-width-md`, ...). tailwind-merge
+// would otherwise treat `border-sm` as a border colour, so a following `border-subtle-1` dropped the width.
+const BORDER_WIDTH_STEPS = ["xs", "sm", "md", "lg", "xl"];
+// Extends tailwind-merge's own width groups so the steps also conflict with `border` / `border-2`.
+const borderWidthGroups = Object.fromEntries(
+  (["", "-x", "-y", "-s", "-e", "-t", "-r", "-b", "-l"] as const).map((side) => [
+    `border-w${side}`,
+    [{ [`border${side}`]: BORDER_WIDTH_STEPS }],
+  ])
+);
+
 // Everything else after text- is a colour (text-primary, text-(--x), text-[#fff]) and lands in text-color. The font
 // size group used to take only the numeric sizes and typography, so text-[11.5px] fell in with the colours and
 // whichever of the two came last removed the other.
-const twMerge = extendTailwindMerge({
+const twMerge = extendTailwindMerge<string>({
   override: {
     classGroups: {
       "font-size": [
@@ -40,6 +51,12 @@ const twMerge = extendTailwindMerge({
           ],
         },
       ],
+    },
+  },
+  extend: {
+    classGroups: {
+      ...borderWidthGroups,
+      "outline-w": [{ outline: BORDER_WIDTH_STEPS }],
     },
   },
 });

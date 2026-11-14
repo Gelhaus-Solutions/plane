@@ -58,5 +58,8 @@
       "use_this": "Use this",
       "refine": "Refine"
     }
+  },
+  "formatting_toolbar": {
+    "label": "ფორმატირება"
   }
 }

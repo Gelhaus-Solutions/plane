@@ -58,5 +58,8 @@
       "use_this": "Použít toto",
       "refine": "Upřesnit"
     }
+  },
+  "formatting_toolbar": {
+    "label": "Formátování"
   }
 }
