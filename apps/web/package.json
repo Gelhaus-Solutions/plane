@@ -48,6 +48,7 @@
     "export-to-csv": "catalog:",
     "isbot": "catalog:",
     "lodash-es": "catalog:",
+    "lucide-react": "catalog:",
     "mobx": "catalog:",
     "mobx-react": "catalog:",
     "mobx-utils": "catalog:",
