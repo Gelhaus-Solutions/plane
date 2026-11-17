@@ -42,6 +42,10 @@ app.conf.beat_schedule = {
     "check-every-minute-to-apply-agent-question-deadlines": {
         "task": "plane.bgtasks.agent_session_task.apply_question_deadlines",
         "schedule": crontab(minute="*"),  # Every minute: a deadline is a time of day people read
+    "check-every-five-minutes-to-unsnooze-intake-issues": {
+        "task": "plane.bgtasks.issue_automation_task.unsnooze_expired_intake_issues",
+        "schedule": crontab(minute="*/5"),  # Every 5 minutes
+    },
     },
     # Occurs once every day
     "check-every-day-to-delete-hard-delete": {

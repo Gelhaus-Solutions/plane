@@ -15,6 +15,9 @@ import { UserService } from "@/services/user.service";
 // types
 import type { HocusPocusServerContext, TDocumentTypes } from "@/types";
 
+// Only user document types may open a socket; any other type is set in-process, never by a client.
+const USER_DOCUMENT_TYPES: ReadonlySet<string> = new Set<TDocumentTypes>(["project_page"]);
+
 /**
  * Authenticate the user
  * @param requestHeaders - The request headers
@@ -30,14 +33,14 @@ export const onAuthenticate = async ({
   context,
   token,
   documentName,
-  connection,
+  connectionConfig,
 }: {
   requestHeaders: IncomingHttpHeaders;
   context: HocusPocusServerContext;
   requestParameters: URLSearchParams;
   token: string;
   documentName: string;
-  connection: { readOnly: boolean };
+  connectionConfig: { readOnly: boolean };
 }) => {
   let cookie: string | undefined = undefined;
   let userId: string | undefined = undefined;
@@ -66,10 +69,16 @@ export const onAuthenticate = async ({
     throw appError;
   }
 
+  const documentType = requestParameters.get("documentType");
+  if (!documentType || !USER_DOCUMENT_TYPES.has(documentType)) {
+    const appError = new AppError("Invalid document type", { code: "AUTH_INVALID_DOCUMENT_TYPE" });
+    logger.error("Invalid document type", appError);
+    throw appError;
+  }
+
   // set cookie in context, so it can be used throughout the ws connection
   context.cookie = cookie ?? requestParameters.get("cookie") ?? "";
-  context.documentType = requestParameters.get("documentType")?.toString() as TDocumentTypes;
-  context.projectId = requestParameters.get("projectId");
+  context.documentType = documentType as TDocumentTypes;
   context.userId = userId;
   context.workspaceSlug = requestParameters.get("workspaceSlug");
 
@@ -80,10 +89,44 @@ export const onAuthenticate = async ({
 
   if (isPresenceRoom(documentName)) {
     await authorizePresence({ documentName, workspaceSlug: context.workspaceSlug, cookie: context.cookie });
-    connection.readOnly = true;
+    connectionConfig.readOnly = true;
+    return authenticated;
   }
 
+  // Hocuspocus loads a document once and hands it to every later connection without fetching it again, so the
+  // first loader's fetch checks no one else: every connection must prove its own access to the page. The project
+  // comes from the checked page, never from the socket.
+  const access = await authorizePage(context, documentName);
+  connectionConfig.readOnly = access.read_only;
+  context.projectId = access.project_id;
+
   return authenticated;
+};
+
+/**
+ * Checks the user's access to the page with their own cookie.
+ * @returns the page's project, and whether the connection must be read-only
+ */
+const authorizePage = async (
+  context: HocusPocusServerContext,
+  pageId: string
+): Promise<{ project_id: string; read_only: boolean }> => {
+  let access: { project_id: string; read_only?: boolean };
+  try {
+    access = await new UserService().getPageAccess(context.cookie, context.workspaceSlug ?? "", pageId, "view");
+  } catch (error) {
+    const appError = new AppError(error, { context: { operation: "authorizePage", pageId } });
+    logger.error("Page authorization failed", appError);
+    // Django denies with a 404; an outage also refuses the connection, under its own code.
+    throw new AppError("Page access denied", {
+      code: appError.statusCode === 404 ? "AUTH_PAGE_ACCESS_DENIED" : appError.code,
+    });
+  }
+  // An API older than this check gives no answer; refuse visibly rather than open a read-only socket that drops edits.
+  if (typeof access.read_only !== "boolean") {
+    throw new AppError("Page access unknown", { code: "AUTH_PAGE_ACCESS_UNKNOWN" });
+  }
+  return { project_id: access.project_id, read_only: access.read_only };
 };
 
 export const handleAuthentication = async ({ cookie, userId }: { cookie: string; userId: string }) => {

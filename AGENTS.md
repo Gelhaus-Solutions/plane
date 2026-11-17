@@ -1,12 +1,12 @@
 # Agent Development Guide
 
-## Hard fork
+## Fork
 
-This repository is the Gelhaus Solutions hard fork of `makeplane/plane`, split on 2026-10-14 at upstream `4605f0078` (package version 1.4.2). Code no longer moves between upstream and this fork in either direction:
+This repository is the Gelhaus Solutions fork of `makeplane/plane`, split on 2026-10-14 at upstream `4605f0078` (package version 1.4.2).
 
-- Never add an upstream remote, and never fetch, merge, rebase onto or cherry-pick from `makeplane/plane`, or port an upstream change by reading its diff. A fix this fork needs is written here, for this codebase.
+- Upstream's `preview` branch is merged in from time to time, as a whole, in a merge commit on a `chore/sync-upstream-*` branch. Nothing is cherry-picked from upstream, and nothing goes back to it.
 - Never open an issue, pull request or discussion on a `makeplane` repository, and never push to one. `gh` is pinned to this repository (`gh repo set-default`); still pass `--repo Gelhaus-Solutions/plane` in anything scripted.
-- `@makeplane/propel` is upstream's published npm package, frozen at the version pinned in `pnpm-workspace.yaml`. Bumping it imports upstream code, so ask the operator first; if a primitive has to change, vendor the package into `packages/` instead. Add no other `makeplane` dependency (npm package, GitHub Action, Helm chart, image).
+- `@makeplane/propel` is upstream's published npm package, pinned in `pnpm-workspace.yaml`; it moves with the upstream merges. If a primitive has to change, vendor the package into `packages/` instead. Add no other `makeplane` dependency (npm package, GitHub Action, Helm chart, image).
 - The trunk is `main`; pull requests target `main`.
 - `.github/workflows/build-images.yml` is the only workflow: it builds the images into `ghcr.io/gelhaus-solutions/plane-*` (`:<branch>` on every push; `:<version>` and `:stable` on a published release). Nothing in CI runs tests, lint or type checks, so run them yourself.
 - No telemetry leaves an instance unless `OTLP_ENDPOINT` is set (`apps/api/plane/utils/otlp_endpoints.py`). Do not reintroduce a default collector or any call home to `plane.so`; the update check reads this repository's releases.
@@ -14,7 +14,7 @@ This repository is the Gelhaus Solutions hard fork of `makeplane/plane`, split o
 
 ## Commands
 
-- `pnpm dev` - Start all dev servers (web:3000, admin:3001)
+- `pnpm dev` - Start all dev servers (web:3000, admin:3001, space:3002, live:3100); the API runs in Docker via `docker-compose-local.yml` on :8000
 - `pnpm build` - Build all packages and apps
 - `pnpm check` - Run all checks (format, lint, types)
 - `pnpm check:lint` - OxLint across all packages
@@ -30,7 +30,7 @@ This repository is the Gelhaus Solutions hard fork of `makeplane/plane`, split o
 - **Linting**: OxLint with shared `.oxlintrc.json` config
 - **Naming**: camelCase for variables/functions, PascalCase for components/types
 - **Error Handling**: Use try-catch with proper error types, log errors appropriately
-- **State Management**: MobX stores in `packages/shared-state`, reactive patterns
+- **State Management**: MobX stores live in each app's `store/` folder (`apps/web/store`, `apps/space/store`, `apps/admin/store`); stores shared across apps go in `packages/shared-state`
 - **Testing**: All features require unit tests, use existing test framework per package
 - **Components**: Primitives come from the published `@makeplane/propel` npm package (`@makeplane/propel/components/*`, `elements/*`, `icons`); composite/Plane-specific components live in `@plane/blocks` (`packages/blocks`, subpath imports only, e.g. `@plane/blocks/toast`)
 
@@ -44,6 +44,12 @@ This repository is the Gelhaus Solutions hard fork of `makeplane/plane`, split o
 - Add/upgrade a dependency: `uv add <pkg>==<version>` (or `--group test`/`--group dev`), or edit `pyproject.toml` and run `uv lock`
 - Run tools: `uv run python manage.py ...`, `uv run ruff check .`
 
+## Migrations
+
+- Generate migrations with `uv run python manage.py makemigrations <app> -n <name>`. The command also rewrites `apps/api/migrations_lockfile.txt`; commit it with the migration and never edit it by hand
+- A merge conflict in the lockfile means another PR added a migration to the same app first: merge `preview`, delete your migration, and run `makemigrations` again
+- `migration-check.yml` fails a PR that touches migrations when the lockfile does not match the migration graph
+
 ## Backend tests (Docker)
 
 The Django/pytest suite for `apps/api` runs in an isolated stack defined by `docker-compose-test.yml` at the repo root.
@@ -54,4 +60,12 @@ Prereq (once): `./setup.sh`, which generates `apps/api/.env` from `.env.example`
 - Subset: `docker compose -f docker-compose-test.yml run --rm --build api-tests pytest -m unit`
 - Teardown: `docker compose -f docker-compose-test.yml down -v`
 
-See `apps/api/tests/RUNNING_TESTS.md` for the full walkthrough and troubleshooting; see `apps/api/tests/TESTING_GUIDE.md` for test conventions and fixtures.
+See `apps/api/tests/RUNNING_TESTS.md` for the full walkthrough and troubleshooting; see `apps/api/plane/tests/TESTING_GUIDE.md` for test conventions and fixtures.
+
+## Translations
+
+Strings live in `packages/i18n/src/locales/<lang>/<namespace>.json`; `en` is the source of truth and every locale must have the same keys. Use the `translate` skill when changing locale files, and run `pnpm --filter=@plane/i18n sync:check` (CI runs it with `--ci`).
+
+## Pull requests
+
+Open PRs against `preview`. New `.py`, `.ts` and `.tsx` files need the `COPYRIGHT.txt` header (checked in CI, see `COPYRIGHT_CHECK.md`).

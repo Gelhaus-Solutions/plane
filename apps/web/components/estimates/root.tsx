@@ -59,7 +59,7 @@ export const EstimateRoot = observer(function EstimateRoot(props: TEstimateRoot)
           title={t("project_settings.estimates.heading")}
           description={t("project_settings.estimates.description")}
         />
-        <div className="mt-6">
+        <div className="mt-7">
           {/* current active estimate section */}
           {currentActiveEstimateId ? (
             <>
@@ -96,8 +96,8 @@ export const EstimateRoot = observer(function EstimateRoot(props: TEstimateRoot)
                   onClick: () => setIsEstimateCreateModalOpen(true),
                 },
               ]}
-              align="start"
-              rootClassName="py-20"
+              align="center"
+              rootClassName="rounded-lg border border-subtle bg-surface-1 py-10"
             />
           )}
           {/* archived estimates section */}

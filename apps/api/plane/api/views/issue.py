@@ -30,6 +30,7 @@ from django.conf import settings
 
 # Third party imports
 from rest_framework import status
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 
 # drf-spectacular imports
@@ -60,6 +61,7 @@ from plane.api.serializers import (
     RelatedIssueSerializer,
 )
 from plane.app.permissions import (
+    ProjectAdminPermission,
     ProjectEntityPermission,
     ProjectLitePermission,
     ProjectMemberPermission,
@@ -77,6 +79,7 @@ from plane.db.models import (
     ProjectMember,
     CycleIssue,
     Workspace,
+    WorkspaceMember,
 )
 from plane.settings.storage import S3Storage
 from plane.utils.priorities import priority_rank
@@ -89,6 +92,7 @@ from plane.utils.order_queryset import (
 from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from .base import BaseAPIView
 from plane.utils.host import base_host
+from plane.utils.serializers import writable_data
 from plane.utils.issue_relation_mapper import get_actual_relation
 from plane.utils.pql.backend import apply_pql
 from plane.utils.pql.compiler import PQLContext
@@ -247,6 +251,71 @@ def order_work_items(queryset, order_by_param):
     return queryset.order_by(order_by_param)
 
 
+def is_active_project_member(user_id, project_id):
+    return ProjectMember.objects.filter(project_id=project_id, member_id=user_id, is_active=True).exists()
+
+
+def is_project_or_workspace_admin(user_id, project_id, slug):
+    """An active project admin, or a workspace admin who is an active project
+    member (the admin rule of the app's `allow_permission`)."""
+    project_member = ProjectMember.objects.filter(
+        workspace__slug=slug, project_id=project_id, member_id=user_id, is_active=True
+    ).first()
+    return project_member is not None and (
+        project_member.role == ROLE.ADMIN.value
+        or WorkspaceMember.objects.filter(
+            workspace__slug=slug, member_id=user_id, role=ROLE.ADMIN.value, is_active=True
+        ).exists()
+    )
+
+
+def is_restricted_guest(user_id, project_id, slug):
+    """A "restricted guest" holds the GUEST role on a project that has not
+    enabled `guest_view_all_features`, and may only see work items they
+    created (mirrors `IssueViewSet.list`/`.retrieve` in app/views/issue)."""
+    return ProjectMember.objects.filter(
+        workspace__slug=slug,
+        project_id=project_id,
+        member_id=user_id,
+        is_active=True,
+        role=ROLE.GUEST.value,
+        project__guest_view_all_features=False,
+    ).exists()
+
+
+def guest_cannot_view_issue(user_id, issue, slug):
+    """True when `issue` exists but a restricted guest did not create it.
+    Callers deny the whole request with 404, the same response as a missing
+    issue."""
+    return issue is not None and issue.created_by_id != user_id and is_restricted_guest(user_id, issue.project_id, slug)
+
+
+def visible_issue_q(user):
+    """Issue filter for work items `user` may view, across projects: every
+    issue in a project where they are an active member above GUEST or a GUEST
+    with `guest_view_all_features`, otherwise only the issues they created."""
+    return (
+        Q(
+            project__project_projectmember__member=user,
+            project__project_projectmember__is_active=True,
+            project__project_projectmember__role__gt=ROLE.GUEST.value,
+        )
+        | Q(
+            project__project_projectmember__member=user,
+            project__project_projectmember__is_active=True,
+            project__project_projectmember__role=ROLE.GUEST.value,
+            project__guest_view_all_features=True,
+        )
+        | Q(
+            project__project_projectmember__member=user,
+            project__project_projectmember__is_active=True,
+            project__project_projectmember__role=ROLE.GUEST.value,
+            project__guest_view_all_features=False,
+            created_by=user,
+        )
+    )
+
+
 class WorkspaceIssueAPIEndpoint(BaseAPIView):
     """
     This viewset provides `retrieveByIssueId` on workspace level
@@ -322,6 +391,8 @@ class WorkspaceIssueAPIEndpoint(BaseAPIView):
                 project__identifier=project_identifier,
                 sequence_id=issue_identifier,
             )
+            if guest_cannot_view_issue(request.user.id, issue, slug):
+                raise Issue.DoesNotExist()
             return Response(
                 IssueSerializer(issue, fields=self.fields, expand=self.expand).data,
                 status=status.HTTP_200_OK,
@@ -408,10 +479,16 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
                 workspace__slug=slug,
                 project_id=project_id,
             )
+            if guest_cannot_view_issue(request.user.id, issue, slug):
+                raise Issue.DoesNotExist()
             return Response(
                 IssueSerializer(issue, fields=self.fields, expand=self.expand).data,
                 status=status.HTTP_200_OK,
             )
+
+        # Restricted guests (GUEST role, guest_view_all_features disabled) may
+        # only see work items they created -- mirrors IssueViewSet.list.
+        restricted_guest = is_restricted_guest(request.user.id, project_id, slug)
 
         # Reject any field not in the allowlist before it reaches .order_by().
         # An unrecognised value is replaced with the safe default, preventing
@@ -425,6 +502,10 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
         issue_queryset = annotate_work_item_counts(self.get_queryset())
 
         total_issue_queryset = Issue.issue_objects.filter(project_id=project_id, workspace__slug=slug)
+
+        if restricted_guest:
+            issue_queryset = issue_queryset.filter(created_by=request.user)
+            total_issue_queryset = total_issue_queryset.filter(created_by=request.user)
 
         if pql:
             issue_queryset = apply_pql(issue_queryset, pql, pql_context)
@@ -501,11 +582,6 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
                 )
 
             serializer.save()
-            # Refetch the issue
-            issue = Issue.objects.filter(workspace__slug=slug, project_id=project_id, pk=serializer.data["id"]).first()
-            issue.created_at = request.data.get("created_at", timezone.now())
-            issue.created_by_id = request.data.get("created_by", request.user.id)
-            issue.save(update_fields=["created_at", "created_by"])
 
             # Track the issue
             issue_activity.delay(
@@ -597,6 +673,8 @@ class IssueDetailAPIEndpoint(BaseAPIView):
             .annotate(count=Func(F("id"), function="Count"))
             .values("count")
         ).get(workspace__slug=slug, project_id=project_id, pk=pk)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
         return Response(
             IssueSerializer(issue, fields=self.fields, expand=self.expand).data,
             status=status.HTTP_200_OK,
@@ -653,9 +731,7 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                 # changes and dispatch the issue activity
                 current_instance = json.dumps(IssueSerializer(issue).data, cls=DjangoJSONEncoder)
 
-                # Get the requested data, encode it as django object and pass it
-                # to serializer to validation
-                requested_data = json.dumps(self.request.data, cls=DjangoJSONEncoder)
+                # Pass the requested data to the serializer for validation
                 serializer = IssueSerializer(
                     issue,
                     data=request.data,
@@ -669,9 +745,11 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                     # If the serializer is valid, save the issue and dispatch
                     # the update issue activity worker event.
                     serializer.save()
+                    # Read-only fields are ignored on save, so they are not reported as changes either.
+                    accepted_data = writable_data(serializer, request.data)
                     issue_activity.delay(
                         type="issue.activity.updated",
-                        requested_data=requested_data,
+                        requested_data=json.dumps(accepted_data, cls=DjangoJSONEncoder),
                         actor_id=str(request.user.id),
                         issue_id=str(issue.id),
                         project_id=str(project_id),
@@ -684,7 +762,7 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                     model_activity.delay(
                         model_name="issue",
                         model_id=str(issue.id),
-                        requested_data=request.data,
+                        requested_data=accepted_data,
                         current_instance=current_instance,
                         actor_id=request.user.id,
                         slug=slug,
@@ -715,19 +793,6 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                 # issue activity worker event as created
                 if serializer.is_valid():
                     serializer.save()
-                    # Refetch the issue
-                    issue = Issue.objects.filter(
-                        workspace__slug=slug,
-                        project_id=project_id,
-                        pk=serializer.data["id"],
-                    ).first()
-
-                    # If any of the created_at or created_by is present, update
-                    # the issue with the provided data, else return with the
-                    # default states given.
-                    issue.created_at = request.data.get("created_at", timezone.now())
-                    issue.created_by_id = request.data.get("created_by", request.user.id)
-                    issue.save(update_fields=["created_at", "created_by"])
 
                     issue_activity.delay(
                         type="issue.activity.created",
@@ -789,7 +854,6 @@ class IssueDetailAPIEndpoint(BaseAPIView):
         issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
         project = Project.objects.get(pk=project_id)
         current_instance = json.dumps(IssueSerializer(issue).data, cls=DjangoJSONEncoder)
-        requested_data = json.dumps(self.request.data, cls=DjangoJSONEncoder)
         serializer = IssueSerializer(
             issue,
             data=request.data,
@@ -816,9 +880,11 @@ class IssueDetailAPIEndpoint(BaseAPIView):
                 )
 
             serializer.save()
+            # Read-only fields are ignored on save, so they are not reported as changes either.
+            accepted_data = writable_data(serializer, request.data)
             issue_activity.delay(
                 type="issue.activity.updated",
-                requested_data=requested_data,
+                requested_data=json.dumps(accepted_data, cls=DjangoJSONEncoder),
                 actor_id=str(request.user.id),
                 issue_id=str(pk),
                 project_id=str(project_id),
@@ -831,7 +897,7 @@ class IssueDetailAPIEndpoint(BaseAPIView):
             model_activity.delay(
                 model_name="issue",
                 model_id=str(pk),
-                requested_data=request.data,
+                requested_data=accepted_data,
                 current_instance=current_instance,
                 actor_id=request.user.id,
                 slug=slug,
@@ -894,6 +960,12 @@ class LabelListCreateAPIEndpoint(BaseAPIView):
     model = Label
     permission_classes = [ProjectMemberPermission]
     use_read_replica = True
+
+    # Label writes are project-admin-only, matching the app API.
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [ProjectMemberPermission()]
+        return [ProjectAdminPermission()]
 
     def get_queryset(self):
         return (
@@ -1131,8 +1203,16 @@ class IssueLinkListCreateAPIEndpoint(BaseAPIView):
     use_read_replica = True
 
     def get_queryset(self):
+        slug = self.kwargs.get("slug")
+        issue = Issue.objects.get(
+            workspace__slug=slug,
+            project_id=self.kwargs.get("project_id"),
+            pk=self.kwargs.get("issue_id"),
+        )
+        if guest_cannot_view_issue(self.request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
         return (
-            IssueLink.objects.filter(workspace__slug=self.kwargs.get("slug"))
+            IssueLink.objects.filter(workspace__slug=slug)
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(issue_id=self.kwargs.get("issue_id"))
             .filter(
@@ -1205,13 +1285,12 @@ class IssueLinkListCreateAPIEndpoint(BaseAPIView):
         Add a new external link to a work item with URL, title, and metadata.
         Automatically tracks link creation activity.
         """
+        Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
         serializer = IssueLinkCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(project_id=project_id, issue_id=issue_id)
             crawl_work_item_link_title.delay(serializer.instance.id, serializer.instance.url)
             link = IssueLink.objects.get(pk=serializer.instance.id)
-            link.created_by_id = request.data.get("created_by", request.user.id)
-            link.save(update_fields=["created_by"])
             issue_activity.delay(
                 type="link.activity.created",
                 requested_data=json.dumps(serializer.data, cls=DjangoJSONEncoder),
@@ -1236,8 +1315,16 @@ class IssueLinkDetailAPIEndpoint(BaseAPIView):
     use_read_replica = True
 
     def get_queryset(self):
+        slug = self.kwargs.get("slug")
+        issue = Issue.objects.get(
+            workspace__slug=slug,
+            project_id=self.kwargs.get("project_id"),
+            pk=self.kwargs.get("issue_id"),
+        )
+        if guest_cannot_view_issue(self.request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
         return (
-            IssueLink.objects.filter(workspace__slug=self.kwargs.get("slug"))
+            IssueLink.objects.filter(workspace__slug=slug)
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(issue_id=self.kwargs.get("issue_id"))
             .filter(
@@ -1382,8 +1469,16 @@ class IssueCommentListCreateAPIEndpoint(BaseAPIView):
     use_read_replica = True
 
     def get_queryset(self):
+        slug = self.kwargs.get("slug")
+        issue = Issue.objects.get(
+            workspace__slug=slug,
+            project_id=self.kwargs.get("project_id"),
+            pk=self.kwargs.get("issue_id"),
+        )
+        if guest_cannot_view_issue(self.request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
         return (
-            IssueComment.objects.filter(workspace__slug=self.kwargs.get("slug"))
+            IssueComment.objects.filter(workspace__slug=slug)
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(issue_id=self.kwargs.get("issue_id"))
             .filter(
@@ -1395,7 +1490,7 @@ class IssueCommentListCreateAPIEndpoint(BaseAPIView):
             .annotate(
                 is_member=Exists(
                     ProjectMember.objects.filter(
-                        workspace__slug=self.kwargs.get("slug"),
+                        workspace__slug=slug,
                         project_id=self.kwargs.get("project_id"),
                         member_id=self.request.user.id,
                         is_active=True,
@@ -1467,6 +1562,10 @@ class IssueCommentListCreateAPIEndpoint(BaseAPIView):
         Add a new comment to a work item with HTML content.
         Supports external ID tracking for integration purposes.
         """
+        issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
+
         # Validation check if the issue already exists
         if (
             request.data.get("external_id")
@@ -1496,11 +1595,6 @@ class IssueCommentListCreateAPIEndpoint(BaseAPIView):
         if serializer.is_valid():
             serializer.save(project_id=project_id, issue_id=issue_id, actor=request.user)
             issue_comment = IssueComment.objects.get(pk=serializer.instance.id)
-            # Update the created_at and the created_by and save the comment
-            issue_comment.created_at = request.data.get("created_at", timezone.now())
-            issue_comment.created_by_id = request.data.get("created_by", request.user.id)
-            issue_comment.actor_id = request.data.get("created_by", request.user.id)
-            issue_comment.save(update_fields=["created_at", "created_by"])
 
             issue_activity.delay(
                 type="comment.activity.created",
@@ -1538,8 +1632,16 @@ class IssueCommentDetailAPIEndpoint(BaseAPIView):
     use_read_replica = True
 
     def get_queryset(self):
+        slug = self.kwargs.get("slug")
+        issue = Issue.objects.get(
+            workspace__slug=slug,
+            project_id=self.kwargs.get("project_id"),
+            pk=self.kwargs.get("issue_id"),
+        )
+        if guest_cannot_view_issue(self.request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
         return (
-            IssueComment.objects.filter(workspace__slug=self.kwargs.get("slug"))
+            IssueComment.objects.filter(workspace__slug=slug)
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(issue_id=self.kwargs.get("issue_id"))
             .filter(
@@ -1551,7 +1653,7 @@ class IssueCommentDetailAPIEndpoint(BaseAPIView):
             .annotate(
                 is_member=Exists(
                     ProjectMember.objects.filter(
-                        workspace__slug=self.kwargs.get("slug"),
+                        workspace__slug=slug,
                         project_id=self.kwargs.get("project_id"),
                         member_id=self.request.user.id,
                         is_active=True,
@@ -1606,6 +1708,7 @@ class IssueCommentDetailAPIEndpoint(BaseAPIView):
                 examples=[ISSUE_COMMENT_EXAMPLE],
             ),
             400: INVALID_REQUEST_RESPONSE,
+            403: FORBIDDEN_RESPONSE,
             404: COMMENT_NOT_FOUND_RESPONSE,
             409: EXTERNAL_ID_EXISTS_RESPONSE,
         },
@@ -1616,7 +1719,20 @@ class IssueCommentDetailAPIEndpoint(BaseAPIView):
         Modify the content of an existing comment on a work item.
         Validates external ID uniqueness if provided.
         """
+        issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
+        # admins (including a workspace admin with a project GUEST role) skip the guest visibility gate
+        is_admin = is_project_or_workspace_admin(request.user.id, project_id, slug)
+        if not is_admin and guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
         issue_comment = IssueComment.objects.get(workspace__slug=slug, project_id=project_id, issue_id=issue_id, pk=pk)
+        if not (
+            (issue_comment.created_by_id == request.user.id and is_active_project_member(request.user.id, project_id))
+            or is_admin
+        ):
+            return Response(
+                {"error": "You are not allowed to edit this comment"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         requested_data = json.dumps(self.request.data, cls=DjangoJSONEncoder)
         current_instance = json.dumps(IssueCommentSerializer(issue_comment).data, cls=DjangoJSONEncoder)
 
@@ -1676,6 +1792,7 @@ class IssueCommentDetailAPIEndpoint(BaseAPIView):
         ],
         responses={
             204: OpenApiResponse(description="Work item comment deleted successfully"),
+            403: FORBIDDEN_RESPONSE,
             404: COMMENT_NOT_FOUND_RESPONSE,
         },
     )
@@ -1685,7 +1802,20 @@ class IssueCommentDetailAPIEndpoint(BaseAPIView):
         Permanently remove a comment from a work item.
         Records deletion activity for audit purposes.
         """
+        issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
+        # admins (including a workspace admin with a project GUEST role) skip the guest visibility gate
+        is_admin = is_project_or_workspace_admin(request.user.id, project_id, slug)
+        if not is_admin and guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
         issue_comment = IssueComment.objects.get(workspace__slug=slug, project_id=project_id, issue_id=issue_id, pk=pk)
+        if not (
+            (issue_comment.created_by_id == request.user.id and is_active_project_member(request.user.id, project_id))
+            or is_admin
+        ):
+            return Response(
+                {"error": "You are not allowed to delete this comment"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         current_instance = json.dumps(IssueCommentSerializer(issue_comment).data, cls=DjangoJSONEncoder)
         issue_comment.delete()
         issue_activity.delay(
@@ -1732,6 +1862,10 @@ class IssueActivityListAPIEndpoint(BaseAPIView):
         Retrieve chronological activity logs for an issue.
         Excludes comment, vote, reaction, and draft activities.
         """
+        issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
+
         issue_activities = (
             IssueActivity.objects.filter(issue_id=issue_id, workspace__slug=slug, project_id=project_id)
             .filter(
@@ -1789,6 +1923,10 @@ class IssueActivityDetailAPIEndpoint(BaseAPIView):
         Retrieve details of a specific activity.
         Excludes comment, vote, reaction, and draft activities.
         """
+        issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
+
         issue_activity = (
             (
                 IssueActivity.objects.filter(issue_id=issue_id, workspace__slug=slug, project_id=project_id, id=pk)
@@ -1912,6 +2050,9 @@ class IssueAttachmentListCreateAPIEndpoint(BaseAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
+
         name = sanitize_filename(request.data.get("name"))
         type = request.data.get("type", False)
         # Clients may send size as a numeric string ("53314").
@@ -2023,6 +2164,17 @@ class IssueAttachmentListCreateAPIEndpoint(BaseAPIView):
 
         List all attachments for an issue.
         """
+        # Reading attachments requires active project membership
+        if not user_has_issue_permission(request.user.id, project_id=project_id, allow_creator=False):
+            return Response(
+                {"error": "You are not allowed to view these attachments"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        issue = Issue.objects.get(pk=issue_id, workspace__slug=slug, project_id=project_id)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
+
         # Get all the attachments
         issue_attachments = FileAsset.objects.filter(
             issue_id=issue_id,
@@ -2051,6 +2203,7 @@ class IssueAttachmentDetailAPIEndpoint(BaseAPIView):
         ],
         responses={
             204: OpenApiResponse(description="Work item attachment deleted successfully"),
+            403: FORBIDDEN_RESPONSE,
             404: ATTACHMENT_NOT_FOUND_RESPONSE,
         },
     )
@@ -2061,20 +2214,33 @@ class IssueAttachmentDetailAPIEndpoint(BaseAPIView):
         Records deletion activity and triggers metadata cleanup.
         """
         issue = Issue.objects.get(pk=issue_id, workspace__slug=slug, project_id=project_id)
-        # if the request user is creator or admin then delete the attachment
-        if not user_has_issue_permission(
-            request.user.id,
+        # admins (including a workspace admin with a project GUEST role) skip the guest visibility gate
+        is_admin = is_project_or_workspace_admin(request.user.id, project_id, slug)
+        if not is_admin and guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
+
+        issue_attachment = FileAsset.objects.get(
+            id=pk,
+            workspace__slug=slug,
             project_id=project_id,
-            issue=issue,
-            allowed_roles=[ROLE.ADMIN.value, ROLE.MEMBER.value, ROLE.GUEST.value],
-            allow_creator=True,
+            issue_id=issue_id,
+            entity_type=FileAsset.EntityTypeContext.ISSUE_ATTACHMENT,
+        )
+
+        # only the attachment's creator (while still an active project member)
+        # or an admin may delete it
+        if not (
+            (
+                issue_attachment.created_by_id == request.user.id
+                and is_active_project_member(request.user.id, project_id)
+            )
+            or is_admin
         ):
             return Response(
                 {"error": "You are not allowed to delete this attachment"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        issue_attachment = FileAsset.objects.get(pk=pk, workspace__slug=slug, project_id=project_id)
         issue_attachment.is_deleted = True
         issue_attachment.deleted_at = timezone.now()
         issue_attachment.save()
@@ -2147,8 +2313,18 @@ class IssueAttachmentDetailAPIEndpoint(BaseAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        issue = Issue.objects.get(pk=issue_id, workspace__slug=slug, project_id=project_id)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
+
         # Get the asset
-        asset = FileAsset.objects.get(id=pk, workspace__slug=slug, project_id=project_id)
+        asset = FileAsset.objects.get(
+            id=pk,
+            workspace__slug=slug,
+            project_id=project_id,
+            issue_id=issue_id,
+            entity_type=FileAsset.EntityTypeContext.ISSUE_ATTACHMENT,
+        )
 
         # Check if the asset is uploaded
         if not asset.is_uploaded:
@@ -2212,7 +2388,16 @@ class IssueAttachmentDetailAPIEndpoint(BaseAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        issue_attachment = FileAsset.objects.get(pk=pk, workspace__slug=slug, project_id=project_id)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
+
+        issue_attachment = FileAsset.objects.get(
+            id=pk,
+            workspace__slug=slug,
+            project_id=project_id,
+            issue_id=issue_id,
+            entity_type=FileAsset.EntityTypeContext.ISSUE_ATTACHMENT,
+        )
         serializer = IssueAttachmentSerializer(issue_attachment)
 
         # Send this activity only if the attachment is not uploaded before
@@ -2231,7 +2416,7 @@ class IssueAttachmentDetailAPIEndpoint(BaseAPIView):
 
             # Update the attachment
             issue_attachment.is_uploaded = True
-            issue_attachment.created_by = request.user
+            # keep the original created_by: delete permission is based on it
 
         # Get the storage metadata
         if not issue_attachment.storage_metadata:
@@ -2294,14 +2479,19 @@ class IssueSearchEndpoint(BaseAPIView):
             else:
                 q |= Q(**{f"{field}__icontains": query})
 
+        # Restricted guests may only search work items they created. Search
+        # can span several projects, so this is a per-row EXISTS check
+        # mirroring IssueDetailEndpoint.get's tiered membership check.
+        visible_issue_subquery = (
+            Issue.issue_objects.filter(id=OuterRef("id")).filter(visible_issue_q(self.request.user)).values("id")
+        )
+
         # Filter issues
         issues = Issue.issue_objects.filter(
             q,
-            project__project_projectmember__member=self.request.user,
-            project__project_projectmember__is_active=True,
             project__archived_at__isnull=True,
             workspace__slug=slug,
-        )
+        ).filter(Exists(visible_issue_subquery))
 
         # Apply project filter if not searching across workspace
         if workspace_search == "false" and project_id:
@@ -2394,8 +2584,15 @@ class IssueRelationListCreateAPIEndpoint(BaseAPIView):
         Retrieve all relationships for a work item organized by relation type.
         Returns a structured response with relations grouped by type.
         """
+        issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
+        if guest_cannot_view_issue(request.user.id, issue, slug):
+            raise Issue.DoesNotExist()
+
+        # Only list related work items the caller may view.
+        visible_issue_ids = Issue.objects.filter(visible_issue_q(request.user)).values("id")
         relations = IssueRelation.objects.filter(
-            Q(issue_id=issue_id) | Q(related_issue_id=issue_id),
+            Q(issue_id=issue_id, related_issue_id__in=visible_issue_ids)
+            | Q(related_issue_id=issue_id, issue_id__in=visible_issue_ids),
             workspace__slug=slug,
         ).values(
             "relation_type",
@@ -2537,6 +2734,8 @@ class IssueRelationListCreateAPIEndpoint(BaseAPIView):
         relation_type = serializer.validated_data["relation_type"]
         issues = serializer.validated_data["issues"]
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
+        # The URL issue is one side of every relation; bind it to the URL project too.
+        Issue.issue_objects.get(workspace__slug=slug, project_id=project_id, pk=issue_id)
 
         actual_relation = get_actual_relation(relation_type)
         is_reverse = relation_type in ["blocking", "start_after", "finish_after"]
@@ -2569,7 +2768,7 @@ class IssueRelationListCreateAPIEndpoint(BaseAPIView):
 
         issue_activity.delay(
             type="issue_relation.activity.created",
-            requested_data=json.dumps(request.data, cls=DjangoJSONEncoder),
+            requested_data=json.dumps({"relation_type": relation_type, "issues": issues}, cls=DjangoJSONEncoder),
             actor_id=str(request.user.id),
             issue_id=str(issue_id),
             project_id=str(project_id),

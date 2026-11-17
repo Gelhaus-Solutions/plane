@@ -1,8 +1,8 @@
 # Plane, Gelhaus Solutions fork
 
-This repository is a **hard fork** of [Plane](https://github.com/makeplane/plane), the open-source project management tool by Plane Software, Inc. It split from upstream on 2026-10-14 at upstream commit [`4605f0078`](https://github.com/makeplane/plane/commit/4605f0078fdcf7016cea646ea50c4b825efd9fac) (package version 1.4.2) and is developed independently from that point on.
+This repository is a fork of [Plane](https://github.com/makeplane/plane), the open-source project management tool by Plane Software, Inc. It split from upstream on 2026-10-14 at upstream commit [`4605f0078`](https://github.com/makeplane/plane/commit/4605f0078fdcf7016cea646ea50c4b825efd9fac) (package version 1.4.2) and is developed here.
 
-- Upstream changes are not merged, rebased or cherry-picked into this fork.
+- Upstream's `preview` branch is merged in from time to time.
 - Changes made here are not contributed back to upstream.
 - Plane Software, Inc. does not maintain, support or endorse this fork. Do not report problems with it to them.
 

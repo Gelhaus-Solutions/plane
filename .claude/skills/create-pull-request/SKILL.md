@@ -40,7 +40,7 @@ Create a pull request using the repo's PR template, a Plane work item ID as the 
 
 5. **Push and create** (in parallel where possible):
    - Push branch with `-u` if no upstream is set
-   - Create PR via `gh pr create --repo Gelhaus-Solutions/plane --base <base>` using a HEREDOC for the body. This is a hard fork: never open a PR against `makeplane/plane`.
+   - Create PR via `gh pr create --repo Gelhaus-Solutions/plane --base <base>` using a HEREDOC for the body. Never open a PR against `makeplane/plane`.
 
 6. **Return the PR URL** to the user.
 

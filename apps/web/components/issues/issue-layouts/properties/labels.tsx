@@ -38,6 +38,7 @@ export interface IIssuePropertyLabels {
   renderByDefault?: boolean;
   fullWidth?: boolean;
   fullHeight?: boolean;
+  showTooltip?: boolean;
   /** Overrides the trigger, e.g. the list's chips (2A) */
   variant?: SelectVariant;
   /** With a chip trigger: labels shown before a "+n" count */
@@ -72,6 +73,7 @@ export const IssuePropertyLabels = observer(function IssuePropertyLabels(props: 
     fullHeight = false,
     variant,
     maxChips,
+    showTooltip = true,
   } = props;
 
   const isTableCell = fullWidth && noLabelBorder;
@@ -93,7 +95,7 @@ export const IssuePropertyLabels = observer(function IssuePropertyLabels(props: 
         maxChips={maxChips}
         // `.clickable` is what the spreadsheet's keyboard navigation clicks on Enter / Space in a focused cell.
         className={isTableCell ? "clickable" : undefined}
-        tooltip
+        tooltip={showTooltip}
       />
     </div>
   );

@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import { Swatch } from "@makeplane/propel/elements/swatch";
 import { useTranslation } from "@plane/i18n";
 import { LabelPropertyIcon } from "../../icons/properties/label-icon";
 import type { TPaginatedResponse } from "@plane/types";
@@ -13,6 +14,7 @@ import type { SelectPaginationParams, SelectTooltip, SelectVariant } from "../..
 import { splitSelectVariant } from "../../select/utils";
 import { ProjectIdentifierElement } from "../shared/project-identifier-element";
 import { CreateLabelEmptyState } from "./create-label-empty-state";
+import { LabelPill } from "./label-pill";
 
 /** Minimal label shape the dropdown needs — the client maps its richer record down to this. */
 export type LabelOption = {
@@ -52,11 +54,17 @@ export type LabelSelectProps = {
   tabIndex?: number;
   /** Chip triggers show at most this many labels on one line, then a "+n" count (the list's Labels column, 2A). */
   maxChips?: number;
+  /**
+   * Shows the label property icon in the trigger while nothing is selected. Turn it off where the
+   * property row already labels the field, e.g. the work item sidebar.
+   *
+   * @default true
+   */
+  showEmptyIcon?: boolean;
 };
 
-function LabelDot({ color }: { color: string }) {
-  return <span className="block size-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />;
-}
+/** Label colour for a swatch — a label that has not loaded yet has no colour. */
+const swatchFill = (label: LabelOption) => label.color || "currentColor";
 
 /**
  * Presentational, data-source-agnostic label picker built on the generic multi-select `Select`.
@@ -79,6 +87,7 @@ export function LabelSelect(props: LabelSelectProps) {
     testId,
     tabIndex,
     maxChips,
+    showEmptyIcon = true,
   } = props;
 
   const { variant } = props;
@@ -116,7 +125,7 @@ export function LabelSelect(props: LabelSelectProps) {
       onClose={onClose}
       getOptionValue={(label) => label.id}
       getOptionLabel={(label) => label.name}
-      getOptionIcon={(label) => <LabelDot color={label.color} />}
+      getOptionIcon={(label) => <Swatch fill={swatchFill(label)} />}
       getOptionTrailing={
         showIdentifier
           ? (label) => (label.identifier ? <ProjectIdentifierElement show identifier={label.identifier} /> : undefined)
@@ -129,7 +138,7 @@ export function LabelSelect(props: LabelSelectProps) {
         tabIndex={tabIndex}
         className={className}
         data-testid={testId}
-        prependIcon={(labels) => (labels.length === 0 ? <LabelPropertyIcon /> : undefined)}
+        prependIcon={(labels) => (labels.length === 0 && showEmptyIcon ? <LabelPropertyIcon /> : undefined)}
         label={(labels) =>
           labels.length === 0
             ? (placeholder ?? "")
@@ -143,7 +152,7 @@ export function LabelSelect(props: LabelSelectProps) {
           if (labels.length === 0) {
             return !!placeholder && <span className="min-w-0 grow truncate text-left">{placeholder}</span>;
           }
-          // select / select-ghost variants show individual label pills matching the legacy chip style
+          // select / select-ghost variants list every selected label as a soft label pill
           if (isSelectKind) {
             return (
               <div
@@ -172,23 +181,14 @@ export function LabelSelect(props: LabelSelectProps) {
               </div>
             );
           }
-          // inline / table-cell: single dot + name for 1, first dot + the pluralised count for multiple
-          if (labels.length === 1) {
-            const label = labels[0];
-            return (
-              <>
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: label.color ?? "#000000" }} />
-                <span className="min-w-0 grow truncate text-left">{label.name}</span>
-              </>
-            );
-          }
+          // inline / table-cell: single swatch + name for 1, first swatch + the pluralised count for multiple
+          const [firstLabel] = labels;
           return (
             <>
-              <span
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ backgroundColor: labels[0].color ?? "#000000" }}
-              />
-              <span className="min-w-0 grow truncate text-left">{t("labels_count", { count: labels.length })}</span>
+              <Swatch fill={swatchFill(firstLabel)} />
+              <span className="min-w-0 grow truncate text-left">
+                {labels.length === 1 ? firstLabel.name : t("labels_count", { count: labels.length })}
+              </span>
             </>
           );
         }}

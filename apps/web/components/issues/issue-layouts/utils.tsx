@@ -838,19 +838,20 @@ export const getScopeMemberIds = ({ isWorkspaceLevel, projectId }: TGetColumns):
 export const getTeamProjectColumns = (): IGroupByColumn[] | undefined => undefined;
 
 export const SpreadSheetPropertyIconMap: Record<string, FC<ISvgIcons>> = {
-  MembersOutline: MembersOutline,
-  CalenderDays: CalendarOutline,
-  DueDateOutline: DueDateOutline,
-  EstimateOutline: EstimateOutline,
-  LabelsOutline: LabelsOutline,
-  ModuleOutline: ModuleOutline,
+  // keyed by the `icon` values in SPREADSHEET_PROPERTY_DETAILS
+  MembersPropertyIcon: MembersOutline,
+  CalendarDays: CalendarOutline,
+  DueDatePropertyIcon: DueDateOutline,
+  EstimatePropertyIcon: EstimateOutline,
+  LabelPropertyIcon: LabelsOutline,
+  DiceIcon: ModuleOutline,
   ContrastIcon: CyclesOutline,
-  PriorityOutline: PriorityOutline,
-  StartDateOutline: StartDateOutline,
-  StateOutline: StateOutline,
+  PriorityPropertyIcon: PriorityOutline,
+  StartDatePropertyIcon: StartDateOutline,
+  StatePropertyIcon: StateOutline,
   Link2: LinkOutline,
-  AttachOutline: AttachOutline,
-  WorkItemsOutline: WorkItemsOutline,
+  Paperclip: AttachOutline,
+  LayersIcon: WorkItemsOutline,
 };
 
 export const SPREADSHEET_COLUMNS: { [key in keyof IIssueDisplayProperties]: TSpreadsheetColumn } = {
@@ -878,4 +879,14 @@ export const useGroupByOptions = (
 }[] => {
   const groupByOptions = ISSUE_GROUP_BY_OPTIONS.filter((option) => options.includes(option.key));
   return groupByOptions;
+};
+
+/**
+ * The minimum width, in pixels, an issue identifier needs in list layouts
+ * @param projectIdentifierLength - length of the project identifier ("PROJ" = 4)
+ * @param maxSequenceId - the highest sequence id in the project
+ */
+export const calculateIdentifierWidth = (projectIdentifierLength: number, maxSequenceId: number): number => {
+  const sequenceDigits = Math.max(1, Math.floor(Math.log10(maxSequenceId)) + 1);
+  return projectIdentifierLength * 7 + 7 + sequenceDigits * 7;
 };
